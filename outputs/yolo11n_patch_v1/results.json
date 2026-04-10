@@ -3,9 +3,9 @@
   "epochs": 1000,
   "training_images": 33,
   "patch_size": 100,
-  "final_det_loss": 0.29209,
+  "final_det_loss": 0.31339,
   "clean_person_detections": 33,
-  "patched_person_detections": 9,
-  "detection_suppression_pct": 72.7,
+  "patched_person_detections": 6,
+  "detection_suppression_pct": 81.8,
   "device": "cuda"
 }
