@@ -1,0 +1,11 @@
+{
+  "model": "yolov8n",
+  "epochs": 10,
+  "training_images": 18,
+  "patch_size": 100,
+  "final_det_loss": 0.31018,
+  "clean_person_detections": 20,
+  "patched_person_detections": 8,
+  "detection_suppression_pct": 60.0,
+  "device": "cpu"
+}

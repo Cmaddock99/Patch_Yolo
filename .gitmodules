@@ -1,0 +1,3 @@
+[submodule "third_party/NaturalisticAdversarialPatches"]
+	path = third_party/NaturalisticAdversarialPatches
+	url = https://github.com/Bimo99B9/NaturalisticAdversarialPatches.git
