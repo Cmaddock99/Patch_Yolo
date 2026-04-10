@@ -1,11 +1,11 @@
 {
   "model": "yolo11n",
-  "epochs": 1000,
+  "epochs": 500,
   "training_images": 33,
   "patch_size": 100,
-  "final_det_loss": 0.26911,
+  "final_det_loss": null,
   "clean_person_detections": 33,
-  "patched_person_detections": 7,
-  "detection_suppression_pct": 78.8,
+  "patched_person_detections": 20,
+  "detection_suppression_pct": 39.4,
   "device": "cuda"
 }
