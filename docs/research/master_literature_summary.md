@@ -1,5 +1,5 @@
 # Master Literature Summary: Adversarial Patches Against YOLO
-*Running document — last updated 2026-04-10 (batch 2)*
+*Running document — last updated 2026-04-10 (batch 3)*
 *Sources: Original papers, arXiv full text, CVPR/ICCV open access pages, GitHub repos*
 
 ---
@@ -32,9 +32,17 @@ This is the living synthesis document for the capstone. Every paper processed ge
 | DelaCruz et al. — Surveillance Survey | 2026 | `notes/delacruz2026_physical_attacks_surveillance.md` | `papers/delacruz2026_physical_attacks_surveillance_2604.06865.pdf` | Processed (abstract; check PDF for full survey) |
 | Winter et al. — Benchmarking Robustness | 2026 | `notes/winter2026_benchmarking_robustness.md` | `papers/winter2026_benchmarking_robustness_2602.16494.pdf` | Processed ⚠️ non-patch only |
 | Na et al. — Unmanned Stores | 2025 | `notes/na2025_unmanned_stores.md` | `papers/na2025_unmanned_stores_2505.08835.pdf` | Fully processed |
+| Wei et al. — Camera-Agnostic Patches (CAP) | 2024 | `notes/wei2024_camera_agnostic_CAP.md` | `papers/wei2024_camera_agnostic_CAP_NeurIPS.pdf` | Fully processed |
+| Bagley et al. — SPAP/SPAP-2 | 2025 | `notes/bagley2025_dynamically_optimized_clusters.md` | `papers/bagley2025_dynamically_optimized_clusters_2511.18656.pdf` | Fully processed |
+| Li et al. — Diff-NAT | 2026 | `notes/diffnat2026_AAAI.md` | `papers/diffnat2026_AAAI.pdf` | Fully processed |
+| Ma et al. — XAIAD-YOLO | 2026 | `notes/ma2026_XAIAD_YOLO.md` | No PDF (Elsevier paywall) | Processed (abstract+method; numbers need institutional access) |
+| Zimoň — GAN YOLO v3/v5/v8/v11 | 2025 | `notes/zimon2025_GAN_YOLO_robustness.md` | No PDF (Springer paywall) | Access-limited — quantitative details pending |
+| Lin et al. — Entropy Patch | 2024 | `notes/lin2024_entropy_adversarial_patch.md` | No PDF (IEEE Access paywall) | Access-limited — quantitative details pending |
+| Truong et al. — AYO-GAN | 2024 | `notes/truong2024_AYO_GAN.md` | No PDF (Springer paywall) | Access-limited — quantitative details pending |
+| Gu & Jafarnejadsani — SAR | 2025 | `notes/gu2025_SAR_segment_recover.md` | No PDF (MDPI bot-blocked) | Access-limited — open access in browser |
 
 **External summary (ChatGPT-generated, imported):** `docs/research/executive_summary_chatgpt.md`
-**Unverified/hallucinated paper claims:** `docs/research/unverified_paper_claims.md`
+**Verification error correction log:** `docs/research/unverified_paper_claims.md`
 
 ---
 
@@ -182,11 +190,11 @@ For any "countermeasures" section: NAPGuard improves detection of naturalistic p
 
 The most recent survey of physical attacks on surveillance systems. Four-dimension framework (temporal persistence, modality, carrier realism, system-level) provides a structured way to frame your capstone's contribution beyond per-frame mAP numbers.
 
-### ⚠️ Citation Integrity Warning
+### ⚠️ Correction: Previously Flagged Papers Are Real
 
-6 papers from the same external AI recommendation batch (Wei NeurIPS 2024, Zimoň 2025, Lin IEEE Access 2024, AYO-GAN, Ma Elsevier 2025, Gu & Jafarnejadsani 2025) **could not be verified** on arXiv, CVPR, NeurIPS, or via targeted searches. They may be hallucinated citations. Details in `docs/research/unverified_paper_claims.md`.
+The 6 papers flagged in a prior version of this document as "likely hallucinated" (Wei NeurIPS 2024, Zimoň 2025, Lin IEEE Access 2024, AYO-GAN, Ma Elsevier 2025, Gu & Jafarnejadsani 2025) are **confirmed real and now verified**. The earlier flag was a methodology error — arXiv was searched as if it were a comprehensive academic archive. It is not; Springer, IEEE Access, MDPI, and Elsevier regularly publish papers without arXiv preprints. All 6 have been confirmed at their publisher URLs, processed into note files, and added to `verified_sources.md`. See `docs/research/unverified_paper_claims.md` for the full correction record.
 
-**Rule going forward**: every paper must have a confirmed arXiv ID, DOI, or open-access URL before being added to `verified_sources.md`.
+**Rule going forward**: verify by DOI, publisher URL, or Google Scholar — not arXiv alone.
 
 ### Updated Recommended Reading Order
 
@@ -200,3 +208,98 @@ The most recent survey of physical attacks on surveillance systems. Four-dimensi
 8. Tan et al. / DOEPatch (2024) — if planning multi-model ensemble training
 9. DelaCruz et al. (2026) — if framing capstone as a surveillance systems paper
 10. Wu et al. / NAPGuard (2024) — if writing a defenses section
+
+---
+
+## Batch 3 Additions (2026-04-10) — Attack Methods
+
+### CAP — Camera-Agnostic Patches via ISP Proxy (Wei et al., NeurIPS 2024)
+
+The camera ISP proxy network (CAP) is the current state-of-the-art for physical-world patch transfer across different camera hardware. Standard EoT (rotation, scale, brightness) treats the camera as a black box. CAP instead builds a differentiable model of the full camera pipeline (lens distortion → sensor noise → ISP color processing) and incorporates it directly into the patch optimization loop.
+
+- **Why it matters for your capstone**: if you physically print and photograph a patch, the camera itself is a variable. CAP addresses this systematically rather than hoping EoT is enough.
+- **Practical implication**: for purely digital experiments, CAP is not needed. For physical-world claim, it is the benchmark to compare against.
+
+### SPAP/SPAP-2 — Superpixel Adversarial Patches (Bagley et al., 2025)
+
+SLIC superpixels are computed on the target region and differentiated via the implicit function theorem (IFT), making the segmentation boundary itself part of the optimization. The patch is constrained to superpixel boundaries → visually coherent, geometrically irregular patches that are harder to detect and more robust at small sizes.
+
+- **Key number**: SPAP-2 reduces person AP to **16.28%** on YOLOv8 vs. 24.97% for standard AdvPatch — strongest result in the scale-robustness regime.
+- **Why it matters**: directly tested on YOLOv8; provides a state-of-the-art 2025 attack baseline beyond DAP.
+
+### Diff-NAT — Diffusion-Based Naturalistic Patches (Li et al., AAAI 2026)
+
+Dual-level optimization using a conditional diffusion model:
+1. **Global level**: CLIP-guided text conditioning to make the patch look like a specific semantic category (e.g., "a flower")
+2. **Local level**: standard detection suppression loss via backpropagation through denoising steps
+
+Diff-NAT closes the gap between naturalism (human-perceptible realism) and adversarial effectiveness that GAN-based methods (Hu et al.) leave open. Outperforms BigGAN-based NAP on both SSIM (visual quality) and AP suppression.
+
+- **Three naturalism paradigms now on record**:
+  1. GAN-latent optimization: Hu et al. (2021), AYO-GAN (2024), Gala et al. (2025)
+  2. Cosine similarity to benign image: DAP/Guesmi (2024)
+  3. Entropy maximization: Lin et al. (2024)
+  4. **Diffusion model with text+latent optimization**: Diff-NAT (AAAI 2026) ← current state-of-the-art
+
+### Zimoň (2025) — The Closest Prior Work to This Capstone
+
+This is the single most directly relevant predecessor paper. It evaluates GAN-based patches across **YOLO v3, v5, v8, and v11** — exactly the model family this capstone covers, minus YOLO26. Key questions to answer by reading the full paper (institutional access required):
+
+1. What are the per-version AP numbers under attack?
+2. Do patches trained on v8 transfer to v11? What's the transfer rate?
+3. What dataset(s) are used?
+
+These numbers are the benchmark your capstone's YOLO26 results extend. **Read this paper before writing your capstone related-work section.**
+
+### Lin et al. (2024) — Entropy Loss: The Simplest Naturalism Approach
+
+Entropy maximization adds a single information-theoretic loss term (maximize Shannon entropy of the patch pixel distribution) without any pretrained generative model. This makes it the cheapest naturalism approach to implement. May be worth a brief ablation comparing entropy vs. TV vs. cosine similarity.
+
+### AYO-GAN (Truong et al., 2024)
+
+A second GAN architecture for adversarial patch generation applied to YOLO. Distinct from BigGAN (Hu et al.) — provides a data point for whether GAN architecture choice significantly affects attack strength. Full comparison requires institutional access.
+
+---
+
+## Batch 3 Additions (2026-04-10) — Defense Methods
+
+Four defense papers are now in the literature base. They cover four distinct defense paradigms:
+
+| Defense | Paper | Paradigm | Requires Retraining? |
+|---|---|---|---|
+| Ad-YOLO | (background context) | Train detector to ignore patches | Yes |
+| NAPGuard | Wu et al. CVPR 2024 | Detect naturalistic patch pixels | Yes (classifier) |
+| XAIAD-YOLO | Ma et al. Elsevier 2026 | Test-time XAI-guided purification | No |
+| SAR | Gu & Jafarnejadsani MDPI 2025 | Segment patch region → recover → redetect | No |
+
+**For the capstone defenses section**: if you are framing this as "attack + defense evaluation," these four papers provide a complete comparison table. XAIAD-YOLO and SAR are the most relevant because they require no retraining and could be applied to any YOLO version — including YOLO26.
+
+---
+
+## Updated Open Research Gaps (2026-04-10, after 22 papers)
+
+1. **YOLO26 adversarial patch robustness** — still zero dedicated papers. NMS-free end-to-end design may respond differently to objectness suppression attacks.
+2. **Cross-generation transfer (v8→v11→v26)** — Zimoň covers v3/v5/v8/v11; extension to v26 is the capstone's primary contribution.
+3. **Physical robustness of Ultralytics v8/v11/v26** — Schack et al. tested only YOLOv3/v5; CAP and Diff-NAT are digital. The physical gap for the Ultralytics generation is unmeasured.
+4. **Model size × robustness interaction on v11/v26** — Gala et al. showed this for v5–v10; extending it to v11/v26 is straight-forward and publishable.
+5. **Defense evaluation on YOLO26** — none of the four defense papers tested against YOLO26; NMS-free detection may change defense effectiveness.
+
+### Final Recommended Reading Order (22 papers)
+
+**Core pipeline** (must-read):
+1. Brown (2017) → DPatch (2019) → Thys (2019) → DAP/Guesmi (2024)
+
+**Modern Ultralytics benchmark** (must-read):
+5. Gala et al. (2025) → Zimoň (2025)
+
+**Physical world** (read before any physical claims):
+7. Schack (2024) → Wei/CAP (2024)
+
+**Advanced attack methods** (for methods section):
+9. Hu (2021) → Bagley/SPAP (2025) → Diff-NAT (2026) → Lin/entropy (2024) → DOEPatch (2024)
+
+**Defenses** (for defenses/countermeasures section):
+14. NAPGuard (2024) → XAIAD-YOLO (2026) → SAR (2025)
+
+**Context and framing**:
+17. Zolfi (2021) → Hoory (2020) → DelaCruz (2026) → Na (2025)

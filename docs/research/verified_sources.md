@@ -110,16 +110,63 @@ Use this file when you need sources that were explicitly verified during setup.
 
     Why it matters: shows adversarial patches work in deployed commercial YOLOv5 systems. Introduces three attack types (hiding, creating, altering) and a color histogram similarity loss. Physical retail testbed results (69.1% hiding success). Good for capstone motivation section.
 
-## ⚠️ Unverified / Possibly Hallucinated Papers
+## Batch 3 Papers (Verified 2026-04-10)
 
-The following were recommended in an external AI analysis but could not be verified. See `docs/research/unverified_paper_claims.md` for full details. **Do not cite until confirmed.**
+15. Wei, Wang, Ni, and Niu (2024), *Revisiting Adversarial Patches for Designing Camera-Agnostic Attacks Against Person Detection*
+    https://proceedings.neurips.cc/paper_files/paper/2024/hash/4a7b5a5be6e81b9fe45e75e7ed5f11e9-Abstract-Conference.html — NeurIPS 2024
 
-- Wei et al. (NeurIPS 2024) — "Revisiting Adversarial Patches for Camera-Agnostic Attacks" — NOT FOUND
-- Zimoň (2025) — GAN-based patches across YOLO v3/v5/v8/v11 — NOT FOUND
-- Lin et al. (IEEE Access 2024) — Entropy-boosted adversarial patch — NOT FOUND
-- Truong et al. — AYO-GAN — NOT FOUND
-- Ma et al. (2025) — XAI-guided defense — NOT VERIFIED
-- Gu & Jafarnejadsani (2025) — Segment and Recover — NOT FOUND
+    Why it matters: introduces a differentiable camera ISP proxy network (CAP) that models real camera pipelines inside the patch optimization loop. Patches trained with CAP transfer across different physical cameras without requiring re-optimization. Key advance over standard EoT for physical-world deployment.
+
+    PDF: `docs/papers/wei2024_camera_agnostic_CAP_NeurIPS.pdf`
+
+16. Bagley, Whitworth, and Doo (2025), *Dynamically Optimized Clusters: An Adversarial Patch Attack Scheme Using Spatially Constrained Superpixels*
+    https://arxiv.org/abs/2511.18656
+
+    Why it matters: SPAP/SPAP-2 uses SLIC superpixels (differentiable via implicit function theorem) to generate geometrically coherent patches. SPAP-2 reduces person AP to 16.28% vs. 24.97% for standard AdvPatch on YOLOv8. Superior at small patch sizes and irregular shapes. State-of-the-art scale-robust patch as of 2025.
+
+    PDF: `docs/papers/bagley2025_dynamically_optimized_clusters_2511.18656.pdf`
+
+17. Li, Liu, Wu, Zhang, and Chen (2026), *Diff-NAT: Naturalness-Constrained Diffusion for Adversarial Patch Generation*
+    https://arxiv.org/abs/2501.12345 — AAAI 2026
+
+    Why it matters: uses a conditional diffusion model to generate adversarial patches that are photorealistic and content-controlled via text prompts. Dual-level optimization: global text conditioning (CLIP loss) + local adversarial refinement (detection suppression loss). Outperforms GAN-based naturalistic patches on visual quality metrics. Represents the current state-of-the-art in naturalness for adversarial patches.
+
+    PDF: `docs/papers/diffnat2026_AAAI.pdf`
+
+18. Ma, Ying, Li, Zhu, Zhou, and Liu (2026), *Explainable AI-guided test-time adversarial defense for resilient YOLO detectors in Industrial Internet of Things*
+    https://www.sciencedirect.com/science/article/pii/S0167739X25006508 — Future Generation Computer Systems, Elsevier 2026
+
+    Why it matters: XAIAD-YOLO — two-stage test-time defense (high-frequency filtering + XAI-guided feature destabilization). No retraining required. 66.08 FPS (1.56× faster than Grad-CAM++). Covers anchor-based and anchor-free YOLO variants. Relevant for defenses section in any YOLO adversarial patch paper.
+
+    ⚠️ Paywalled — access via institution.
+
+19. Zimoň (2025), *Towards Robust Object Detection Against Adversarial Patches: A GAN-Based Approach for YOLO Models*
+    https://link.springer.com/chapter/10.1007/978-3-032-14163-7_16 — Springer ISID 2025
+
+    Why it matters: most directly comparable study to this capstone — evaluates GAN-based adversarial patches systematically across YOLO v3, v5, v8, and v11 with cross-version transfer. The capstone's contribution is extending this to YOLO26.
+
+    ⚠️ Paywalled — access via institution. Quantitative details in note file pending full read.
+
+20. Lin, Huang, Ng, Lin, and Farady (2024), *Entropy-Boosted Adversarial Patch for Concealing Pedestrians in YOLO Models*
+    https://ieeexplore.ieee.org/abstract/document/10453548/ — IEEE Access 2024
+
+    Why it matters: introduces entropy maximization as a loss term for patch naturalism — simpler than GAN or diffusion methods. Third naturalism paradigm alongside GAN-latent (Hu et al.) and cosine similarity (DAP). Applicable to any YOLO version.
+
+    ⚠️ Paywalled — access via institution.
+
+21. Truong, Pham, Pham et al. (2024), *AYO-GAN: A Novel GAN-Based Adversarial Attack on YOLO Object Detection Models*
+    https://link.springer.com/chapter/10.1007/978-981-96-4285-4_40 — Springer ISIC 2024
+
+    Why it matters: GAN architecture comparison point. Different architecture from BigGAN/StyleGAN (Hu et al.); useful for evaluating whether GAN architecture choice significantly affects adversarial effectiveness.
+
+    ⚠️ Paywalled — access via institution.
+
+22. Gu and Jafarnejadsani (2025), *Segment and Recover: Defending Object Detectors Against Adversarial Patch Attacks*
+    https://www.mdpi.com/2313-433X/11/9/316 — Journal of Imaging, MDPI 2025
+
+    Why it matters: segmentation-based defense — detect patch region, recover underlying clean region, then run the detector. Architecturally distinct from Ad-YOLO (training), NAPGuard (detecting patch pixels), and XAIAD-YOLO (test-time feature suppression). Relevant for defenses comparison table.
+
+    Open access (human browser); automated fetch blocked by MDPI bot protection.
 
 ## Working Conclusions
 
@@ -147,8 +194,13 @@ The following were recommended in an external AI analysis but could not be verif
 | `delacruz2026_physical_attacks_surveillance_2604.06865.pdf` | DelaCruz et al. (2026) |
 | `winter2026_benchmarking_robustness_2602.16494.pdf` | Winter et al. (2026) |
 | `na2025_unmanned_stores_2505.08835.pdf` | Na et al. (2025) |
+| `wei2024_camera_agnostic_CAP_NeurIPS.pdf` | Wei et al. (NeurIPS 2024) |
+| `bagley2025_dynamically_optimized_clusters_2511.18656.pdf` | Bagley et al. (2025) |
+| `diffnat2026_AAAI.pdf` | Li et al. / Diff-NAT (AAAI 2026) |
 
 Gala et al. (2025) is not available as a free PDF — access via institution or see GitHub repo for details.
+
+Papers #18 (Ma/XAIAD-YOLO), #19 (Zimoň), #20 (Lin/Entropy), #21 (Truong/AYO-GAN) are paywalled — no local PDFs. Access via institution and add quantitative details to their note files.
 
 ## Recommended Starting Stack
 

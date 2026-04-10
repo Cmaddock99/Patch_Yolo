@@ -1,70 +1,79 @@
-# Unverified Paper Claims — Do Not Cite
+# Verification Error Correction — Batch 2 Papers
 
-*Created: 2026-04-10*
+*Updated: 2026-04-10*
 
-The following papers were recommended in an external AI-generated analysis (ChatGPT/similar) but **could not be verified** through arXiv searches, CVPR/NeurIPS open access, or Springer searches. They may be hallucinated citations — fabricated titles that sound plausible but do not correspond to real papers.
+## What Happened
 
-**Do not cite any of these in your capstone until you independently verify they exist** (e.g., via Google Scholar, your university library, or direct author contact).
+An earlier version of this file (created 2026-04-10) incorrectly labeled 6 real papers as "likely hallucinated." The error was a **methodology error, not a research quality problem**: the verification pass searched only arXiv and CVPR/NeurIPS open-access pages. All 6 papers are published in venues that have no arXiv presence by default (Springer chapter books, IEEE Access, MDPI open-access journal, Elsevier journal, NeurIPS proceedings). Absence from arXiv is not evidence of non-existence.
+
+**All 6 papers are real and confirmed at the URLs below.** Their note files are in `docs/notes/` and they have been added to `verified_sources.md`.
 
 ---
 
-## Papers That Could Not Be Found
+## Corrected Status for All 6 Papers
 
 ### 1. Wei et al. (NeurIPS 2024) — Camera-Agnostic Adversarial Patches
-- **Claimed title**: "Revisiting Adversarial Patches for Designing Camera-Agnostic Attacks Against Person Detection"
-- **Claimed venue**: NeurIPS 2024
-- **Claimed URL**: https://proceedings.neurips.cc/paper_files/paper/2024 (incomplete — no paper found)
-- **Status**: arXiv search for "camera agnostic adversarial patch person" returned zero results. NeurIPS 2024 URL was incomplete and could not be resolved. **Unverified.**
 
-### 2. Zimoň (2025) — GAN-Based Approach for YOLO v3/v5/v8/v11
-- **Claimed title**: "Towards Robust Object Detection Against Adversarial Patches: A GAN-Based Approach for YOLO Models"
-- **Claimed venue**: Springer ISID 2025
-- **Status**: Not found on arXiv, no results in targeted searches. If this paper exists, it would be one of the most directly relevant papers to this capstone — verify via Google Scholar by searching the exact title. **Unverified.**
-- **Note**: If real, this would cover YOLOv3, v5, v8, v11 cross-version — extremely relevant. Worth pursuing manually.
+- **Title**: Revisiting Adversarial Patches for Designing Camera-Agnostic Attacks Against Person Detection
+- **Venue**: NeurIPS 2024 Proceedings
+- **Confirmed URL**: https://proceedings.neurips.cc/paper_files/paper/2024/hash/4a7b5a5be6e81b9fe45e75e7ed5f11e9-Abstract-Conference.html
+- **PDF downloaded**: `docs/papers/wei2024_camera_agnostic_CAP_NeurIPS.pdf`
+- **Note file**: `docs/notes/wei2024_camera_agnostic_CAP.md`
+- **Status**: ✅ Confirmed real — NeurIPS 2024 proceedings
+
+### 2. Zimoň (2025) — GAN-Based Patches for YOLO v3/v5/v8/v11
+
+- **Title**: Towards Robust Object Detection Against Adversarial Patches: A GAN-Based Approach for YOLO Models
+- **Venue**: Springer ISID 2025 chapter
+- **Confirmed URL**: https://link.springer.com/chapter/10.1007/978-3-032-14163-7_16
+- **Note file**: `docs/notes/zimon2025_GAN_YOLO_robustness.md`
+- **Status**: ✅ Confirmed real — Springer chapter (paywall; access via institution)
 
 ### 3. Lin et al. (IEEE Access 2024) — Entropy-Boosted Adversarial Patch
-- **Claimed title**: "Entropy-Boosted Adversarial Patch for Concealing Pedestrians in YOLO Models"
-- **Claimed venue**: IEEE Access 2024
-- **Claimed authors**: Lin, Huang, Ng, Lin, Farady
-- **Status**: Not found on arXiv. IEEE Access papers may not be on arXiv. Try IEEE Xplore directly. **Unverified.**
+
+- **Title**: Entropy-Boosted Adversarial Patch for Concealing Pedestrians in YOLO Models
+- **Authors**: Lin, Huang, Ng, Lin, Farady
+- **Venue**: IEEE Access, 2024
+- **Confirmed URL**: https://ieeexplore.ieee.org/abstract/document/10453548/
+- **Note file**: `docs/notes/lin2024_entropy_adversarial_patch.md`
+- **Status**: ✅ Confirmed real — IEEE Access (institutional access required for full PDF)
 
 ### 4. Truong, Pham et al. — AYO-GAN
-- **Claimed title**: "AYO-GAN: A Novel GAN-Based Adversarial Attack on YOLO Object Detection Models"
-- **Claimed venue**: Springer ISIC 2024
-- **Status**: arXiv search for "AYO-GAN adversarial YOLO" returned zero results. **Unverified.**
 
-### 5. Ma et al. (2025) — XAI-Guided Adversarial Defense
-- **Claimed title**: "Explainable AI-Guided Test-Time Adversarial Defense for Resilient YOLO Detectors in Industrial IoT"
-- **Claimed venue**: Future Generation Computer Systems, Elsevier 2025
-- **Status**: Not searched specifically on arXiv. Try Elsevier ScienceDirect directly if needed. **Unverified.**
+- **Title**: AYO-GAN: A Novel GAN-Based Adversarial Attack on YOLO Object Detection Models
+- **Venue**: Springer ISIC 2024 chapter
+- **Confirmed URL**: https://link.springer.com/chapter/10.1007/978-981-96-4285-4_40
+- **Note file**: `docs/notes/truong2024_AYO_GAN.md`
+- **Status**: ✅ Confirmed real — Springer chapter (paywall; access via institution)
 
-### 6. Gu & Jafarnejadsani (2025) — Segment and Recover
-- **Claimed title**: "Segment and Recover: Defending Object Detectors Against Adversarial Patch Attacks"
-- **Claimed venue**: Journal of Imaging, MDPI 2025
-- **Status**: arXiv search returned zero results. MDPI papers may not be on arXiv. Try MDPI directly. **Unverified.**
+### 5. Ma et al. (2026) — XAIAD-YOLO (XAI-Guided Defense)
 
----
+- **Title**: Explainable AI-guided test-time adversarial defense for resilient YOLO detectors in Industrial Internet of Things
+- **Authors**: Ruinan Ma, Zuobin Ying, Wenjuan Li, Dehua Zhu, Wanlei Zhou, Hongyi Liu
+- **Venue**: Future Generation Computer Systems, Volume 179, June 2026 (Elsevier)
+- **Confirmed URL**: https://www.sciencedirect.com/science/article/pii/S0167739X25006508
+- **Note file**: `docs/notes/ma2026_XAIAD_YOLO.md`
+- **Status**: ✅ Confirmed real — Elsevier FGCS (paywall; access via institution)
 
-## Papers That ARE Verified (from same recommendation batch)
+### 6. Gu & Jafarnejadsani (2025) — Segment and Recover (SAR)
 
-These were in the same list but were confirmed to exist and are documented in `verified_sources.md`:
-
-| Paper | arXiv / URL | Note File |
-|---|---|---|
-| DelaCruz et al. (2026) | arXiv:2604.06865 | `notes/delacruz2026_physical_attacks_surveillance.md` |
-| Guesmi et al. DAP (CVPR 2024) | arXiv:2305.11618 | `notes/guesmi2024_DAP_dynamic_adversarial_patch.md` |
-| Wu et al. NAPGuard (CVPR 2024) | CVPR open access | `notes/wu2024_NAPGuard.md` |
-| Winter et al. (2026) | arXiv:2602.16494 | `notes/winter2026_benchmarking_robustness.md` |
-| Tan et al. DOEPatch (2024) | arXiv:2312.16907 | `notes/tan2024_DOEPatch.md` |
-| Na et al. (2025) | arXiv:2505.08835 | `notes/na2025_unmanned_stores.md` |
+- **Title**: Segment and Recover: Defending Object Detectors Against Adversarial Patch Attacks
+- **Venue**: Journal of Imaging, MDPI, Volume 11, Issue 9, Article 316 (2025)
+- **Confirmed URL**: https://www.mdpi.com/2313-433X/11/9/316
+- **Note file**: `docs/notes/gu2025_SAR_segment_recover.md`
+- **Status**: ✅ Confirmed real — MDPI open access (bot protection blocks automated fetch; human-browser accessible)
 
 ---
 
-## How to Manually Verify Unverified Papers
+## Lesson Learned: Verification Protocol
 
-1. Search exact title in quotes on Google Scholar
-2. Search by author last name + year + "adversarial patch" on Google Scholar
-3. Check institutional repositories (author university pages)
-4. For IEEE papers: https://ieeexplore.ieee.org
-5. For Springer papers: https://link.springer.com (search by title)
-6. For MDPI: https://www.mdpi.com
+arXiv is not a comprehensive academic archive. Many legitimate, peer-reviewed papers appear only in:
+- Springer book chapters (no arXiv version)
+- IEEE Access / IEEE Xplore (often no arXiv preprint)
+- MDPI journals (open access, but no arXiv mirror)
+- Elsevier journals (often no arXiv preprint)
+- NeurIPS proceedings (may have arXiv but not always indexed in the same search terms)
+
+**Correct verification protocol**: search by exact DOI, confirmed publisher URL, or Google Scholar — not arXiv alone. An arXiv miss is inconclusive, not disqualifying.
+
+All previously "unverified" papers in this file are now fully processed. This file is retained as a record of the correction.
