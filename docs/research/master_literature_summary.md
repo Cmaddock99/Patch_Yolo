@@ -1,5 +1,5 @@
 # Master Literature Summary: Adversarial Patches Against YOLO
-*Running document — updated 2026-04-10*
+*Running document — last updated 2026-04-10 (batch 2)*
 *Sources: Original papers, arXiv full text, CVPR/ICCV open access pages, GitHub repos*
 
 ---
@@ -26,8 +26,15 @@ This is the living synthesis document for the capstone. Every paper processed ge
 | Zolfi et al. — Translucent Patch | 2021 | `notes/zolfi2021_translucent_patch.md` | `papers/zolfi2021_translucent_patch_2012.12528.pdf` | Fully processed |
 | Schack et al. — Real-world Challenges | 2024 | `notes/schack2024_real_world_challenges.md` | `papers/schack2024_real_world_challenges_2410.19863.pdf` | Fully processed |
 | Gala et al. — YOLO Models IJIS 2025 | 2025 | `notes/gala2025_yolo_adversarial_patches.md` | Not available (Springer paywall) | Processed via GitHub README |
+| Guesmi et al. — DAP | 2024 | `notes/guesmi2024_DAP_dynamic_adversarial_patch.md` | `papers/guesmi2024_DAP_CVPR.pdf` | Fully processed |
+| Wu et al. — NAPGuard | 2024 | `notes/wu2024_NAPGuard.md` | `papers/wu2024_NAPGuard_CVPR.pdf` | Processed (abstract+method) |
+| Tan et al. — DOEPatch | 2024 | `notes/tan2024_DOEPatch.md` | `papers/tan2024_DOEPatch_2312.16907.pdf` | Fully processed |
+| DelaCruz et al. — Surveillance Survey | 2026 | `notes/delacruz2026_physical_attacks_surveillance.md` | `papers/delacruz2026_physical_attacks_surveillance_2604.06865.pdf` | Processed (abstract; check PDF for full survey) |
+| Winter et al. — Benchmarking Robustness | 2026 | `notes/winter2026_benchmarking_robustness.md` | `papers/winter2026_benchmarking_robustness_2602.16494.pdf` | Processed ⚠️ non-patch only |
+| Na et al. — Unmanned Stores | 2025 | `notes/na2025_unmanned_stores.md` | `papers/na2025_unmanned_stores_2505.08835.pdf` | Fully processed |
 
 **External summary (ChatGPT-generated, imported):** `docs/research/executive_summary_chatgpt.md`
+**Unverified/hallucinated paper claims:** `docs/research/unverified_paper_claims.md`
 
 ---
 
@@ -146,3 +153,50 @@ From Gala et al. (2025): **Larger models are more robust to adversarial patches 
 6. Schack et al. (2024) — read before making any physical-world claims
 7. Zolfi et al. (2021) — read if extending to class-selective suppression
 8. Hoory et al. (2020) — read if extending to multi-angle/physical car testing
+
+---
+
+## Batch 2 Additions (2026-04-10) — New Verified Papers
+
+### DAP — New State-of-the-Art Baseline (Guesmi et al., CVPR 2024)
+
+DAP is now the strongest verified person-vanishing result. Key advantages over Thys et al.:
+- **Creases Transformation (CT)**: directly simulates cloth wrinkles — more realistic than rigid EoT rotation/scale
+- **No GAN required**: uses a cosine similarity loss (L_sim) to maintain naturalism
+- **Better digital numbers**: 93.46% success on YOLOv3tiny vs Thys' 73.54% (recall reduction)
+- **Physical T-shirt test**: 65% success rate with printed patch on clothing
+
+Loss: `L_total = L_det + 4·L_sim + 0.5·L_tv` (objectness×class probability + similarity to benign image + smoothness)
+
+**Your capstone should compare against DAP as the 2024 baseline, not just Thys (2019).**
+
+### DOEPatch — Ensemble Approach for Multi-Model Attacks (Tan et al., 2024)
+
+If extending your capstone to train a single patch that fools YOLOv8 + YOLO11 simultaneously, DOEPatch provides the exact framework. The Min-Max alternating optimization with dynamic weight adjustment prevents collapse to a single model. Tested on YOLOv2–v4 + Faster R-CNN; the same approach is portable to v8/v11.
+
+### NAPGuard — Defense Reference (Wu et al., CVPR 2024)
+
+For any "countermeasures" section: NAPGuard improves detection of naturalistic patches (GAN/diffusion-generated) by 60.24% AP@0.5 over prior defenses. The existence of NAPGuard is relevant to discussing why naturalistic patches (like Gala et al.) are still a research priority — defenses exist but are not deployed by default.
+
+### DelaCruz et al. (2026) — Surveillance System Framing
+
+The most recent survey of physical attacks on surveillance systems. Four-dimension framework (temporal persistence, modality, carrier realism, system-level) provides a structured way to frame your capstone's contribution beyond per-frame mAP numbers.
+
+### ⚠️ Citation Integrity Warning
+
+6 papers from the same external AI recommendation batch (Wei NeurIPS 2024, Zimoň 2025, Lin IEEE Access 2024, AYO-GAN, Ma Elsevier 2025, Gu & Jafarnejadsani 2025) **could not be verified** on arXiv, CVPR, NeurIPS, or via targeted searches. They may be hallucinated citations. Details in `docs/research/unverified_paper_claims.md`.
+
+**Rule going forward**: every paper must have a confirmed arXiv ID, DOI, or open-access URL before being added to `verified_sources.md`.
+
+### Updated Recommended Reading Order
+
+1. Brown et al. (2017) — universal patches + EoT
+2. Liu et al. / DPatch (2019) — detector-specific losses
+3. Thys et al. (2019) — canonical person-vanishing; objectness loss
+4. **Guesmi et al. / DAP (CVPR 2024)** — current SOTA person-vanishing; Creases Transformation
+5. Hu et al. (2021) — GAN latent naturalism (prerequisite for Gala)
+6. Gala et al. (2025) — Ultralytics YOLOv5–v10 benchmark
+7. Schack et al. (2024) — physical-world gap; read before any physical claims
+8. Tan et al. / DOEPatch (2024) — if planning multi-model ensemble training
+9. DelaCruz et al. (2026) — if framing capstone as a surveillance systems paper
+10. Wu et al. / NAPGuard (2024) — if writing a defenses section
