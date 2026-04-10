@@ -5,7 +5,7 @@
   "patch_size": 100,
   "final_det_loss": null,
   "clean_person_detections": 33,
-  "patched_person_detections": 20,
-  "detection_suppression_pct": 39.4,
+  "patched_person_detections": 22,
+  "detection_suppression_pct": 33.3,
   "device": "cuda"
 }
