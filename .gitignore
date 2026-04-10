@@ -1,0 +1,16 @@
+.DS_Store
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+outputs/
+runs/
+logs/
+
+data/custom_images/*
+!data/custom_images/.gitkeep
+
+*.pt
+*.onnx
+*.engine

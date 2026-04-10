@@ -1,0 +1,10 @@
+adversarial-robustness-toolbox>=1.17.0
+matplotlib>=3.8
+numpy>=1.26
+opencv-python>=4.9
+pillow>=10.0
+setuptools<81
+torch>=2.0
+torchvision>=0.15
+ultralytics>=8.4.3
+yolov5>=7.0.14
