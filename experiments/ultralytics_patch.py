@@ -227,8 +227,13 @@ def main() -> None:
     print(f"Device: {device}")
     print(f"Model:  {args.model}")
 
-    # Output directories
-    run_name = f"{args.model}_patch_v1"
+    # Output directories — eval-only runs get a distinct name so they don't
+    # overwrite training results for the same model.
+    if args.eval_only and args.load_patch:
+        source_model = args.load_patch.parts[-3] if len(args.load_patch.parts) >= 3 else "unknown"
+        run_name = f"{args.model}_from_{source_model}_transfer"
+    else:
+        run_name = f"{args.model}_patch_v1"
     run_dir = args.output_dir / run_name
     for sub in ("original", "patched", "patches"):
         (run_dir / sub).mkdir(parents=True, exist_ok=True)
