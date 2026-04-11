@@ -154,12 +154,12 @@ Use this file when you need sources that were explicitly verified during setup.
 
     ⚠️ Paywalled — access via institution.
 
-21. Truong, Pham, Pham et al. (2024), *AYO-GAN: A Novel GAN-Based Adversarial Attack on YOLO Object Detection Models*
-    https://link.springer.com/chapter/10.1007/978-981-96-4285-4_40 — Springer ISIC 2024
+21. Truong, Pham, Pham, and Nguyen (2025), *AYO-GAN: A Novel GAN-Based Adversarial Attack on YOLO Object Detection Models*
+    https://doi.org/10.1007/978-981-96-4285-4_40 — SOICT 2024, CCIS vol. 2351, Springer Singapore
 
-    Why it matters: GAN architecture comparison point. Different architecture from BigGAN/StyleGAN (Hu et al.); useful for evaluating whether GAN architecture choice significantly affects adversarial effectiveness.
+    Why it matters: GAN-generated full-image perturbation against YOLO. Key numbers: ASR 22.25%, SSIM 0.936 (vs. baseline 12.67% ASR, 0.842 SSIM). The 22% vs. your 85% gap frames why localized patches outperform full-image perturbation methods. GAN architecture comparison point alongside Hu et al. (BigGAN) and Diff-NAT (diffusion).
 
-    ⚠️ Paywalled — access via institution.
+    ⚠️ Paywalled — ILL request needed. Note file fully populated from metadata.
 
 22. Gu and Jafarnejadsani (2025), *Segment and Recover: Defending Object Detectors Against Adversarial Patch Attacks*
     https://www.mdpi.com/2313-433X/11/9/316 — Journal of Imaging, MDPI 2025
