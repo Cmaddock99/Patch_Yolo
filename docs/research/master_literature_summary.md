@@ -11,6 +11,7 @@ This is the living synthesis document for the capstone. Every paper processed ge
 - For full method details, loss terms, and numbers: see the individual note files.
 - For source verification: see `verified_sources.md`.
 - For original PDFs: see `docs/papers/`.
+- Current verified coverage: 35 research papers aligned with `verified_sources.md` (model-reference docs remain bibliography-only).
 
 ---
 
@@ -21,6 +22,7 @@ This is the living synthesis document for the capstone. Every paper processed ge
 | Brown et al. — Adversarial Patch | 2017 | `notes/brown2017_adversarial_patch.md` | `papers/brown2017_adversarial_patch_1712.09665.pdf` | Fully processed |
 | Liu et al. — DPatch | 2019 | `notes/liu2019_dpatch.md` | `papers/liu2019_dpatch_1806.02299.pdf` | Fully processed |
 | Thys et al. — Fooling Surveillance Cameras | 2019 | `notes/thys2019_fooling_surveillance.md` | `papers/thys2019_fooling_surveillance_1904.08653.pdf` | Fully processed |
+| Huang et al. — Universal Physical Camouflage | 2019 | `notes/huang2019_universal_physical_camouflage.md` | arXiv open access (not yet downloaded) | Stub — physical camouflage baseline |
 | Hoory et al. — Dynamic Adversarial Patch | 2020 | `notes/hoory2020_dynamic_patch.md` | `papers/hoory2020_dynamic_patch_2010.13070.pdf` | Fully processed |
 | Hu et al. — Naturalistic Physical Patch | 2021 | `notes/hu2021_naturalistic_patch.md` | `papers/hu2021_naturalistic_patch_ICCV.pdf` | Processed (abstract+method; full numbers in PDF) |
 | Zolfi et al. — Translucent Patch | 2021 | `notes/zolfi2021_translucent_patch.md` | `papers/zolfi2021_translucent_patch_2012.12528.pdf` | Fully processed |
@@ -42,15 +44,16 @@ This is the living synthesis document for the capstone. Every paper processed ge
 | Gu & Jafarnejadsani — SAR | 2025 | `notes/gu2025_SAR_segment_recover.md` | No PDF (MDPI bot-blocked) | Access-limited — open access in browser |
 | Bayer et al. — Network Transferability | 2024 | `notes/bayer2024_network_transferability.md` | `papers/bayer2024_network_transferability_2408.15833.pdf` | Stub — read for transfer numbers |
 | Huang et al. — T-SEA | 2022 | `notes/huang2022_tsea_transfer.md` | `papers/huang2022_tsea_transfer_2211.09773.pdf` | Stub — has open code |
-| Lovisotto et al. — Attention Patch Robustness | 2022 | `notes/lovisotto2022_attention_patch_robustness.md` | CVF open access (not yet downloaded) | Stub — critical for v26 |
+| Lovisotto et al. — Attention Patch Robustness | 2022 | `notes/lovisotto2022_attention_patch_robustness.md` | `papers/lovisotto2022_attention_patch_robustness_CVPR.pdf` | Stub — critical for v26 |
 | Alam et al. — Attention Deficit | 2023 | `notes/alam2023_attention_deficit_deformable.md` | `papers/alam2023_attention_deficit_2311.12914.pdf` | Stub — critical for v26 |
-| Liao et al. — Anchor-Free Adversarial | 2021 | `notes/liao2021_anchor_free_adversarial.md` | IEEE via CSUSM (not yet downloaded) | Stub — critical for v26 transfer |
+| Wang et al. — Chosen-Object Attack | 2026 | `notes/wang2026_chosen_object_attack.md` | CSUSM IEEE access (no local PDF) | Stub — Hungarian matching citation for v26 |
+| Liao et al. — Anchor-Free Adversarial | 2021 | `notes/liao2021_anchor_free_adversarial.md` | CSUSM IEEE access (no local PDF) | Stub — critical for v26 transfer |
 | Xu et al. — Adversarial T-shirt | 2020 | `notes/xu2020_adversarial_tshirt.md` | `papers/xu2020_adversarial_tshirt_1910.11099.pdf` | Stub — primary physical benchmark |
 | Huang et al. — AdvReal | 2025 | `notes/huang2025_advreal_physical.md` | `papers/huang2025_advreal_physical_2505.16402.pdf` | Stub — most recent physical benchmark |
 | Li et al. — ElevPatch YOLO11 | 2025 | `notes/li2025_elevpatch_yolo11.md` | ILL needed | Stub — only YOLO11-specific paper |
-| Ji et al. — Adversarial YOLO defense | 2021 | (no stub yet) | `papers/ji2021_adversarial_yolo_defense_2103.08860.pdf` | PDF only — defense paper |
-| Wu et al. — Invisibility Cloak | 2020 | (no stub yet) | `papers/wu2020_invisibility_cloak_1910.14667.pdf` | PDF only |
-| Zhou et al. — MVPatch | 2023 | (no stub yet) | `papers/zhou2023_mvpatch_2312.17431.pdf` | PDF only |
+| Ji et al. — Adversarial YOLO defense | 2021 | `notes/ji2021_adversarial_yolo_defense.md` | `papers/ji2021_adversarial_yolo_defense_2103.08860.pdf` | Stub — defense benchmark |
+| Wu et al. — Invisibility Cloak | 2020 | `notes/wu2020_invisibility_cloak.md` | `papers/wu2020_invisibility_cloak_1910.14667.pdf` | Stub — physical transfer study |
+| Zhou et al. — MVPatch | 2023 | `notes/zhou2023_mvpatch.md` | `papers/zhou2023_mvpatch_2312.17431.pdf` | Stub — transfer + stealth benchmark |
 
 **External summary (ChatGPT-generated, imported):** `docs/research/executive_summary_chatgpt.md`
 **Full batch 4 compilation:** `docs/research/batch4_literature_expansion.md`
@@ -139,27 +142,42 @@ From Gala et al. (2025): **Larger models are more robust to adversarial patches 
 
 ## Key Numbers Quick Reference
 
-| Paper | Attack | Target | Clean Baseline | After Patch |
-|---|---|---|---|---|
-| DPatch (YOLO) | Untargeted | All classes | 65.7% mAP | <1% mAP |
-| DPatch (Faster R-CNN ResNet101) | Untargeted | All classes | 75.10% mAP | 0.30% mAP |
-| Thys (OBJ loss) | Person vanishing | Person | 100% recall | **26.46% recall** |
-| Thys (CLS loss) | Person vanishing | Person | 100% recall | 77.58% recall |
-| Thys (random noise) | Baseline | Person | 100% recall | 87.14% recall |
-| Zolfi (digital, 8 shapes, α=0.4) | Stop sign | Stop sign | 95.17% AP | 52.7% AP |
-| Zolfi (physical) | Stop sign | Stop sign | — | 42.27% fooling rate |
-| Hoory (2 screens, wide angle) | Car hiding | Car | — | 74–80% success |
-| Gala et al. | Person/vehicle | Person | — | High evasion (see PDF) |
+| Paper | Setting | Key result | Why it matters |
+|---|---|---|---|
+| This project (YOLOv8) | Digital person suppression | **85%** suppression | Already stronger than the classic Xu 2020 physical benchmark on YOLOv2 |
+| This project (YOLOv8 -> YOLOv11) | Cross-generation transfer | **39.4%** suppression | Confirms partial within-family transfer without retraining on YOLO11 |
+| This project (YOLOv8 -> YOLO26) | Cross-generation transfer | **16%** suppression | The core result Batch 4 now helps explain |
+| DPatch (YOLO) | Untargeted detector attack | 65.7% mAP -> <1% mAP | Canonical detector-specific patch baseline |
+| Thys et al. (OBJ loss) | Person vanishing | 100% recall -> **26.46% recall** | Core objectness-loss benchmark for hiding persons |
+| Xu et al. (2020) | Physical T-shirt on YOLOv2 | **74% digital ASR; 57% physical ASR** | Foundational physical benchmark for person evasion |
+| Wu et al. (2020) | Cross-model / physical patch study | Digital AP drops by at least 29%, down to 7.5% AP on retrained YOLOv2 | Strong evidence that digital success, transfer, and physical success are different problems |
+| Bayer et al. (2024) | Cross-model transfer across real-time detectors | Larger source models transfer best; YOLOv8n / YOLOv8s source patches are among the weakest transfer sources | Best integrated explanation for why v8n-trained patches under-transfer |
+| Lovisotto et al. (2022) | Attention-Fool on transformers | 0.5% patch can drive ViT robust accuracy to 0% and DETR mAP below 3% | Shows attention changes both vulnerability and the correct optimization target |
+| Alam et al. (2023) | Collaborative patches on deformable transformers | 0% AP with <1% of the image perturbed | Closest attention-specific benchmark to the YOLO26 problem |
+| AdvReal (2025) | Physical benchmark on YOLO-family detector | **70.13% ASR** on YOLOv12; >90% ASR at 4m frontal / oblique | Current physical benchmark to cite against modern YOLO-family systems |
 
 ---
 
-## Open Research Gaps (as of 2026-04-10)
+## Open Research Gaps (as of 2026-04-11)
 
-1. **YOLO26 adversarial patch robustness** — no dedicated paper exists. Its NMS-free end-to-end design may respond differently to objectness suppression.
-2. **Cross-generation transfer (v8→v11→v26)** — the systematic patch transfer study across these three models has not been published.
-3. **YOLO11 dedicated study** — only one paper (ElevPatch, 2025) specifically addresses YOLO11.
-4. **Physical robustness of Ultralytics models** — Schack et al. tested only YOLOv3/v5; the physical-world gap for v8/v11/v26 is unmeasured.
-5. **Model size × robustness interaction on v11/v26** — Gala et al. showed this for v5–v10; extending it is straightforward and publishable.
+1. **YOLO26 still lacks a dedicated adversarial-patch paper** — Batch 4 now covers attention, anchor-free outputs, and Hungarian matching separately, but not as one YOLO26-targeted study.
+2. **Cross-generation transfer (v8->v11->v26)** — no paper yet measures transfer across these three Ultralytics generations with one common dataset and metric stack.
+3. **YOLO11 remains thinly covered** — ElevPatch is still the only dedicated YOLO11 paper in the current repo literature.
+4. **Physical robustness of Ultralytics models is still open** — Xu, Wu, Schack, and AdvReal provide physical baselines, but the physical gap for v8/v11/v26 remains unmeasured.
+5. **Model-size and architecture effects are only partially explained** — Bayer explains source-model size, Lovisotto / Alam explain attention, and Liao / Chosen-Object explain anchor-free and matching effects, but nobody has tested those factors together on YOLO26.
+
+---
+
+## Batch 4 Priority Reading
+
+1. Lovisotto et al. (2022) — attention vulnerability framing for YOLO26
+2. Alam et al. (2023) — deformable-attention patch failure / fix
+3. Liao et al. (2021) — anchor-free detector mismatch
+4. Bayer et al. (2024) — source-model-size explanation for transfer drop
+5. Huang et al. / T-SEA (2022) — direct transfer-improvement method
+6. Xu et al. (2020) — physical benchmark anchor point
+7. Li et al. / ElevPatch (2025) — only YOLO11-specific comparison
+8. Huang et al. / AdvReal (2025) — most recent physical benchmark
 
 ---
 
@@ -168,11 +186,16 @@ From Gala et al. (2025): **Larger models are more robust to adversarial patches 
 1. Brown et al. (2017) — understand universal patches and EoT
 2. Liu et al. / DPatch (2019) — understand detector-specific losses
 3. Thys et al. (2019) — canonical person-vanishing method; learn the loss design
-4. Hu et al. (2021) — GAN-based naturalism (needed to understand Gala)
-5. Gala et al. (2025) — your direct benchmark for YOLOv8+
-6. Schack et al. (2024) — read before making any physical-world claims
-7. Zolfi et al. (2021) — read if extending to class-selective suppression
-8. Hoory et al. (2020) — read if extending to multi-angle/physical car testing
+4. Guesmi et al. / DAP (2024) — strongest person-vanishing baseline before your own runs
+5. Lovisotto et al. (2022) — attention-specific vulnerability framing
+6. Alam et al. (2023) — deformable-transformer patch mechanics
+7. Liao et al. (2021) — anchor-free transfer mismatch
+8. Bayer et al. (2024) — why v8n-trained patches under-transfer
+9. Huang et al. / T-SEA (2022) — what to try if transfer needs to improve
+10. Xu et al. (2020) — physical person benchmark
+11. Huang et al. / AdvReal (2025) — current physical benchmark
+12. Gala et al. (2025) — direct modern Ultralytics benchmark
+13. Schack et al. (2024) — read before making any physical-world claim
 
 ---
 

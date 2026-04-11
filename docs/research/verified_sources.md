@@ -1,8 +1,10 @@
 # Verified Sources for YOLO Adversarial Patch Study
 
-This file is the checked bibliography for the repo as of 2026-04-10. It is intentionally narrower than the imported knowledge-base markdown.
+This file is the checked bibliography for the repo as of 2026-04-11. It is intentionally narrower than the imported knowledge-base markdown.
 
 Use this file when you need sources that were explicitly verified during setup.
+
+Scope: 35 research papers plus 3 official model-reference docs.
 
 ## Core Patch Papers
 
@@ -47,121 +49,123 @@ Use this file when you need sources that were explicitly verified during setup.
    Official code:
    https://github.com/Bimo99B9/NaturalisticAdversarialPatches
 
-7. Ultralytics YOLOv8 docs
-   https://docs.ultralytics.com/models/yolov8/
+## Model Reference Docs (Not Counted in Paper Numbering)
 
-   Why it matters: official model reference for the YOLOv8 family you want to study.
+- Ultralytics YOLOv8 docs
+  https://docs.ultralytics.com/models/yolov8/
 
-8. Ultralytics YOLO11 docs
-   https://docs.ultralytics.com/models/yolo11/
+  Why it matters: official model reference for the YOLOv8 family you want to study.
 
-   Why it matters: confirms YOLO11 is an official Ultralytics model family and documents released weights, supported tasks, and benchmark tables.
+- Ultralytics YOLO11 docs
+  https://docs.ultralytics.com/models/yolo11/
 
-9. Ultralytics YOLO26 docs
-   https://docs.ultralytics.com/models/yolo26/
+  Why it matters: confirms YOLO11 is an official Ultralytics model family and documents released weights, supported tasks, and benchmark tables.
 
-   Why it matters: confirms YOLO26 is now an official Ultralytics model family with end-to-end NMS-free inference, which may change patch transfer behavior relative to earlier YOLO generations.
+- Ultralytics YOLO26 docs
+  https://docs.ultralytics.com/models/yolo26/
 
-6. Zolfi, Kravchik, Elovici, and Shabtai (2021), *The Translucent Patch: A Physical and Universal Attack on Object Detectors*
+  Why it matters: confirms YOLO26 is now an official Ultralytics model family with end-to-end NMS-free inference, which may change patch transfer behavior relative to earlier YOLO generations.
+
+7. Zolfi, Kravchik, Elovici, and Shabtai (2021), *The Translucent Patch: A Physical and Universal Attack on Object Detectors*
    https://openaccess.thecvf.com/content/CVPR2021/html/Zolfi_The_Translucent_Patch_A_Physical_and_Universal_Attack_on_Object_CVPR_2021_paper.html
    arXiv: https://arxiv.org/abs/2012.12528
 
    Why it matters: unique approach — transparent film on camera lens hides a target class while preserving others. Achieves 42.27% physical fooling rate that closely matches the digital result (42.47%), demonstrating real-world transferability. Useful for class-selective loss design (ℓuntargeted_conf term).
 
-7. Hoory, Shapira, Shabtai, and Elovici (2020), *Dynamic Adversarial Patch for Evading Object Detection Models*
+8. Hoory, Shapira, Shabtai, and Elovici (2020), *Dynamic Adversarial Patch for Evading Object Detection Models*
    https://arxiv.org/abs/2010.13070
 
    Why it matters: addresses multi-angle robustness via dynamic patch switching. Key finding: patches trained for YOLOv2 transfer poorly to YOLOv3 (10–14%) and not at all to R-CNN architectures. Highlights YOLO-family specificity of patches.
 
-8. Schack, Petrovic, and Saukh (2024), *Breaking the Illusion: Real-world Challenges for Adversarial Patches in Object Detection*
+9. Schack, Petrovic, and Saukh (2024), *Breaking the Illusion: Real-world Challenges for Adversarial Patches in Object Detection*
    https://arxiv.org/abs/2410.19863
 
    Why it matters: critical read before making any physical-world claims. Documents the digital-to-physical gap: rotation >20° kills effectiveness, brightness increase causes up to 64% performance discrepancy, hue shifts 200–300° render patches ineffective. Tested on YOLOv3 and YOLOv5.
 
 ## 2024–2026 Papers (Verified 2026-04-10)
 
-9. Guesmi, Ding, Hanif, Alouani, and Shafique (2024), *DAP: A Dynamic Adversarial Patch for Evading Person Detectors*
+10. Guesmi, Ding, Hanif, Alouani, and Shafique (2024), *DAP: A Dynamic Adversarial Patch for Evading Person Detectors*
    https://arxiv.org/abs/2305.11618 — CVPR 2024
 
    Why it matters: state-of-the-art person-vanishing patch as of CVPR 2024. Introduces the Creases Transformation block to simulate cloth deformation — addresses the key limitation of rigid EoT transforms. Achieves 82.28% digital and 65% physical success on YOLOv7/v3tiny. Outperforms GAN-based NAP without requiring a pretrained generative model. Direct benchmark comparison for your capstone baseline.
 
-10. Wu, Wang, Zhao, Wang, and Liu (2024), *NAPGuard: Towards Detecting Naturalistic Adversarial Patches*
+11. Wu, Wang, Zhao, Wang, and Liu (2024), *NAPGuard: Towards Detecting Naturalistic Adversarial Patches*
     https://openaccess.thecvf.com/content/CVPR2024/html/Wu_NAPGuard_Towards_Detecting_Naturalistic_Adversarial_Patches_CVPR_2024_paper.html — CVPR 2024
 
     Why it matters: defense paper specifically for naturalistic (GAN/diffusion) patches. Improves detection AP by 60.24% over prior defenses. Relevant for any "countermeasures" or "defenses" section.
 
-11. Tan, Li, Zhao, Liu, and Pan (2024), *DOEPatch: Dynamically Optimized Ensemble Model for Adversarial Patches Generation*
+12. Tan, Li, Zhao, Liu, and Pan (2024), *DOEPatch: Dynamically Optimized Ensemble Model for Adversarial Patches Generation*
     https://arxiv.org/abs/2312.16907
 
     Why it matters: ensemble-based patch training that simultaneously attacks multiple YOLO versions. Reduces YOLOv2 AP to 13.19% and YOLOv3 AP to 29.20%. Min-Max training approach is directly portable to a YOLOv8+YOLO11 ensemble. Physical T-shirt test included.
 
-12. DelaCruz, Santos, and Navarro (2026), *Physical Adversarial Attacks on AI Surveillance Systems: Detection, Tracking, and Visible–Infrared Evasion*
+13. DelaCruz, Santos, and Navarro (2026), *Physical Adversarial Attacks on AI Surveillance Systems: Detection, Tracking, and Visible–Infrared Evasion*
     https://arxiv.org/abs/2604.06865 — submitted April 8, 2026
 
     Why it matters: the most recent survey of physical adversarial attacks on surveillance systems; covers temporal persistence, multi-modal (RGB+IR) evasion, and system-level attack framing. Strong motivation/framing citation for a surveillance-focused capstone.
 
-13. Winter, Martini, Audigier, Loesch, and Luvison (2026), *Benchmarking Adversarial Robustness and Adversarial Training Strategies for Object Detection*
+14. Winter, Martini, Audigier, Loesch, and Luvison (2026), *Benchmarking Adversarial Robustness and Adversarial Training Strategies for Object Detection*
     https://arxiv.org/abs/2602.16494
 
     ⚠️ **Scope caveat**: This paper covers **non-patch digital attacks only** and does not include YOLOv8, YOLO11, or YOLO26. Useful only for background/related-work framing (CNN vs transformer robustness; LPIPS as perceptibility metric). Do not cite as patch-attack evidence.
 
-14. Na, Lee, Roh, Park, and Choi (2025), *Robustness Analysis against Adversarial Patch Attacks in Fully Unmanned Stores*
+15. Na, Lee, Roh, Park, and Choi (2025), *Robustness Analysis against Adversarial Patch Attacks in Fully Unmanned Stores*
     https://arxiv.org/abs/2505.08835
 
     Why it matters: shows adversarial patches work in deployed commercial YOLOv5 systems. Introduces three attack types (hiding, creating, altering) and a color histogram similarity loss. Physical retail testbed results (69.1% hiding success). Good for capstone motivation section.
 
 ## Batch 3 Papers (Verified 2026-04-10)
 
-15. Wei, Wang, Ni, and Niu (2024), *Revisiting Adversarial Patches for Designing Camera-Agnostic Attacks Against Person Detection*
+16. Wei, Wang, Ni, and Niu (2024), *Revisiting Adversarial Patches for Designing Camera-Agnostic Attacks Against Person Detection*
     https://proceedings.neurips.cc/paper_files/paper/2024/hash/4a7b5a5be6e81b9fe45e75e7ed5f11e9-Abstract-Conference.html — NeurIPS 2024
 
     Why it matters: introduces a differentiable camera ISP proxy network (CAP) that models real camera pipelines inside the patch optimization loop. Patches trained with CAP transfer across different physical cameras without requiring re-optimization. Key advance over standard EoT for physical-world deployment.
 
     PDF: `docs/papers/wei2024_camera_agnostic_CAP_NeurIPS.pdf`
 
-16. Bagley, Whitworth, and Doo (2025), *Dynamically Optimized Clusters: An Adversarial Patch Attack Scheme Using Spatially Constrained Superpixels*
+17. Bagley, Whitworth, and Doo (2025), *Dynamically Optimized Clusters: An Adversarial Patch Attack Scheme Using Spatially Constrained Superpixels*
     https://arxiv.org/abs/2511.18656
 
     Why it matters: SPAP/SPAP-2 uses SLIC superpixels (differentiable via implicit function theorem) to generate geometrically coherent patches. SPAP-2 reduces person AP to 16.28% vs. 24.97% for standard AdvPatch on YOLOv8. Superior at small patch sizes and irregular shapes. State-of-the-art scale-robust patch as of 2025.
 
     PDF: `docs/papers/bagley2025_dynamically_optimized_clusters_2511.18656.pdf`
 
-17. Li, Liu, Wu, Zhang, and Chen (2026), *Diff-NAT: Naturalness-Constrained Diffusion for Adversarial Patch Generation*
+18. Li, Liu, Wu, Zhang, and Chen (2026), *Diff-NAT: Naturalness-Constrained Diffusion for Adversarial Patch Generation*
     https://arxiv.org/abs/2501.12345 — AAAI 2026
 
     Why it matters: uses a conditional diffusion model to generate adversarial patches that are photorealistic and content-controlled via text prompts. Dual-level optimization: global text conditioning (CLIP loss) + local adversarial refinement (detection suppression loss). Outperforms GAN-based naturalistic patches on visual quality metrics. Represents the current state-of-the-art in naturalness for adversarial patches.
 
     PDF: `docs/papers/diffnat2026_AAAI.pdf`
 
-18. Ma, Ying, Li, Zhu, Zhou, and Liu (2026), *Explainable AI-guided test-time adversarial defense for resilient YOLO detectors in Industrial Internet of Things*
+19. Ma, Ying, Li, Zhu, Zhou, and Liu (2026), *Explainable AI-guided test-time adversarial defense for resilient YOLO detectors in Industrial Internet of Things*
     https://www.sciencedirect.com/science/article/pii/S0167739X25006508 — Future Generation Computer Systems, Elsevier 2026
 
     Why it matters: XAIAD-YOLO — two-stage test-time defense (high-frequency filtering + XAI-guided feature destabilization). No retraining required. 66.08 FPS (1.56× faster than Grad-CAM++). Covers anchor-based and anchor-free YOLO variants. Relevant for defenses section in any YOLO adversarial patch paper.
 
     ⚠️ Paywalled — access via institution.
 
-19. Zimoň (2025), *Towards Robust Object Detection Against Adversarial Patches: A GAN-Based Approach for YOLO Models*
+20. Zimoň (2025), *Towards Robust Object Detection Against Adversarial Patches: A GAN-Based Approach for YOLO Models*
     https://link.springer.com/chapter/10.1007/978-3-032-14163-7_16 — Springer ISID 2025
 
     Why it matters: most directly comparable study to this capstone — evaluates GAN-based adversarial patches systematically across YOLO v3, v5, v8, and v11 with cross-version transfer. The capstone's contribution is extending this to YOLO26.
 
     ⚠️ Paywalled — access via institution. Quantitative details in note file pending full read.
 
-20. Lin, Huang, Ng, Lin, and Farady (2024), *Entropy-Boosted Adversarial Patch for Concealing Pedestrians in YOLO Models*
+21. Lin, Huang, Ng, Lin, and Farady (2024), *Entropy-Boosted Adversarial Patch for Concealing Pedestrians in YOLO Models*
     https://ieeexplore.ieee.org/abstract/document/10453548/ — IEEE Access 2024
 
     Why it matters: introduces entropy maximization as a loss term for patch naturalism — simpler than GAN or diffusion methods. Third naturalism paradigm alongside GAN-latent (Hu et al.) and cosine similarity (DAP). Applicable to any YOLO version.
 
     ⚠️ Paywalled — access via institution.
 
-21. Truong, Pham, Pham, and Nguyen (2025), *AYO-GAN: A Novel GAN-Based Adversarial Attack on YOLO Object Detection Models*
+22. Truong, Pham, Pham, and Nguyen (2025), *AYO-GAN: A Novel GAN-Based Adversarial Attack on YOLO Object Detection Models*
     https://doi.org/10.1007/978-981-96-4285-4_40 — SOICT 2024, CCIS vol. 2351, Springer Singapore
 
     Why it matters: GAN-generated full-image perturbation against YOLO. Key numbers: ASR 22.25%, SSIM 0.936 (vs. baseline 12.67% ASR, 0.842 SSIM). The 22% vs. your 85% gap frames why localized patches outperform full-image perturbation methods. GAN architecture comparison point alongside Hu et al. (BigGAN) and Diff-NAT (diffusion).
 
     ⚠️ Paywalled — ILL request needed. Note file fully populated from metadata.
 
-22. Gu and Jafarnejadsani (2025), *Segment and Recover: Defending Object Detectors Against Adversarial Patch Attacks*
+23. Gu and Jafarnejadsani (2025), *Segment and Recover: Defending Object Detectors Against Adversarial Patch Attacks*
     https://www.mdpi.com/2313-433X/11/9/316 — Journal of Imaging, MDPI 2025
 
     Why it matters: segmentation-based defense — detect patch region, recover underlying clean region, then run the detector. Architecturally distinct from Ad-YOLO (training), NAPGuard (detecting patch pixels), and XAIAD-YOLO (test-time feature suppression). Relevant for defenses comparison table.
@@ -172,7 +176,7 @@ Use this file when you need sources that were explicitly verified during setup.
 
 - YOLOv8 is the best-supported target in the verified adversarial-patch literature among your three focus versions.
 - YOLO11 is a valid study target, but patch-specific literature still appears thin compared with YOLOv8 and earlier YOLO variants.
-- YOLO26 patch robustness remains an open research gap — confirmed by an exhaustive search through 2026-04-10.
+- YOLO26 patch robustness remains an open research gap — confirmed by an exhaustive search through 2026-04-11.
 - DAP (Guesmi et al., CVPR 2024) is now the state-of-the-art person-vanishing baseline and should be your primary comparison target alongside Thys et al.
 
 ## Papers with Local PDFs (docs/papers/)
@@ -197,23 +201,24 @@ Use this file when you need sources that were explicitly verified during setup.
 | `wei2024_camera_agnostic_CAP_NeurIPS.pdf` | Wei et al. (NeurIPS 2024) |
 | `bagley2025_dynamically_optimized_clusters_2511.18656.pdf` | Bagley et al. (2025) |
 | `diffnat2026_AAAI.pdf` | Li et al. / Diff-NAT (AAAI 2026) |
+| `lovisotto2022_attention_patch_robustness_CVPR.pdf` | Lovisotto et al. (2022) CVPR |
 
 Gala et al. (2025) is not available as a free PDF — access via institution or see GitHub repo for details.
 
-Papers #18 (Ma/XAIAD-YOLO), #19 (Zimoň), #20 (Lin/Entropy), #21 (Truong/AYO-GAN) are paywalled — no local PDFs. Access via institution and add quantitative details to their note files.
+Integrated sources without local PDFs currently include Ma/XAIAD-YOLO (Elsevier), Zimoň (Springer), Lin/Entropy (IEEE Access), Truong/AYO-GAN (Springer), Chosen-Object (IEEE via CSUSM), Liao anchor-free (IEEE via CSUSM), and ElevPatch (Springer ILL).
 
 ## Batch 4 Papers (Verified 2026-04-11)
 
 ### Transferability
 
-23. Bayer, Becker, Münch, and Arens (2024), *Network transferability of adversarial patches in real-time object detection*
+24. Bayer, Becker, Münch, and Arens (2024), *Network transferability of adversarial patches in real-time object detection*
     https://arxiv.org/abs/2408.15833 — SPIE Proceedings, DOI: 10.1117/12.3031501
 
     Why it matters: Directly answers why cross-version transfer drops. Key finding: larger source models produce better-transferring patches. Explains your yolov8n→yolo26n 16% result — the nano model overfits to its own gradient landscape.
 
     PDF: `docs/papers/bayer2024_network_transferability_2408.15833.pdf`
 
-24. Huang, Chen, Chen, and Wang (2022), *T-SEA: Transfer-based Self-Ensemble Attack on Object Detection*
+25. Huang, Chen, Chen, and Wang (2022), *T-SEA: Transfer-based Self-Ensemble Attack on Object Detection*
     https://arxiv.org/abs/2211.09773
 
     Why it matters: Self-ensemble technique that greatly improves black-box transferability using a single source model. Has open code at github.com/VDIGPKU/T-SEA. A concrete technique to apply if transfer results need improving.
@@ -222,19 +227,21 @@ Papers #18 (Ma/XAIAD-YOLO), #19 (Zimoň), #20 (Lin/Entropy), #21 (Truong/AYO-GAN
 
 ### Attention / Transformer Architecture Attacks
 
-25. Lovisotto, Finnie, Munoz, Mummadi, and Metzen (2022), *Give Me Your Attention: Dot-Product Attention Considered Harmful for Adversarial Patch Robustness*
+26. Lovisotto, Finnie, Munoz, Mummadi, and Metzen (2022), *Give Me Your Attention: Dot-Product Attention Considered Harmful for Adversarial Patch Robustness*
     https://openaccess.thecvf.com/content/CVPR2022/html/Lovisotto_Give_Me_Your_Attention_Dot-Product_Attention_Considered_Harmful_for_Adversarial_CVPR_2022_paper.html — CVPR 2022
 
     Why it matters: Explains why standard gradient-ascent patches designed for conv-only models do not optimize correctly against attention-based architectures like YOLO26. Primary citation for "why YOLO26 requires a different optimization approach."
 
-26. Alam, Tarchoun, Alouani, and Abu-Ghazaleh (2023), *Attention Deficit is Ordered! Fooling Deformable Vision Transformers with Collaborative Adversarial Patches*
+    PDF: `docs/papers/lovisotto2022_attention_patch_robustness_CVPR.pdf`
+
+27. Alam, Tarchoun, Alouani, and Abu-Ghazaleh (2023), *Attention Deficit is Ordered! Fooling Deformable Vision Transformers with Collaborative Adversarial Patches*
     https://arxiv.org/abs/2311.12914
 
     Why it matters: Shows standard patches achieve near-0% suppression on deformable transformer detectors; proposes collaborative patches targeting attention maps to achieve 0% AP with <1% image area. Directly relevant to YOLO26's deformable attention mechanisms.
 
     PDF: `docs/papers/alam2023_attention_deficit_2311.12914.pdf`
 
-27. Wang, Wang, Wen, Deng, Shu, Cheng, and Chen (2026), *The Chosen-Object Attack: Exploiting the Hungarian Matching Loss in Detection Transformers for Fun and Profit*
+28. Wang, Wang, Wen, Deng, Shu, Cheng, and Chen (2026), *The Chosen-Object Attack: Exploiting the Hungarian Matching Loss in Detection Transformers for Fun and Profit*
     https://ieeexplore.ieee.org/document/10879485/ — IEEE Trans. Information Forensics and Security, Vol.21, pp. 2177–2190
 
     Why it matters: Attacks DETR-style Hungarian matching (the same assignment mechanism YOLO26 uses instead of NMS). The loss function described here is the most architecturally correct target for YOLO26. Read before designing v26-specific loss improvements.
@@ -243,7 +250,7 @@ Papers #18 (Ma/XAIAD-YOLO), #19 (Zimoň), #20 (Lin/Entropy), #21 (Truong/AYO-GAN
 
 ### Anchor-Free Detector Attacks
 
-28. Liao, Wang, Kong, Lyu, Zhu, Yin, Song, and Wu (2021), *Transferable Adversarial Examples for Anchor Free Object Detection*
+29. Liao, Wang, Kong, Lyu, Zhu, Yin, Song, and Wu (2021), *Transferable Adversarial Examples for Anchor Free Object Detection*
     https://ieeexplore.ieee.org/document/9428098 — IEEE ICME 2021
 
     Why it matters: First adversarial attack specifically targeting anchor-free detectors. Shows attacks designed for anchor-based models transfer poorly to anchor-free ones — the second architectural reason (after attention) for your low v8→v26 transfer rate.
@@ -252,21 +259,21 @@ Papers #18 (Ma/XAIAD-YOLO), #19 (Zimoň), #20 (Lin/Entropy), #21 (Truong/AYO-GAN
 
 ### Physical-World Benchmarks
 
-29. Xu, Zhang, Liu, Fan, Sun, Chen, Chen, Wang, and Lin (2020), *Adversarial T-shirt! Evading Person Detectors in A Physical World*
+30. Xu, Zhang, Liu, Fan, Sun, Chen, Chen, Wang, and Lin (2020), *Adversarial T-shirt! Evading Person Detectors in A Physical World*
     https://arxiv.org/abs/1910.11099 — ECCV 2020
 
     Why it matters: Foundational physical-world person evasion benchmark. Reports 74% digital / 57% physical ASR against YOLOv2. Your 85% digital v8 result exceeds this 2020 baseline. Essential comparison number for the capstone.
 
     PDF: `docs/papers/xu2020_adversarial_tshirt_1910.11099.pdf`
 
-30. Wu, Lim, Davis, and Goldstein (2020), *Making an Invisibility Cloak: Real World Adversarial Attacks on Object Detectors*
+31. Wu, Lim, Davis, and Goldstein (2020), *Making an Invisibility Cloak: Real World Adversarial Attacks on Object Detectors*
     https://arxiv.org/abs/1910.14667 — ECCV 2020
 
     Why it matters: Systematic study of white-box/black-box transferability with physical (printed poster + wearable cloth) tests. Good background for the physical feasibility discussion.
 
     PDF: `docs/papers/wu2020_invisibility_cloak_1910.14667.pdf`
 
-31. Huang, Ren, Wang, Huo, Bai, Zhang, and Yu (2026), *AdvReal: Physical adversarial patch generation framework for security evaluation of object detection systems*
+32. Huang, Ren, Wang, Huo, Bai, Zhang, and Yu (2026), *AdvReal: Physical adversarial patch generation framework for security evaluation of object detection systems*
     https://arxiv.org/abs/2505.16402 — Expert Systems with Applications, Vol.296, Article 128967
 
     Why it matters: Most recent (2025) physical attack benchmark. Reports 70% ASR on YOLOv12 in physical scenarios; average >90% ASR under frontal/oblique at 4m. Current state-of-the-art for physical person evasion.
@@ -275,7 +282,7 @@ Papers #18 (Ma/XAIAD-YOLO), #19 (Zimoň), #20 (Lin/Entropy), #21 (Truong/AYO-GAN
 
 ### Transfer Improvement
 
-32. Zhou, Zhao, Liu, Zhang et al. (2024), *MVPatch: More Vivid Patch for Adversarial Camouflaged Attacks on Object Detectors in the Physical World*
+33. Zhou, Zhao, Liu, Zhang et al. (2024), *MVPatch: More Vivid Patch for Adversarial Camouflaged Attacks on Object Detectors in the Physical World*
     https://arxiv.org/abs/2312.17431
 
     Why it matters: Dual-Perception Framework improves both transferability and stealthiness via multi-detector ensemble strategy.
@@ -284,7 +291,7 @@ Papers #18 (Ma/XAIAD-YOLO), #19 (Zimoň), #20 (Lin/Entropy), #21 (Truong/AYO-GAN
 
 ### YOLO11-Specific
 
-33. Li, Liao, Li, Zhang, Wu, and Jiayan (2025), *ElevPatch: An Adversarial Patch Attack Scheme Based on YOLO11 Object Detector*
+34. Li, Liao, Li, Zhang, Wu, and Jiayan (2025), *ElevPatch: An Adversarial Patch Attack Scheme Based on YOLO11 Object Detector*
     https://link.springer.com/chapter/10.1007/978-981-96-9872-1_15 — ICIC 2025
 
     Why it matters: The only paper found specifically targeting YOLO11. Quantitative results are the primary literature comparison for your 78.8% YOLO11 suppression result.
@@ -293,7 +300,7 @@ Papers #18 (Ma/XAIAD-YOLO), #19 (Zimoň), #20 (Lin/Entropy), #21 (Truong/AYO-GAN
 
 ### Defense Papers
 
-34. Ji, Feng, Xie, Xiang, and Liu (2021), *Adversarial YOLO: Defense Human Detection Patch Attacks via Detecting Adversarial Patches*
+35. Ji, Feng, Xie, Xiang, and Liu (2021), *Adversarial YOLO: Defense Human Detection Patch Attacks via Detecting Adversarial Patches*
     https://arxiv.org/abs/2103.08860
 
     Why it matters: Adds a "patch class" to YOLO for direct adversarial patch detection. Achieves 80.31% AP with only 0.70% mAP drop on clean images. Good for the defenses section.
@@ -306,7 +313,7 @@ Papers #18 (Ma/XAIAD-YOLO), #19 (Zimoň), #20 (Lin/Entropy), #21 (Truong/AYO-GAN
 
 If you want one practical progression:
 
-1. Read Brown -> DPatch -> Thys -> Hu.
-2. Reproduce the local YOLOv5 baseline in this repo.
-3. Study the 2025 Gala paper and the `NaturalisticAdversarialPatches` codebase.
-4. Port the evaluation protocol to YOLOv8n, YOLO11n, and YOLO26n for transfer and robustness comparisons.
+- Read Brown -> DPatch -> Thys -> Hu.
+- Reproduce the local YOLOv5 baseline in this repo.
+- Study the 2025 Gala paper and the `NaturalisticAdversarialPatches` codebase.
+- Port the evaluation protocol to YOLOv8n, YOLO11n, and YOLO26n for transfer and robustness comparisons.

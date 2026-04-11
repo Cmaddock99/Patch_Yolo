@@ -5,6 +5,46 @@
 
 ---
 
+## Integration Status
+
+This file is the authoritative candidate list for the Batch 4 search pass. The repo now records the outcome explicitly instead of implying that every candidate was integrated.
+
+Current outcome: 12 Batch 4 candidates are integrated into `verified_sources.md`, 5 remain pending manual access / retrieval, and 12 are explicitly parked for now so the capstone bibliography stays focused.
+
+| Paper | Tier | Status | Repo decision |
+|---|---|---|---|
+| Bayer et al. (2024) | Tier 1 | Integrated | Added to verified bibliography, coverage map, PDF set, and note stub |
+| Kleber et al. (2025) | Tier 1 | Pending access | ILL needed before adding to the verified bibliography |
+| Imran et al. / TK-Patch (2025) | Tier 1 | Pending access | ILL + DOI verification still needed |
+| Wang et al. / Alternating Minimization (2024) | Tier 1 | Excluded for now | Relevant transfer method, but not prioritized over Bayer / T-SEA for the current write-up |
+| Lovisotto et al. (2022) | Tier 1 | Integrated | Added to verified bibliography, note stub, and local CVF PDF |
+| Wang et al. / Chosen-Object (2026) | Tier 1 | Integrated | Added as the Hungarian-matching citation for YOLO26 |
+| Alam et al. (2023) | Tier 1 | Integrated | Added to verified bibliography, coverage map, PDF set, and note stub |
+| Liao et al. (2021) | Tier 1 | Integrated | Added as the anchor-free detector citation for YOLO26 transfer analysis |
+| Liao et al. (2020) companion preprint | Tier 1 | Excluded for now | Citation is incomplete in the agent notes and does not meet the repo's verification bar yet |
+| Li et al. / ElevPatch (2025) | Tier 1 | Integrated | Added as the only YOLO11-specific paper; full text still needs ILL |
+| Li et al. / PNAP-YOLO (2025) | Tier 1 | Pending access | CSUSM full-text pull still needed before deciding whether to integrate |
+| Dai et al. / AdvYOLO (2026) | Tier 1 | Excluded for now | Remote-sensing / ORSI transfer setting is too far from the person-evasion capstone focus |
+| Xu et al. (2020) | Tier 2 | Integrated | Added as the core physical benchmark for person evasion |
+| Huang et al. / AdvReal (2025) | Tier 2 | Integrated | Added as the most recent physical benchmark |
+| Wu et al. / Invisibility Cloak (2020) | Tier 2 | Integrated | Added as the physical transfer / poster-vs-wearable study |
+| Hu et al. / Adversarial Texture (2022) | Tier 2 | Excluded for now | Full-body clothing threat model is adjacent but not the localized-patch baseline the repo is centered on |
+| Xue et al. / 3D Invisible Cloak (2025) | Tier 2 | Pending access | IEEE full text still needs manual pull before deciding on integration |
+| Huang et al. / T-SEA (2022) | Tier 2 | Integrated | Added as the main transfer-improvement method with open code |
+| Zhou et al. / MVPatch (2023) | Tier 2 | Integrated | Added as the transfer + stealth benchmark with local PDF and note stub |
+| Ding et al. (2024) | Tier 2 | Excluded for now | Transfer paper, but not patch-specific enough for the verified core bibliography |
+| Cao et al. / P3A (2025) | Tier 2 | Excluded for now | Useful methodology lead, but the autonomous-driving scope is off the capstone's main path |
+| Guesmi et al. survey (2023) | Tier 3 | Excluded for now | Survey material is useful background but does not need another verified-bibliography slot this pass |
+| Zhang et al. survey (2025) | Tier 3 | Pending access | ACM full text still needs manual pull before deciding whether to integrate |
+| Ji et al. (2021) | Tier 3 | Integrated | Added as the Ad-YOLO defense reference with local PDF and note stub |
+| Lee et al. (2024) | Tier 3 | Excluded for now | Defense side branch is lower priority than the already integrated Ad-YOLO / NAPGuard / SAR set |
+| Saha et al. (2020) | Tier 4 | Excluded for now | Kept as skim-only context, not added to the verified core set |
+| Wang et al. (2021) | Tier 4 | Excluded for now | Kept as skim-only context, not added to the verified core set |
+| Tarchoun et al. (2021) | Tier 4 | Excluded for now | Kept as skim-only context, not added to the verified core set |
+| Hu et al. / DynamicPAE (2026) | Tier 4 | Excluded for now | Future-work lead rather than a paper to anchor the current capstone bibliography |
+
+---
+
 ## TIER 1 — Directly Relevant to Your Project
 
 ### Cross-Model Transferability (Your Core Research Question)

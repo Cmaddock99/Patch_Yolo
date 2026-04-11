@@ -6,6 +6,7 @@
 - Authors: Giulio Lovisotto, Nicole Finnie, Mauricio Munoz, Chaitanya K. Mummadi, Jan Hendrik Metzen
 - Venue / Year: CVPR 2022, pp. 15213–15222
 - URL: https://openaccess.thecvf.com/content/CVPR2022/html/Lovisotto_Give_Me_Your_Attention_Dot-Product_Attention_Considered_Harmful_for_Adversarial_CVPR_2022_paper.html
+- PDF: `docs/papers/lovisotto2022_attention_patch_robustness_CVPR.pdf`
 
 ## Problem
 
@@ -30,7 +31,7 @@
 
 ## Results
 
-- Main quantitative result: Attention-based models are MORE vulnerable to patches in some respects (patch influence spreads globally) but standard patch optimization methods designed for CNNs do not exploit this correctly.
+- Main quantitative result: Attention-Fool patches covering only 0.5% of the input can drive ViT robust accuracy to 0% and reduce DETR mAP to below 3%.
 - What worked best: Patches that explicitly target attention weight manipulation outperform naive CNN-style patches against transformers.
 - What failed or stayed weak: Directly porting CNN-optimized patches to transformer models — the gradient landscape is fundamentally different.
 
@@ -50,6 +51,5 @@
 
 ## TODO
 
-- [ ] Download PDF from CVF open access
 - [ ] Read Section 4 (attention vulnerability analysis) carefully
 - [ ] Check if their attack formulation applies to YOLO26's one2many attention scores
