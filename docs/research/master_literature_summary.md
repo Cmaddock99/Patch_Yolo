@@ -1,6 +1,6 @@
 # Master Literature Summary: Adversarial Patches Against YOLO
-*Running document — last updated 2026-04-10 (batch 3)*
-*Sources: Original papers, arXiv full text, CVPR/ICCV open access pages, GitHub repos*
+*Running document — last updated 2026-04-11 (batch 4)*
+*Sources: Original papers, arXiv full text, CVPR/ICCV open access pages, GitHub repos, CSUSM library*
 
 ---
 
@@ -40,8 +40,20 @@ This is the living synthesis document for the capstone. Every paper processed ge
 | Lin et al. — Entropy Patch | 2024 | `notes/lin2024_entropy_adversarial_patch.md` | No PDF (IEEE Access paywall) | Access-limited — quantitative details pending |
 | Truong et al. — AYO-GAN | 2024 | `notes/truong2024_AYO_GAN.md` | No PDF (Springer paywall) | Access-limited — quantitative details pending |
 | Gu & Jafarnejadsani — SAR | 2025 | `notes/gu2025_SAR_segment_recover.md` | No PDF (MDPI bot-blocked) | Access-limited — open access in browser |
+| Bayer et al. — Network Transferability | 2024 | `notes/bayer2024_network_transferability.md` | `papers/bayer2024_network_transferability_2408.15833.pdf` | Stub — read for transfer numbers |
+| Huang et al. — T-SEA | 2022 | `notes/huang2022_tsea_transfer.md` | `papers/huang2022_tsea_transfer_2211.09773.pdf` | Stub — has open code |
+| Lovisotto et al. — Attention Patch Robustness | 2022 | `notes/lovisotto2022_attention_patch_robustness.md` | CVF open access (not yet downloaded) | Stub — critical for v26 |
+| Alam et al. — Attention Deficit | 2023 | `notes/alam2023_attention_deficit_deformable.md` | `papers/alam2023_attention_deficit_2311.12914.pdf` | Stub — critical for v26 |
+| Liao et al. — Anchor-Free Adversarial | 2021 | `notes/liao2021_anchor_free_adversarial.md` | IEEE via CSUSM (not yet downloaded) | Stub — critical for v26 transfer |
+| Xu et al. — Adversarial T-shirt | 2020 | `notes/xu2020_adversarial_tshirt.md` | `papers/xu2020_adversarial_tshirt_1910.11099.pdf` | Stub — primary physical benchmark |
+| Huang et al. — AdvReal | 2025 | `notes/huang2025_advreal_physical.md` | `papers/huang2025_advreal_physical_2505.16402.pdf` | Stub — most recent physical benchmark |
+| Li et al. — ElevPatch YOLO11 | 2025 | `notes/li2025_elevpatch_yolo11.md` | ILL needed | Stub — only YOLO11-specific paper |
+| Ji et al. — Adversarial YOLO defense | 2021 | (no stub yet) | `papers/ji2021_adversarial_yolo_defense_2103.08860.pdf` | PDF only — defense paper |
+| Wu et al. — Invisibility Cloak | 2020 | (no stub yet) | `papers/wu2020_invisibility_cloak_1910.14667.pdf` | PDF only |
+| Zhou et al. — MVPatch | 2023 | (no stub yet) | `papers/zhou2023_mvpatch_2312.17431.pdf` | PDF only |
 
 **External summary (ChatGPT-generated, imported):** `docs/research/executive_summary_chatgpt.md`
+**Full batch 4 compilation:** `docs/research/batch4_literature_expansion.md`
 **Verification error correction log:** `docs/research/unverified_paper_claims.md`
 
 ---
