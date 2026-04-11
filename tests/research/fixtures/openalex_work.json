@@ -1,0 +1,48 @@
+{
+  "id": "https://openalex.org/W1234567890",
+  "display_name": "Transferable adversarial patch attacks on YOLO detectors",
+  "abstract_inverted_index": {
+    "Transferable": [0],
+    "adversarial": [1],
+    "patch": [2],
+    "attacks": [3],
+    "on": [4],
+    "YOLO": [5],
+    "detectors": [6]
+  },
+  "authorships": [
+    {
+      "author": {
+        "display_name": "Alice Smith"
+      }
+    },
+    {
+      "author": {
+        "display_name": "Bob Jones"
+      }
+    }
+  ],
+  "publication_year": 2024,
+  "publication_date": "2024-08-26",
+  "primary_location": {
+    "landing_page_url": "https://openalex.org/W1234567890",
+    "pdf_url": "https://example.org/openalex-paper.pdf",
+    "source": {
+      "display_name": "CVPR",
+      "host_organization_name": "CVF"
+    }
+  },
+  "open_access": {
+    "is_oa": true,
+    "oa_status": "green"
+  },
+  "doi": "https://doi.org/10.1111/example.doi",
+  "ids": {
+    "arxiv": "2401.12345"
+  },
+  "cited_by_count": 17,
+  "referenced_works": [
+    "https://openalex.org/WREF1"
+  ],
+  "cited_by_api_url": "https://api.openalex.org/works?filter=cites:W1234567890"
+}

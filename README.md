@@ -6,6 +6,7 @@ It currently includes two tracks:
 
 - A local, runnable baseline attack example using ART + YOLOv5 in `create_adv_patch.py`
 - A research workspace under `docs/` for literature review, source tracking, and experiment planning for YOLOv8/YOLO11/YOLO26
+- A machine-generated research ingestion workspace under `research/` for candidate discovery, dedupe, enrichment, and ranking
 
 ## Quick Start
 
@@ -27,6 +28,8 @@ python scripts/verify_setup.py
   A lightweight template for paper notes and capstone writeups.
 - `create_adv_patch.py`
   A self-contained baseline patch trainer against a pretrained YOLOv5 detector using ART's `DPatch`.
+- `research/`
+  Scripts, config, and machine-generated outputs for API-based paper discovery. This workspace never auto-edits `docs/`.
 
 ## Baseline Experiment
 
@@ -53,6 +56,41 @@ python create_adv_patch.py \
 The local script is a YOLOv5 baseline because ART provides a usable YOLO wrapper there. It is useful for learning the patch-generation workflow, but it is not yet a native YOLOv8/YOLO11/YOLO26 training pipeline.
 
 For the newer Ultralytics models, start with the verified research/code links in `docs/research/verified_sources.md` and use the roadmap in `docs/research/study_roadmap.md`.
+
+## Research Ingestion
+
+Bootstrap installs the lightweight crawler dependencies used by the `research/` workspace. The workflow is API-first and intentionally keeps `docs/` manual and curated.
+
+Run the main ingest pass:
+
+```bash
+python research/scripts/ingest_papers.py --config research/config/research_queries.yaml
+```
+
+Run depth-1 citation expansion from vetted seeds:
+
+```bash
+python research/scripts/expand_citations.py \
+  --config research/config/research_queries.yaml \
+  --seeds research/config/seed_papers.yaml
+```
+
+Supported environment variables:
+
+- `OPENALEX_API_KEY`
+- `SEMANTIC_SCHOLAR_API_KEY`
+- `CONTACT_EMAIL`
+
+Outputs:
+
+- `research/data/raw/`
+  Ignored raw source payloads from OpenAlex, Semantic Scholar, arXiv, Crossref, and Unpaywall.
+- `research/data/normalized/`
+  Ignored JSONL candidate datasets such as `papers.jsonl`, `papers_deduped.jsonl`, and `citation_candidates.jsonl`.
+- `research/data/ranked/`
+  Reviewable ranked markdown outputs that can be committed.
+
+Promotion into `docs/research/verified_sources.md` and `docs/notes/` remains manual. The ingestion scripts do not download PDFs, scrape websites, or write into `docs/`.
 
 ## Config Notes
 

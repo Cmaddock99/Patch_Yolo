@@ -1,0 +1,29 @@
+seeds:
+  brown2017_adversarial_patch:
+    label: "Brown et al. (2017) Adversarial Patch"
+    title: "Adversarial Patch"
+    arxiv_id: "1712.09665"
+  liu2018_dpatch:
+    label: "Liu et al. (2018) DPatch"
+    title: "DPatch: An Adversarial Patch Attack on Object Detectors"
+    arxiv_id: "1806.02299"
+  thys2019_fooling_surveillance:
+    label: "Thys et al. (2019) Fooling Automated Surveillance Cameras"
+    title: "Fooling automated surveillance cameras: adversarial patches to attack person detection"
+    arxiv_id: "1904.08653"
+  hu2021_naturalistic_patch:
+    label: "Hu et al. (2021) Naturalistic Physical Adversarial Patch"
+    title: "Naturalistic Physical Adversarial Patch for Object Detectors"
+  guesmi2024_dap:
+    label: "Guesmi et al. (2024) DAP"
+    title: "DAP: A Dynamic Adversarial Patch for Evading Person Detectors"
+    arxiv_id: "2305.11618"
+  bayer2024_transferability:
+    label: "Bayer et al. (2024) Network Transferability"
+    title: "Network transferability of adversarial patches in real-time object detection"
+    doi: "10.1117/12.3031501"
+    arxiv_id: "2408.15833"
+  huang2022_tsea:
+    label: "Huang et al. (2022) T-SEA"
+    title: "T-SEA: Transfer-based Self-Ensemble Attack on Object Detection"
+    arxiv_id: "2211.09773"

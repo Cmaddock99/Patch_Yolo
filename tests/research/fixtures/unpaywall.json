@@ -1,0 +1,9 @@
+{
+  "doi": "10.1111/example.doi",
+  "is_oa": true,
+  "oa_status": "gold",
+  "best_oa_location": {
+    "url": "https://publisher.example.org/paper",
+    "url_for_pdf": "https://publisher.example.org/paper.pdf"
+  }
+}

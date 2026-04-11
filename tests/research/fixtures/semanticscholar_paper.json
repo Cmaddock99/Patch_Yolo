@@ -1,0 +1,25 @@
+{
+  "paperId": "S2-123",
+  "title": "Transferable adversarial patch attacks on YOLO detectors",
+  "abstract": "Transferable adversarial patch attacks on YOLO detectors with physical constraints.",
+  "year": 2024,
+  "publicationDate": "2024-08-26",
+  "citationCount": 11,
+  "venue": "CVPR",
+  "url": "https://www.semanticscholar.org/paper/S2-123",
+  "authors": [
+    {
+      "name": "Alice Smith"
+    },
+    {
+      "name": "Bob Jones"
+    }
+  ],
+  "externalIds": {
+    "DOI": "10.1111/example.doi",
+    "ArXiv": "2401.12345"
+  },
+  "openAccessPdf": {
+    "url": "https://example.org/s2-paper.pdf"
+  }
+}

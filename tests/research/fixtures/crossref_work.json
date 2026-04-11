@@ -1,0 +1,27 @@
+{
+  "publisher": "CVF",
+  "URL": "https://doi.org/10.1111/example.doi",
+  "title": [
+    "Transferable adversarial patch attacks on YOLO detectors"
+  ],
+  "container-title": [
+    "CVPR"
+  ],
+  "published-online": {
+    "date-parts": [
+      [
+        2024,
+        8,
+        26
+      ]
+    ]
+  },
+  "is-referenced-by-count": 21,
+  "relation": {
+    "has-update": [
+      {
+        "id": "10.1111/example.update"
+      }
+    ]
+  }
+}

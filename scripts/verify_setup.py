@@ -16,6 +16,9 @@ REQUIRED_MODULES = [
     "yolov5",
     "PIL",
     "art",
+    "feedparser",
+    "requests",
+    "yaml",
 ]
 
 OPTIONAL_MODULES = [
@@ -62,13 +65,24 @@ def main() -> int:
         "weights": ROOT / "yolov5s.pt",
         "knowledge_base": ROOT / "docs/research/YOLO_Adversarial_Patch_Knowledge_Repo.md",
         "roadmap": ROOT / "docs/research/study_roadmap.md",
+        "research_config": ROOT / "research/config/research_queries.yaml",
+        "research_seeds": ROOT / "research/config/seed_papers.yaml",
+        "research_schema": ROOT / "research/schemas/paper_record.example.json",
     }
 
     for label, path in paths.items():
         exists = path.exists()
         status = "OK" if exists else "MISS"
         print(f"{status:4} {label:<14} {path}")
-        if not exists and label in {"config", "images_dir", "knowledge_base", "roadmap"}:
+        if not exists and label in {
+            "config",
+            "images_dir",
+            "knowledge_base",
+            "roadmap",
+            "research_config",
+            "research_seeds",
+            "research_schema",
+        }:
             failures += 1
 
     image_dir = paths["images_dir"]

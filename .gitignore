@@ -9,6 +9,9 @@ runs/
 data/custom_images/*
 !data/custom_images/.gitkeep
 
+research/data/raw/
+research/data/normalized/
+
 *.pt
 *.onnx
 *.engine

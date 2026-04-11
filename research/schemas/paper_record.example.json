@@ -1,0 +1,45 @@
+{
+  "paper_uid": "doi:10.1117/12.3031501",
+  "title": "Network transferability of adversarial patches in real-time object detection",
+  "abstract": "Example abstract text for a machine-generated candidate paper record.",
+  "authors": [
+    "First Author",
+    "Second Author"
+  ],
+  "year": 2024,
+  "publication_date": "2024-08-26",
+  "venue": "SPIE Proceedings",
+  "publisher": "SPIE",
+  "doi": "10.1117/12.3031501",
+  "arxiv_id": "2408.15833",
+  "source_primary": "openalex",
+  "sources_seen": [
+    "arxiv",
+    "openalex",
+    "semanticscholar"
+  ],
+  "source_ids": {
+    "openalex": "https://openalex.org/W1234567890",
+    "semanticscholar": "abcdef123456",
+    "arxiv": "http://arxiv.org/abs/2408.15833v1"
+  },
+  "landing_page_url": "https://openalex.org/W1234567890",
+  "pdf_url": "https://arxiv.org/pdf/2408.15833.pdf",
+  "open_access": true,
+  "oa_status": "green",
+  "citation_count": 12,
+  "retracted_or_updated": false,
+  "queries_matched": [
+    "adversarial patch object detection"
+  ],
+  "keywords_hit": [
+    "adversarial patch",
+    "transferability",
+    "yolo"
+  ],
+  "verification_state": "candidate",
+  "rank_score": 12.15,
+  "notes": [
+    "origin_seed:bayer2024_transferability"
+  ]
+}

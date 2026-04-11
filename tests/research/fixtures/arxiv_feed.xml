@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:arxiv="http://arxiv.org/schemas/atom">
+  <entry>
+    <id>http://arxiv.org/abs/2401.12345v1</id>
+    <updated>2024-01-15T00:00:00Z</updated>
+    <published>2024-01-15T00:00:00Z</published>
+    <title>Transferable adversarial patch attacks on YOLO detectors</title>
+    <summary>Transferable adversarial patch attacks on YOLO detectors with physical constraints.</summary>
+    <author>
+      <name>Alice Smith</name>
+    </author>
+    <author>
+      <name>Bob Jones</name>
+    </author>
+    <link href="http://arxiv.org/abs/2401.12345v1" rel="alternate" type="text/html"/>
+    <link title="pdf" href="http://arxiv.org/pdf/2401.12345v1" rel="related" type="application/pdf"/>
+    <arxiv:doi>10.1111/example.doi</arxiv:doi>
+  </entry>
+</feed>

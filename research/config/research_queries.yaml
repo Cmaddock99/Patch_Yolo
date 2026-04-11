@@ -1,0 +1,50 @@
+queries:
+  - "adversarial patch object detection"
+  - "physical adversarial patch object detection"
+  - "yolo adversarial patch"
+  - "transferability adversarial patch detector"
+  - "real world adversarial patch yolo"
+  - "adversarial patch nms object detection"
+  - "adversarial patch detector defense"
+
+filters:
+  min_year: 2018
+
+limits:
+  openalex_per_query: 25
+  semanticscholar_per_query: 25
+  arxiv_per_query: 15
+
+ranking:
+  keyword_boosts:
+    adversarial patch: 4.0
+    object detection: 3.0
+    detector: 2.0
+    yolo: 3.0
+    physical: 2.0
+    real-world: 2.0
+    real world: 2.0
+    transfer: 1.5
+    transferability: 2.0
+    nms: 1.5
+    defense: 1.0
+    robustness: 1.0
+    person detector: 1.0
+  soft_penalties:
+    image classification: -1.0
+    mnist: -2.0
+    cifar: -2.0
+  recency_start_year: 2018
+  recency_per_year: 0.15
+  citation_log_multiplier: 1.5
+  citation_max_bonus: 4.0
+  pdf_bonus: 0.5
+  open_access_bonus: 0.5
+  update_penalty: 0.5
+
+output:
+  ranked_top_n: 40
+
+citation_expansion:
+  referenced_per_seed: 20
+  cited_by_per_seed: 20
