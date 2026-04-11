@@ -3,7 +3,7 @@
   "epochs": 1000,
   "training_images": 18,
   "patch_size": 100,
-  "final_det_loss": 0.14431,
+  "final_det_loss": 0.13502,
   "clean_person_detections": 20,
   "patched_person_detections": 2,
   "detection_suppression_pct": 90.0,
