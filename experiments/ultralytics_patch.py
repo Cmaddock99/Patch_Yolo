@@ -609,6 +609,11 @@ def main() -> None:
     train_images_dev = train_images.to(device)
 
     # Initialize or load patch
+    if args.load_patch and not args.eval_only and not args.load_patch.exists():
+        raise FileNotFoundError(
+            f"--load-patch path does not exist: {args.load_patch}\n"
+            "Check that the source patch was committed and pulled before running."
+        )
     if args.load_patch and args.load_patch.exists():
         print(f"\nLoading patch from {args.load_patch} ...")
         patch_img = Image.open(args.load_patch).convert("RGB").resize(
@@ -641,6 +646,9 @@ def main() -> None:
         optimizer = torch.optim.Adam([patch], lr=args.lr, betas=(0.9, 0.999))
 
         # Resume from checkpoint if requested and file exists.
+        # NOTE: checkpoint ALWAYS takes priority over --load-patch. On reconnect,
+        # the patch printed above as "Loading patch from X" is immediately
+        # overwritten here with the checkpoint state. This is correct behavior.
         if args.resume and checkpoint_path.exists():
             ckpt = torch.load(checkpoint_path, map_location=device)
             with torch.no_grad():
@@ -649,6 +657,8 @@ def main() -> None:
             det_history = ckpt.get("loss_history", [])   # backward-compat key name
             resumed_from_epoch = ckpt["epoch"]
             start_epoch = resumed_from_epoch + 1
+            if args.load_patch and args.load_patch.exists():
+                print(f"  (warm-start PNG superseded by checkpoint — patch state loaded from epoch {resumed_from_epoch})")
             if start_epoch > args.epochs:
                 print(f"\nRun already COMPLETE at epoch {resumed_from_epoch} "
                       f"(TARGET_EPOCH={args.epochs}). "
