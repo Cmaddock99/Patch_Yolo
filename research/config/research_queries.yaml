@@ -1,11 +1,24 @@
 queries:
-  - "adversarial patch object detection"
-  - "physical adversarial patch object detection"
-  - "yolo adversarial patch"
-  - "transferability adversarial patch detector"
-  - "real world adversarial patch yolo"
-  - "adversarial patch nms object detection"
-  - "adversarial patch detector defense"
+  # Person / pedestrian evasion — core focus
+  - "adversarial patch person detection evasion"
+  - "adversarial patch pedestrian detection"
+  - "adversarial patch hide person yolo"
+  - "physical adversarial patch person detector surveillance"
+  - "wearable adversarial patch evade human detection"
+  # YOLO-family specific
+  - "adversarial patch yolov8"
+  - "adversarial patch yolo11"
+  - "adversarial patch yolo ultralytics"
+  - "adversarial patch anchor-free object detector"
+  - "adversarial patch end-to-end object detection"
+  # Transfer and generalization
+  - "transferability adversarial patch yolo cross-version"
+  - "adversarial patch transfer person detector"
+  # Physical world
+  - "physical adversarial patch person evasion real world"
+  - "adversarial t-shirt patch wearable"
+  # Defense
+  - "adversarial patch detector defense person detection"
 
 filters:
   min_year: 2018
@@ -20,20 +33,43 @@ ranking:
     adversarial patch: 4.0
     object detection: 3.0
     detector: 2.0
-    yolo: 3.0
+    yolo: 3.5
+    yolov8: 2.0
+    yolo11: 2.0
+    yolo26: 3.0
     physical: 2.0
     real-world: 2.0
     real world: 2.0
     transfer: 1.5
     transferability: 2.0
     nms: 1.5
+    nms-free: 2.0
+    anchor-free: 2.0
+    end-to-end detector: 2.0
     defense: 1.0
     robustness: 1.0
-    person detector: 1.0
+    person: 2.5
+    pedestrian: 2.5
+    person detector: 2.0
+    surveillance: 2.0
+    wearable: 1.5
+    evasion: 1.5
+    human detection: 2.0
   soft_penalties:
     image classification: -1.0
     mnist: -2.0
     cifar: -2.0
+    traffic sign: -3.0
+    vehicle detection: -3.0
+    autonomous driving: -3.0
+    self-driving: -3.0
+    remote sensing: -3.0
+    uav: -3.0
+    aerial: -2.5
+    satellite: -3.0
+    semantic segmentation: -2.0
+    road detection: -2.0
+    license plate: -2.0
   recency_start_year: 2018
   recency_per_year: 0.15
   citation_log_multiplier: 1.5

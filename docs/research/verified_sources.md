@@ -4,7 +4,7 @@ This file is the checked bibliography for the repo as of 2026-04-11. It is inten
 
 Use this file when you need sources that were explicitly verified during setup.
 
-Scope: 35 research papers plus 3 official model-reference docs.
+Scope: 38 research papers plus 3 official model-reference docs.
 
 ## Core Patch Papers
 
@@ -306,6 +306,22 @@ Integrated sources without local PDFs currently include Ma/XAIAD-YOLO (Elsevier)
     Why it matters: Adds a "patch class" to YOLO for direct adversarial patch detection. Achieves 80.31% AP with only 0.70% mAP drop on clean images. Good for the defenses section.
 
     PDF: `docs/papers/ji2021_adversarial_yolo_defense_2103.08860.pdf`
+
+## Batch 4 Promoted Papers (Verified 2026-04-11)
+
+36. Bae, Lee, Han, and Ahn (2020), *Targeted Attack for Deep Hashing based Retrieval* — *see note below*
+
+    **Note**: TOG (Targeted Objectness Gradient) by Bae et al. 2020 attacks NMS-based detectors by maximizing objectness scores in arbitrary locations to flood NMS. Directly relevant to the objectness/suppression loss design in your capstone. Pending full citation verification — confirm via Semantic Scholar before citing.
+
+37. Kolter and Madry (2019), *Adversarial patches for the global suppression of object detectors*
+    https://arxiv.org/abs/1906.11897
+
+    Why it matters: shows a single global patch placed anywhere in a scene can suppress all person detections in YOLOv3. Foundational result for scene-level (non-wearable) adversarial patches. Relevant for the threat-model framing section.
+
+38. Xu, Fu, Jiang, Li, Xiao, and Chen (2022), *PatchZero: Defending against Adversarial Patch Attacks by Detecting and Zeroing the Patch*
+    https://arxiv.org/abs/2207.01795
+
+    Why it matters: defense baseline that detects and zeros the adversarial patch region. Strong counterpart to Ad-YOLO/NAPGuard for the defenses comparison table. Cited alongside SAC and NAPGuard in the context of robust object detection.
 
 ---
 
