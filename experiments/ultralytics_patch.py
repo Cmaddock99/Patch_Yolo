@@ -243,49 +243,69 @@ def predict_with_grad(
     with torch.enable_grad():
         out = inner_model(image_bchw)
 
-    if not isinstance(out, (list, tuple)):
+    if not isinstance(out, (list, tuple, dict)):
         return out  # export mode, unlikely in training
 
     if not is_v26:
         # v8/v11: out[0] is (B, 84, 8400)
         return out[0]
 
-    # v26: out = (y, preds_dict)
-    #   y: (B, 300, 6) — post-processed, not useful for grad
-    #   preds_dict["one2many"]["scores"]: (B, 80, 8400), has grad_fn
-    #   preds_dict["one2one"]["scores"]:  (B, 80, 8400), NO grad_fn (detached)
-    _, preds_dict = out
+    # v26 output structure depends on model.training:
+    #
+    #   eval mode  → out = (postprocessed_y, preds_dict)
+    #     postprocessed_y: (B, 300, 6) via NMS, not useful for grad
+    #     preds_dict["one2many"]["scores"]: (B, 80, 8400)
+    #       — in newer Ultralytics this is DETACHED in eval mode
+    #
+    #   train mode → out = preds_dict  (no postprocessing wrapper)
+    #     preds_dict["one2many"]["scores"]: (B, 80, 8400) — HAS grad_fn
+    #
+    # We set inner.train() before the optimization loop to guarantee
+    # differentiable scores. This branch handles both modes for safety.
+    if isinstance(out, dict):
+        # train mode: forward returns preds_dict directly
+        preds_dict = out
+    elif isinstance(out, (tuple, list)) and len(out) == 2 and isinstance(out[1], dict):
+        # eval mode: (postprocessed, preds_dict)
+        preds_dict = out[1]
+    elif isinstance(out, (tuple, list)) and len(out) == 2 and isinstance(out[0], dict):
+        preds_dict = out[0]
+    else:
+        raise RuntimeError(
+            f"Unexpected YOLO26 output structure.\n"
+            f"Types: {[type(o) for o in out] if isinstance(out, (tuple, list)) else type(out)}"
+        )
+
     src = loss_source if loss_source != "auto" else "one2many"
 
-    # Probe the structure and find the differentiable score tensor.
-    # Ultralytics may rename keys across versions — try known variants in order.
     if not isinstance(preds_dict, dict):
         raise RuntimeError(
-            f"Expected preds_dict to be a dict but got {type(preds_dict)}.\n"
-            f"Full out structure: {[type(o) for o in out]}"
+            f"Expected preds_dict to be a dict but got {type(preds_dict)}."
         )
     if src not in preds_dict:
         raise RuntimeError(
             f"Key '{src}' not found in preds_dict.\n"
             f"Available keys: {list(preds_dict.keys())}"
         )
-    inner = preds_dict[src]
-    if not isinstance(inner, dict):
+    head_out = preds_dict[src]
+    if not isinstance(head_out, dict):
         raise RuntimeError(
-            f"preds_dict['{src}'] is not a dict, got {type(inner)}.\n"
-            f"Value: {inner}"
+            f"preds_dict['{src}'] is not a dict, got {type(head_out)}.\n"
+            f"Value: {head_out}"
         )
     for score_key in ("scores", "cls", "pred_scores"):
-        if score_key in inner:
-            tensor = inner[score_key]
+        if score_key in head_out:
+            tensor = head_out[score_key]
             if tensor.grad_fn is not None:
                 return tensor
-            # Found the key but no gradient — warn and keep trying
-            print(f"  [warn] preds_dict['{src}']['{score_key}'] has no grad_fn, skipping")
+            print(f"  [warn] preds_dict['{src}']['{score_key}'] has no grad_fn — "
+                  f"model may be in eval mode; set inner.train() before training loop")
     raise RuntimeError(
         f"No differentiable score tensor found in preds_dict['{src}'].\n"
-        f"Available keys: {list(inner.keys())}\n"
-        f"Grad fns: { {k: getattr(inner[k], 'grad_fn', None) for k in inner} }"
+        f"Available keys in head_out: {list(head_out.keys())}\n"
+        f"Grad fns: { {k: getattr(head_out[k], 'grad_fn', None) for k in head_out} }\n"
+        f"Hint: for YOLO26, call inner.train() before the optimization loop so "
+        f"one2many scores are computed with gradients."
     )
 
 
@@ -483,6 +503,14 @@ def main() -> None:
     # inside torch.inference_mode(). Clone them so autograd can use them.
     prepare_inner_for_grad(inner)
 
+    # YOLO26 (end2end=True): in eval mode, Ultralytics detaches the one2many
+    # scores before returning them — they have no grad_fn. Training mode keeps
+    # them connected to the computation graph so gradients flow back through
+    # the patch. Model parameters stay frozen (requires_grad=False throughout).
+    if is_v26 and not args.eval_only:
+        inner.train()
+        print("  [v26] Inner model set to train() mode — one2many scores will have grad_fn")
+
     # Load co-model for joint multi-model training (optional).
     co_inner = None
     is_v26_co = False
@@ -498,6 +526,9 @@ def main() -> None:
         _dummy = np.zeros((args.image_size, args.image_size, 3), dtype=np.uint8)
         co_yolo.predict(_dummy, verbose=False)
         prepare_inner_for_grad(co_inner)
+        if is_v26_co:
+            co_inner.train()
+            print(f"  [v26 co-model] set to train() mode for differentiable one2many scores")
         print(f"  Co-model ready: {args.co_model}")
 
     train_images = images_nchw[training_indices]
