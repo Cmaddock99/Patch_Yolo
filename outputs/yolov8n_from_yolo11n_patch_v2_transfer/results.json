@@ -1,5 +1,5 @@
 {
-  "run_name": "yolov8n_from_yolov8n+yolo26n_joint_patch_v2_transfer",
+  "run_name": "yolov8n_from_yolo11n_patch_v2_transfer",
   "model": "yolov8n",
   "co_model": null,
   "epochs": 500,
@@ -12,10 +12,10 @@
   "patch_size": 100,
   "final_det_loss": null,
   "clean_person_detections": 20,
-  "patched_person_detections": 7,
-  "detection_suppression_pct": 65.0,
+  "patched_person_detections": 10,
+  "detection_suppression_pct": 50.0,
   "mean_conf_clean": 0.5893,
-  "mean_conf_patched": 0.6112,
+  "mean_conf_patched": 0.6131,
   "loss_source": "channel4",
   "score_tensor_shape": null,
   "head_end2end": false,
@@ -29,7 +29,7 @@
   "rot_max": 0.0,
   "grad_clip": 0.0,
   "checkpoint_interval": 100,
-  "checkpoint_path": "outputs/yolov8n_from_yolov8n+yolo26n_joint_patch_v2_transfer/checkpoint.pt",
+  "checkpoint_path": "outputs/yolov8n_from_yolo11n_patch_v2_transfer/checkpoint.pt",
   "resumed": false,
   "device": "cuda"
 }
