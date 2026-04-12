@@ -208,6 +208,86 @@ def compute_torso_placement(boxes: list, image_size: int, patch_size: int) -> tu
 
 
 # ---------------------------------------------------------------------------
+# YOLO26 hook state (bypasses preds_dict for gradient access)
+# ---------------------------------------------------------------------------
+# In newer Ultralytics, YOLO26's one2many head only populates preds_dict when
+# training targets are provided. Without targets (our use case), preds_dict
+# ["one2many"] is an empty dict {}. Solution: hook the one2many Detect
+# submodule directly and capture its raw per-scale feature tensors.
+
+_v26_hook_tensors: dict[int, list] = {}  # model_id -> list of captured tensors
+_v26_hook_handles: dict[int, list] = {}  # model_id -> list of hook handles
+
+
+def install_v26_hook(inner_model: torch.nn.Module) -> None:
+    """
+    Find the one2many Detect submodule and install a forward hook that captures
+    its raw output tensors. In train mode, Detect.forward returns a list of
+    (B, no, H, W) tensors — one per detection scale — with grad_fn intact.
+    Idempotent: calling twice for the same model is a no-op.
+    """
+    mid = id(inner_model)
+    if mid in _v26_hook_handles:
+        return  # already installed
+
+    # Navigate to E2EDetect head: usually model.model[-1]
+    detect_head = None
+    if hasattr(inner_model, "model"):
+        for layer in reversed(list(inner_model.model)):
+            if hasattr(layer, "one2many"):
+                detect_head = layer
+                break
+
+    if detect_head is None or not hasattr(detect_head, "one2many"):
+        names = [type(m).__name__ for m in getattr(inner_model, "model", [])]
+        raise RuntimeError(
+            f"Cannot find E2EDetect head with 'one2many' in YOLO26.\n"
+            f"Layer types: {names}"
+        )
+
+    captured: list = []
+    _v26_hook_tensors[mid] = captured
+
+    def _hook(m: torch.nn.Module, inp, out) -> None:
+        captured.clear()
+        if isinstance(out, (list, tuple)):
+            captured.extend(out)
+        elif isinstance(out, torch.Tensor):
+            captured.append(out)
+
+    handle = detect_head.one2many.register_forward_hook(_hook)
+    _v26_hook_handles[mid] = [handle]
+    print(f"  [v26] Hook installed on {type(detect_head.one2many).__name__} "
+          f"(one2many); class tensors captured per forward pass")
+
+
+def _extract_v26_cls_tensor(tensors: list, nc: int = 80) -> torch.Tensor:
+    """
+    Given a list of raw Detect-head tensors (B, no, H, W) or (B, no, H*W),
+    extract the class-score channels (last nc channels), flatten spatial dims,
+    and concatenate across scales → (B, nc, total_anchors).
+    Works regardless of reg_max / DFL channel count.
+    """
+    chunks = []
+    for t in tensors:
+        if not isinstance(t, torch.Tensor):
+            continue
+        if t.dim() == 4:          # (B, no, H, W)
+            cls = t[:, -nc:, :, :].flatten(2)   # → (B, nc, H*W)
+        elif t.dim() == 3:        # (B, no, H*W) already flat
+            cls = t[:, -nc:, :]
+        else:
+            continue
+        chunks.append(cls)
+    if not chunks:
+        raise RuntimeError(
+            f"[v26] Hook captured {len(tensors)} tensors but none had usable shape.\n"
+            f"Shapes: {[t.shape if isinstance(t, torch.Tensor) else type(t) for t in tensors]}"
+        )
+    return torch.cat(chunks, dim=2)   # (B, nc, total_anchors)
+
+
+# ---------------------------------------------------------------------------
 # Core inference (differentiable)
 # ---------------------------------------------------------------------------
 
@@ -240,85 +320,55 @@ def predict_with_grad(
       one2one is computed from detached features and cannot be used for training.
     """
     is_v26 = "26" in model_name
+
+    if is_v26:
+        # YOLO26 hook path: the hook on one2many captures raw (B, no, H, W)
+        # feature tensors with grad_fn guaranteed. preds_dict["one2many"] is
+        # unreliable across Ultralytics versions (may be empty without targets).
+        mid = id(inner_model)
+        if mid not in _v26_hook_handles:
+            raise RuntimeError(
+                "[v26] install_v26_hook() was not called before predict_with_grad(). "
+                "Call it after prepare_inner_for_grad()."
+            )
+        _v26_hook_tensors[mid].clear()
+        with torch.enable_grad():
+            inner_model(image_bchw)
+        raw = _v26_hook_tensors[mid]
+        if not raw:
+            raise RuntimeError(
+                "[v26] Hook captured no tensors. "
+                "Check that install_v26_hook() targeted the correct submodule."
+            )
+        return raw  # list of (B, no, H, W); detection_loss handles this
+
     with torch.enable_grad():
         out = inner_model(image_bchw)
 
-    if not isinstance(out, (list, tuple, dict)):
+    if not isinstance(out, (list, tuple)):
         return out  # export mode, unlikely in training
 
-    if not is_v26:
-        # v8/v11: out[0] is (B, 84, 8400)
-        return out[0]
-
-    # v26 output structure depends on model.training:
-    #
-    #   eval mode  → out = (postprocessed_y, preds_dict)
-    #     postprocessed_y: (B, 300, 6) via NMS, not useful for grad
-    #     preds_dict["one2many"]["scores"]: (B, 80, 8400)
-    #       — in newer Ultralytics this is DETACHED in eval mode
-    #
-    #   train mode → out = preds_dict  (no postprocessing wrapper)
-    #     preds_dict["one2many"]["scores"]: (B, 80, 8400) — HAS grad_fn
-    #
-    # We set inner.train() before the optimization loop to guarantee
-    # differentiable scores. This branch handles both modes for safety.
-    if isinstance(out, dict):
-        # train mode: forward returns preds_dict directly
-        preds_dict = out
-    elif isinstance(out, (tuple, list)) and len(out) == 2 and isinstance(out[1], dict):
-        # eval mode: (postprocessed, preds_dict)
-        preds_dict = out[1]
-    elif isinstance(out, (tuple, list)) and len(out) == 2 and isinstance(out[0], dict):
-        preds_dict = out[0]
-    else:
-        raise RuntimeError(
-            f"Unexpected YOLO26 output structure.\n"
-            f"Types: {[type(o) for o in out] if isinstance(out, (tuple, list)) else type(out)}"
-        )
-
-    src = loss_source if loss_source != "auto" else "one2many"
-
-    if not isinstance(preds_dict, dict):
-        raise RuntimeError(
-            f"Expected preds_dict to be a dict but got {type(preds_dict)}."
-        )
-    if src not in preds_dict:
-        raise RuntimeError(
-            f"Key '{src}' not found in preds_dict.\n"
-            f"Available keys: {list(preds_dict.keys())}"
-        )
-    head_out = preds_dict[src]
-    if not isinstance(head_out, dict):
-        raise RuntimeError(
-            f"preds_dict['{src}'] is not a dict, got {type(head_out)}.\n"
-            f"Value: {head_out}"
-        )
-    for score_key in ("scores", "cls", "pred_scores"):
-        if score_key in head_out:
-            tensor = head_out[score_key]
-            if tensor.grad_fn is not None:
-                return tensor
-            print(f"  [warn] preds_dict['{src}']['{score_key}'] has no grad_fn — "
-                  f"model may be in eval mode; set inner.train() before training loop")
-    raise RuntimeError(
-        f"No differentiable score tensor found in preds_dict['{src}'].\n"
-        f"Available keys in head_out: {list(head_out.keys())}\n"
-        f"Grad fns: { {k: getattr(head_out[k], 'grad_fn', None) for k in head_out} }\n"
-        f"Hint: for YOLO26, call inner.train() before the optimization loop so "
-        f"one2many scores are computed with gradients."
-    )
+    # v8/v11: out[0] is (B, 84, 8400)
+    return out[0]
 
 
-def detection_loss(preds: torch.Tensor, topk: int = 10, is_v26: bool = False) -> torch.Tensor:
+def detection_loss(preds, topk: int = 10, is_v26: bool = False) -> torch.Tensor:
     """
     Minimize the person class score across anchor points.
     Applies sigmoid to guarantee loss stays in [0, 1].
 
     preds for v8/v11: (B, 84, 8400) — person score at channel 4
-    preds for v26:    (B, 80, 8400) — pure class scores, person at channel 0
+    preds for v26:    list of (B, no, H, W) raw hook tensors per scale;
+                      _extract_v26_cls_tensor concatenates them → (B, 80, total)
+                      person at channel 0 (COCO class 0 = person in 80-class head)
     """
     if is_v26:
-        person_scores = preds[:, PERSON_CLASS_ID, :].sigmoid()
+        if isinstance(preds, list):
+            # Hook path: concat class channels across scales
+            cls_tensor = _extract_v26_cls_tensor(preds, nc=80)  # (B, 80, total)
+        else:
+            cls_tensor = preds  # legacy path, (B, 80, 8400)
+        person_scores = cls_tensor[:, PERSON_CLASS_ID, :].sigmoid()
     else:
         person_scores = preds[:, PERSON_CHANNEL, :].sigmoid()
     topk_scores = person_scores.topk(min(topk, person_scores.shape[1]), dim=1).values
@@ -503,13 +553,13 @@ def main() -> None:
     # inside torch.inference_mode(). Clone them so autograd can use them.
     prepare_inner_for_grad(inner)
 
-    # YOLO26 (end2end=True): in eval mode, Ultralytics detaches the one2many
-    # scores before returning them — they have no grad_fn. Training mode keeps
-    # them connected to the computation graph so gradients flow back through
-    # the patch. Model parameters stay frozen (requires_grad=False throughout).
+    # YOLO26 (end2end=True): preds_dict["one2many"] is unreliable across
+    # Ultralytics versions (empty dict when no training targets are provided).
+    # Use a forward hook on the one2many Detect submodule instead — it captures
+    # raw per-scale feature tensors with grad_fn regardless of version.
     if is_v26 and not args.eval_only:
-        inner.train()
-        print("  [v26] Inner model set to train() mode — one2many scores will have grad_fn")
+        inner.train()   # train mode ensures one2many head runs its full forward
+        install_v26_hook(inner)
 
     # Load co-model for joint multi-model training (optional).
     co_inner = None
@@ -528,7 +578,7 @@ def main() -> None:
         prepare_inner_for_grad(co_inner)
         if is_v26_co:
             co_inner.train()
-            print(f"  [v26 co-model] set to train() mode for differentiable one2many scores")
+            install_v26_hook(co_inner)
         print(f"  Co-model ready: {args.co_model}")
 
     train_images = images_nchw[training_indices]
@@ -618,7 +668,10 @@ def main() -> None:
                     model_name=args.model,
                 )
                 if last_preds_shape is None:
-                    last_preds_shape = list(preds.shape)
+                    if isinstance(preds, list):
+                        last_preds_shape = [list(t.shape) for t in preds if isinstance(t, torch.Tensor)]
+                    else:
+                        last_preds_shape = list(preds.shape)
 
                 loss_det = detection_loss(preds, topk=args.topk, is_v26=is_v26)
 
