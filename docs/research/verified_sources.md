@@ -4,7 +4,7 @@ This file is the checked bibliography for the repo as of 2026-04-11. It is inten
 
 Use this file when you need sources that were explicitly verified during setup.
 
-Scope: 38 research papers plus 3 official model-reference docs.
+Scope: 45 research papers plus 3 official model-reference docs.
 
 ## Core Patch Papers
 
@@ -202,6 +202,11 @@ Scope: 38 research papers plus 3 official model-reference docs.
 | `bagley2025_dynamically_optimized_clusters_2511.18656.pdf` | Bagley et al. (2025) |
 | `diffnat2026_AAAI.pdf` | Li et al. / Diff-NAT (AAAI 2026) |
 | `lovisotto2022_attention_patch_robustness_CVPR.pdf` | Lovisotto et al. (2022) CVPR |
+| `cheng2024_depatch_person_detector_2408.06625.pdf` | Cheng et al. / DePatch (2024) |
+| `zhou2025_sequence_level_clothing_2511.16020.pdf` | Zhou et al. / Sequence-Level Clothing (2025) |
+| `li2025_uvattack_nerf_person_2501.05783.pdf` | Li et al. / UV-Attack (ICLR 2025) |
+| `saha2020_spatial_context_adversarial_1910.00068.pdf` | Saha et al. / Spatial Context (CVPRW 2020) |
+| `lu2022_fran_frequency_attention_2205.04638.pdf` | Lu et al. / FRAN (IEEE Access 2022) |
 
 Gala et al. (2025) is not available as a free PDF — access via institution or see GitHub repo for details.
 
@@ -322,6 +327,69 @@ Integrated sources without local PDFs currently include Ma/XAIAD-YOLO (Elsevier)
     https://arxiv.org/abs/2207.01795
 
     Why it matters: defense baseline that detects and zeros the adversarial patch region. Strong counterpart to Ad-YOLO/NAPGuard for the defenses comparison table. Cited alongside SAC and NAPGuard in the context of robust object detection.
+
+## Pipeline Batch 5 Papers (Runs 2–3, Verified 2026-04-11)
+
+### Multi-YOLO Person Evasion
+
+39. Imran, Kazam, Kazmi, Raza, Maan, and Aafaq (2025), *TK-Patch: Universal Top-K Adversarial Patches for Cross-Model Person Evasion*
+    https://www.semanticscholar.org/paper/6cc0ad948a09e0a1377ec6e3f13653bd0575aa63 — ICoDT2 2025, IEEE
+
+    Why it matters: Universal patch attacking YOLOv3, YOLOv5, and YOLOv7 simultaneously via a Top-K loss that focuses gradient energy on the K most confident detections. The multi-YOLO ensemble design is the closest existing paper to your v8+v11+v26 simultaneous attack setup. Top-K loss is a direct alternative to your current mean-topK implementation.
+
+    ⚠️ 0 citations — very new; PDF not available open access. Access via IEEE Xplore.
+
+### Physical Robustness Techniques
+
+40. Cheng, Zhang, Wang, Qin, and Li (2024), *DePatch: Towards Robust Adversarial Patch for Evading Person Detectors in the Real World*
+    https://arxiv.org/abs/2408.06625
+
+    Why it matters: Block-wise decoupled patch training that breaks the "self-coupling" failure mode — where physical degradation to any one patch segment destroys the entire adversarial effect. The random block erasure during training is a simple, portable improvement to any YOLO patch training loop.
+
+    PDF: `docs/papers/cheng2024_depatch_person_detector_2408.06625.pdf`
+
+41. Zhou, Chan, Wu, Zheng, and Huang (2025), *Physically Realistic Sequence-Level Adversarial Clothing for Robust Human-Detection Evasion*
+    https://arxiv.org/abs/2511.16020
+
+    Why it matters: Sequence-level (temporal) optimization for wearable adversarial clothing — patch stays effective across an entire walking video as pose and garment deformation change. ICC color locking ensures printable colors. Current state-of-the-art for physical temporal robustness in surveillance evasion.
+
+    PDF: `docs/papers/zhou2025_sequence_level_clothing_2511.16020.pdf`
+
+### Physical-World NeRF / 3D Techniques
+
+42. Li, Zhang, Liang, and Xiao (2025), *UV-Attack: Physical-World Adversarial Attacks for Person Detection via Dynamic-NeRF-based UV Mapping*
+    https://arxiv.org/abs/2501.05783 — ICLR 2025
+
+    Why it matters: NeRF-based UV mapping generates adversarial clothing textures that remain effective across diverse human actions and viewpoints. Explicitly targets YOLOv8. High ASR even with unseen actions by sampling from the SMPL body model parameter space. Represents the state-of-the-art in motion-robust physical person evasion.
+
+    PDF: `docs/papers/li2025_uvattack_nerf_person_2501.05783.pdf`
+
+### Contextual / Scene-Level Attack
+
+43. Saha, Subramanya, Patil, and Pirsiavash (2020), *Role of Spatial Context in Adversarial Robustness for Object Detection*
+    https://arxiv.org/abs/1910.00068 — CVPRW 2020
+
+    Why it matters: Demonstrates that a single background patch (not touching the target person) can suppress YOLO detections of an entire object category by exploiting YOLO's global contextual reasoning. 60 citations. Relevant for threat-model framing and for explaining why YOLO's single-pass global context is a vulnerability.
+
+    PDF: `docs/papers/saha2020_spatial_context_adversarial_1910.00068.pdf`
+
+### Loss Function / Optimization Techniques
+
+44. Lu, Lu, Cai, Lei, and Jiang (2022), *Using Frequency Attention to Make Adversarial Patch Powerful Against Person Detector*
+    https://arxiv.org/abs/2205.04638 — IEEE Access 2022
+
+    Why it matters: FRAN — frequency attention module that guides patch optimization toward low-frequency signals, which survive image shrinking better than high-frequency perturbations. Addresses the scale robustness problem for small patches. First frequency-domain attention approach in adversarial patch literature.
+
+    PDF: `docs/papers/lu2022_fran_frequency_attention_2205.04638.pdf`
+
+### Defense — Anomaly Reconstruction
+
+45. Tereshonok, Ilina, and Ziyadinov (2025), *Increasing Neural-Based Pedestrian Detectors' Robustness to Adversarial Patch Attacks Using Anomaly Localization*
+    https://doi.org/10.3390/jimaging11010026 — Journal of Imaging (MDPI), 2025
+
+    Why it matters: Defense using a deep CNN to localize the adversarial region and reconstruct a clean image before detection. Architecturally distinct from Ad-YOLO (patch class), NAPGuard (semantic detection), SAC (inpainting), and PatchZero (zeroing). Fifth defense paradigm for the defenses comparison table.
+
+    Open access PDF: https://www.mdpi.com/2313-433X/11/1/26/pdf?version=1737095625
 
 ---
 
