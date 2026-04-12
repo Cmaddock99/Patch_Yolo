@@ -79,6 +79,95 @@ def total_variation(patch: torch.Tensor) -> torch.Tensor:
     return (tv_h + tv_w) / patch.numel()
 
 
+def block_erase(patch: torch.Tensor, prob: float, n_blocks: int = 3) -> torch.Tensor:
+    """DePatch (Cheng 2024): randomly zero one block of the patch each forward pass.
+    Prevents self-coupling — any single block being degraded cannot destroy the whole effect.
+    n_blocks=3 divides the patch into a 3x3 grid; one cell is zeroed at random.
+    """
+    if prob <= 0.0 or float(np.random.random()) > prob:
+        return patch
+    p = patch.clone()
+    ph, pw = p.shape[1], p.shape[2]
+    bh, bw = ph // n_blocks, pw // n_blocks
+    bi = np.random.randint(0, n_blocks)
+    bj = np.random.randint(0, n_blocks)
+    p[:, bi * bh : (bi + 1) * bh, bj * bw : (bj + 1) * bw] = 0.0
+    return p
+
+
+def patch_cutout(patch: torch.Tensor, prob: float, size: int) -> torch.Tensor:
+    """T-SEA (Huang 2022): randomly zero a square region of the patch.
+    Improves black-box transfer by preventing the patch from over-fitting to
+    any single localized feature of the source model's gradient landscape.
+    """
+    if prob <= 0.0 or float(np.random.random()) > prob:
+        return patch
+    p = patch.clone()
+    ph, pw = p.shape[1], p.shape[2]
+    t = np.random.randint(0, max(1, ph - size + 1))
+    l = np.random.randint(0, max(1, pw - size + 1))
+    p[:, t : t + size, l : l + size] = 0.0
+    return p
+
+
+def rotate_patch_eot(patch: torch.Tensor, rot_max: float) -> torch.Tensor:
+    """EoT rotation (Schack 2024): rotate patch by a random angle in [-rot_max, rot_max] degrees.
+    Rotation >20° Z-axis is the primary physical degradation mode per Schack 2024.
+    Uses differentiable affine_grid + grid_sample so gradients flow back to patch pixels.
+    """
+    if rot_max <= 0.0:
+        return patch
+    import math
+    angle_deg = float(np.random.uniform(-rot_max, rot_max))
+    angle_rad = math.radians(angle_deg)
+    cos_a = math.cos(angle_rad)
+    sin_a = math.sin(angle_rad)
+    theta = torch.tensor(
+        [[cos_a, -sin_a, 0.0], [sin_a, cos_a, 0.0]],
+        dtype=patch.dtype,
+        device=patch.device,
+    ).unsqueeze(0)
+    grid = torch.nn.functional.affine_grid(
+        theta,
+        (1, patch.shape[0], patch.shape[1], patch.shape[2]),
+        align_corners=False,
+    )
+    rotated = torch.nn.functional.grid_sample(
+        patch.unsqueeze(0), grid, align_corners=False,
+        mode="bilinear", padding_mode="zeros",
+    ).squeeze(0)
+    return rotated
+
+
+# 30-color printable palette (covers the sRGB printer gamut, inspired by Thys 2019 / DePatch).
+# Used by nps_loss to penalize non-printable colors.
+_NPS_PALETTE = torch.tensor([
+    [0.000, 0.000, 0.000], [1.000, 1.000, 1.000], [1.000, 0.000, 0.000],
+    [0.000, 1.000, 0.000], [0.000, 0.000, 1.000], [1.000, 1.000, 0.000],
+    [0.000, 1.000, 1.000], [1.000, 0.000, 1.000], [0.500, 0.500, 0.500],
+    [0.753, 0.753, 0.753], [0.502, 0.000, 0.000], [0.000, 0.502, 0.000],
+    [0.000, 0.000, 0.502], [0.502, 0.502, 0.000], [0.000, 0.502, 0.502],
+    [0.502, 0.000, 0.502], [0.753, 0.251, 0.000], [0.000, 0.753, 0.251],
+    [0.251, 0.000, 0.753], [0.753, 0.502, 0.251], [0.251, 0.753, 0.502],
+    [0.502, 0.251, 0.753], [1.000, 0.502, 0.000], [0.000, 1.000, 0.502],
+    [0.502, 0.000, 1.000], [1.000, 0.753, 0.502], [0.502, 1.000, 0.753],
+    [0.753, 0.502, 1.000], [0.251, 0.251, 0.251], [0.878, 0.878, 0.878],
+], dtype=torch.float32)  # shape (30, 3)
+
+
+def nps_loss(patch: torch.Tensor, palette: torch.Tensor) -> torch.Tensor:
+    """Non-Printability Score (Thys 2019, DePatch): penalize colors far from the nearest
+    palette entry. A lower score means the patch will look more accurate when printed.
+    patch:   (3, H, W) float32 in [0, 1]
+    palette: (N, 3) float32, same device as patch
+    Returns: mean min-L2-distance across all patch pixels (scalar).
+    """
+    pixels = patch.permute(1, 2, 0).reshape(-1, 3)          # (H*W, 3)
+    pal = palette.to(patch.device)
+    dists = torch.cdist(pixels.unsqueeze(0), pal.unsqueeze(0)).squeeze(0)  # (H*W, N)
+    return dists.min(dim=1).values.mean()
+
+
 def apply_patch(image: torch.Tensor, patch: torch.Tensor, top: int, left: int) -> torch.Tensor:
     """Overlay patch on a single CHW image. Returns patched image."""
     ph, pw = patch.shape[1], patch.shape[2]
@@ -296,6 +385,28 @@ def parse_args() -> argparse.Namespace:
                    help="Max gradient norm for patch update (0 = disabled)")
     p.add_argument("--seed", type=int, default=None,
                    help="Random seed for reproducibility")
+
+    # ---- Literature-backed robustness improvements (all default off) --------
+    p.add_argument("--block-erase-prob", type=float, default=0.0,
+                   help="DePatch (Cheng 2024): probability of erasing a random 3x3 block "
+                        "of the patch each forward pass. Improves physical robustness. "
+                        "Recommended: 0.5")
+    p.add_argument("--cutout-prob", type=float, default=0.0,
+                   help="T-SEA (Huang 2022): probability of zeroing a random square region "
+                        "of the patch each step. Improves black-box transfer. "
+                        "Recommended: 0.3")
+    p.add_argument("--cutout-size", type=int, default=20,
+                   help="T-SEA cutout: side length of zeroed region in pixels (default: 20)")
+    p.add_argument("--rot-max", type=float, default=0.0,
+                   help="EoT rotation (Schack 2024): max rotation angle in degrees. "
+                        "Rotation >20° is the primary physical degradation mode. "
+                        "Recommended: 15.0")
+    p.add_argument("--nps-weight", type=float, default=0.0,
+                   help="Non-Printability Score loss weight (Thys 2019 / DePatch). "
+                        "Penalizes non-printable colors. Recommended: 0.01")
+    p.add_argument("--co-model", type=str, default=None,
+                   help="Second model for joint multi-model training (e.g. yolo11n). "
+                        "Both model losses are averaged. Improves cross-model transfer.")
     return p.parse_args()
 
 
@@ -316,6 +427,8 @@ def main() -> None:
     if args.eval_only and args.load_patch:
         source_model = args.load_patch.parts[-3] if len(args.load_patch.parts) >= 3 else "unknown"
         run_name = f"{args.model}_from_{source_model}_transfer"
+    elif args.co_model:
+        run_name = f"{args.model}+{args.co_model}_joint_patch_v2"
     else:
         run_name = f"{args.model}_patch_v2"
     run_dir = args.output_dir / run_name
@@ -361,6 +474,23 @@ def main() -> None:
     # Ultralytics lazily initializes anchor/stride tensors on first inference
     # inside torch.inference_mode(). Clone them so autograd can use them.
     prepare_inner_for_grad(inner)
+
+    # Load co-model for joint multi-model training (optional).
+    co_inner = None
+    is_v26_co = False
+    if args.co_model and not args.eval_only:
+        print(f"\nLoading co-model {args.co_model} for joint training ...")
+        co_yolo = YOLO(f"{args.co_model}.pt")
+        co_inner = co_yolo.model.to(device)
+        co_inner.eval()
+        for param in co_inner.parameters():
+            param.requires_grad_(False)
+        is_v26_co = "26" in args.co_model
+        # Warm up co-model so anchor/stride tensors are initialized.
+        _dummy = np.zeros((args.image_size, args.image_size, 3), dtype=np.uint8)
+        co_yolo.predict(_dummy, verbose=False)
+        prepare_inner_for_grad(co_inner)
+        print(f"  Co-model ready: {args.co_model}")
 
     train_images = images_nchw[training_indices]
     train_paths = [image_paths[i] for i in training_indices]
@@ -419,7 +549,15 @@ def main() -> None:
                                     args.image_size - args.patch_size))
 
                 patch_c = patch.clamp(0, 1)
-                patched_img = apply_patch(img, patch_c, t_jit, l_jit)
+
+                # Apply literature-backed augmentations to the patch before pasting.
+                # Each operates on a clone so the stored patch tensor is untouched.
+                # Gradient flows back through all non-zeroed regions.
+                patch_aug = block_erase(patch_c, args.block_erase_prob)   # DePatch
+                patch_aug = patch_cutout(patch_aug, args.cutout_prob, args.cutout_size)  # T-SEA
+                patch_aug = rotate_patch_eot(patch_aug, args.rot_max)      # EoT rotation
+
+                patched_img = apply_patch(img, patch_aug, t_jit, l_jit)
 
                 preds = predict_with_grad(
                     inner, patched_img.unsqueeze(0),
@@ -430,8 +568,23 @@ def main() -> None:
                     last_preds_shape = list(preds.shape)
 
                 loss_det = detection_loss(preds, topk=args.topk, is_v26=is_v26)
+
+                # Joint multi-model loss: average with co-model if present.
+                if co_inner is not None:
+                    co_preds = predict_with_grad(
+                        co_inner, patched_img.unsqueeze(0),
+                        loss_source=args.loss_source,
+                        model_name=args.co_model,
+                    )
+                    co_loss_det = detection_loss(co_preds, topk=args.topk, is_v26=is_v26_co)
+                    loss_det = (loss_det + co_loss_det) * 0.5
+
+                # NPS loss uses the unaugmented patch_c (physical constraint on the
+                # stored patch, not the augmented version used in the forward pass).
                 loss_tv = total_variation(patch_c)
-                loss = loss_det + args.tv_weight * loss_tv
+                loss_nps = (nps_loss(patch_c, _NPS_PALETTE)
+                            if args.nps_weight > 0 else patch_c.new_tensor(0.0))
+                loss = loss_det + args.tv_weight * loss_tv + args.nps_weight * loss_nps
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -490,6 +643,7 @@ def main() -> None:
     # -----------------------------------------------------------------------
     summary = {
         "model": args.model,
+        "co_model": args.co_model,
         "epochs": args.epochs,
         "training_images": len(train_images),
         "subset_size": len(train_images),
@@ -500,10 +654,16 @@ def main() -> None:
         "detection_suppression_pct": round(suppression_pct, 1),
         "mean_conf_clean": mean_conf_clean,
         "mean_conf_patched": mean_conf_patched,
-        "loss_source": f"one2many_scores" if is_v26 else "channel4",
+        "loss_source": "one2many_scores" if is_v26 else "channel4",
         "score_tensor_shape": last_preds_shape,
         "head_end2end": is_v26,
         "lr": args.lr,
+        "tv_weight": args.tv_weight,
+        "nps_weight": args.nps_weight,
+        "block_erase_prob": args.block_erase_prob,
+        "cutout_prob": args.cutout_prob,
+        "cutout_size": args.cutout_size,
+        "rot_max": args.rot_max,
         "grad_clip": args.grad_clip,
         "device": device,
     }
