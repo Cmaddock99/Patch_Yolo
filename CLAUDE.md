@@ -76,3 +76,39 @@ ART's `DPatch` performs gradient ascent on the patch pixels to maximize the YOLO
 - `docs/research/verified_sources.md` — checked bibliography (use this when citing)
 - `docs/research/study_roadmap.md` — four-phase plan from literature → baseline → YOLOv8/11/26 experiments → research question
 - `docs/notes/paper_review_template.md` — template for per-paper notes
+
+## Research Ingestion Pipeline (`research/`)
+
+The `research/` directory is a machine-assisted paper discovery layer that is intentionally **separate** from `docs/`, which remains the curated, human-reviewed knowledge base. Scripts never write to `docs/`.
+
+### Running the pipeline
+
+```bash
+# Multi-source ingest (OpenAlex, Semantic Scholar, arXiv, Crossref, Unpaywall)
+python research/scripts/ingest_papers.py --config research/config/research_queries.yaml
+
+# Depth-1 citation expansion from vetted seeds
+python research/scripts/expand_citations.py \
+  --config research/config/research_queries.yaml \
+  --seeds research/config/seed_papers.yaml
+```
+
+Optional env vars (set before running):
+
+```bash
+export OPENALEX_API_KEY=...
+export SEMANTIC_SCHOLAR_API_KEY=...
+export CONTACT_EMAIL=...   # enables polite OpenAlex ID and Unpaywall lookups
+```
+
+### Pipeline output contract
+
+- `research/data/raw/` — ignored raw source payloads
+- `research/data/normalized/` — ignored JSONL candidate datasets (`papers.jsonl`, `papers_deduped.jsonl`, `citation_candidates.jsonl`); all records carry `verification_state: candidate`
+- `research/data/ranked/` — reviewable ranked markdown outputs; safe to commit
+
+### Manual promotion workflow
+
+1. Review ranked output under `research/data/ranked/`.
+2. Verify candidates against trusted sources.
+3. Promote into `docs/research/verified_sources.md` and create note files under `docs/notes/` using `paper_review_template.md`.
