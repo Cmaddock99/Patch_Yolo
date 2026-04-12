@@ -30,14 +30,20 @@ Usage
 -----
     # Single model, manifest subset
     python experiments/ultralytics_patch.py \
-        --model yolov8n --manifest data/manifests/common_14.txt \
+        --model yolov8n --manifest data/manifests/common_all_models.txt \
         --seed 42 --epochs 1000
+
+    # Warm-start v11n from v8n patch (full gradient budget, info via initialization)
+    python experiments/ultralytics_patch.py \
+        --model yolo11n --run-name yolo11n_warmstart_from_v8n \
+        --load-patch outputs/yolov8n_patch_v2/patches/patch.png \
+        --manifest data/manifests/common_all_models.txt --seed 42 --epochs 1000
 
     # Cross-version transfer eval
     python experiments/ultralytics_patch.py \
         --model yolo11n --eval-only \
         --load-patch outputs/yolov8n_patch_v2/patches/patch.png \
-        --manifest data/manifests/common_14.txt
+        --manifest data/manifests/common_all_models.txt
 """
 
 from __future__ import annotations
@@ -358,10 +364,19 @@ def run_predict(yolo: YOLO, img_hwc_uint8: np.ndarray, conf: float) -> list:
 
 
 def load_images_from_manifest(manifest_path: Path, image_size: int) -> tuple[list[np.ndarray], list[Path]]:
-    """Load and resize images listed in a manifest file (one path per line)."""
-    paths = [Path(l.strip()) for l in manifest_path.read_text().splitlines() if l.strip()]
-    if not paths:
+    """Load and resize images listed in a manifest file (one path per line).
+    Relative paths are resolved against the current working directory so the
+    manifest works both locally and on Colab after %cd into the repo root.
+    """
+    raw_paths = [l.strip() for l in manifest_path.read_text().splitlines() if l.strip()]
+    if not raw_paths:
         raise ValueError(f"Manifest {manifest_path} is empty")
+    paths: list[Path] = []
+    for raw in raw_paths:
+        p = Path(raw)
+        if not p.is_absolute():
+            p = Path.cwd() / p
+        paths.append(p)
     arrays = []
     for p in paths:
         img = Image.open(p).convert("RGB").resize((image_size, image_size))
@@ -413,7 +428,10 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--eval-only", action="store_true",
                    help="Skip training, only evaluate an existing patch")
     p.add_argument("--load-patch", type=Path, default=None,
-                   help="Path to an existing patch.png to load (for eval or transfer)")
+                   help="Path to an existing patch.png. Without --eval-only: warm-start "
+                        "training from this patch instead of random noise (each model still "
+                        "gets its full gradient budget; information is shared via "
+                        "initialization). With --eval-only: transfer/evaluation mode.")
     p.add_argument("--loss-source", default="auto",
                    choices=["auto", "one2many", "one2one"],
                    help="Raw score tensor for YOLO26 gradient loss (default: auto=one2many)")
@@ -442,7 +460,20 @@ def parse_args() -> argparse.Namespace:
                         "Penalizes non-printable colors. Recommended: 0.01")
     p.add_argument("--co-model", type=str, default=None,
                    help="Second model for joint multi-model training (e.g. yolo11n). "
-                        "Both model losses are averaged. Improves cross-model transfer.")
+                        "Losses are combined via --co-weight. Improves cross-model transfer.")
+    p.add_argument("--co-weight", type=float, default=0.5,
+                   help="Co-model loss weight for joint training (0.0–1.0). "
+                        "Primary model gets (1 - co_weight). Default 0.5 = equal split. "
+                        "Use 0.3 to give primary model 70%% of gradient budget.")
+
+    # ---- Run identity and checkpoint location --------------------------------
+    p.add_argument("--run-name", type=str, default=None,
+                   help="Override the auto-generated output directory name. Prevents "
+                        "overwriting an existing run. Example: --run-name yolov8n_patch_v3")
+    p.add_argument("--checkpoint-dir", type=Path, default=None,
+                   help="Directory for checkpoint.pt (default: run output dir). "
+                        "Set to a Drive path on Colab so checkpoints survive runtime resets. "
+                        "Example: --checkpoint-dir /content/drive/MyDrive/AP_checkpoints")
 
     # ---- Checkpoint / resume (Colab disconnect safety) ----------------------
     p.add_argument("--checkpoint-interval", type=int, default=100,
@@ -458,8 +489,13 @@ def main() -> None:
     args = parse_args()
 
     if args.seed is not None:
+        import random as _random
+        _random.seed(args.seed)
         torch.manual_seed(args.seed)
+        torch.cuda.manual_seed_all(args.seed)
         np.random.seed(args.seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
     device = get_device()
     is_v26 = "26" in args.model
@@ -475,6 +511,9 @@ def main() -> None:
         run_name = f"{args.model}+{args.co_model}_joint_patch_v2"
     else:
         run_name = f"{args.model}_patch_v2"
+    # --run-name overrides the auto-generated name so new runs don't clobber old ones.
+    if args.run_name:
+        run_name = args.run_name
     run_dir = args.output_dir / run_name
     for sub in ("original", "patched", "patches"):
         (run_dir / sub).mkdir(parents=True, exist_ok=True)
@@ -514,6 +553,11 @@ def main() -> None:
             "Lower --conf-threshold or add more full-body photos."
         )
     print(f"  Selected {len(training_indices)}/{len(image_paths)} images with person detections.")
+
+    if args.batch_size > len(training_indices):
+        print(f"  Warning: --batch-size {args.batch_size} > training images "
+              f"{len(training_indices)}; clamping to {len(training_indices)}.")
+        args.batch_size = len(training_indices)
 
     # Ultralytics lazily initializes anchor/stride tensors on first inference
     # inside torch.inference_mode(). Clone them so autograd can use them.
@@ -579,10 +623,19 @@ def main() -> None:
     # -----------------------------------------------------------------------
     # Training loop
     # -----------------------------------------------------------------------
-    loss_history: list[float] = []
+    det_history:  list[float] = []   # per-epoch avg detection loss (kept in checkpoint)
+    tv_history:   list[float] = []   # per-epoch avg TV loss
+    nps_history:  list[float] = []   # per-epoch avg NPS loss
     last_preds_shape: list[int] | None = None
     start_epoch = 1
-    checkpoint_path = run_dir / "checkpoint.pt"
+    resumed_from_epoch = 0
+
+    # Checkpoint location: Drive-backed dir if provided, else run output dir.
+    if args.checkpoint_dir:
+        args.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        checkpoint_path = args.checkpoint_dir / f"{run_name}_checkpoint.pt"
+    else:
+        checkpoint_path = run_dir / "checkpoint.pt"
 
     if not args.eval_only:
         optimizer = torch.optim.Adam([patch], lr=args.lr, betas=(0.9, 0.999))
@@ -593,16 +646,27 @@ def main() -> None:
             with torch.no_grad():
                 patch.copy_(ckpt["patch"])
             optimizer.load_state_dict(ckpt["optimizer"])
-            loss_history = ckpt.get("loss_history", [])
-            start_epoch = ckpt["epoch"] + 1
-            print(f"\nResumed from checkpoint at epoch {ckpt['epoch']} "
-                  f"(continuing from epoch {start_epoch})")
+            det_history = ckpt.get("loss_history", [])   # backward-compat key name
+            resumed_from_epoch = ckpt["epoch"]
+            start_epoch = resumed_from_epoch + 1
+            if start_epoch > args.epochs:
+                print(f"\nRun already COMPLETE at epoch {resumed_from_epoch} "
+                      f"(TARGET_EPOCH={args.epochs}). "
+                      "Raise --epochs to continue training. Running eval only.")
+                args.eval_only = True
+            else:
+                print(f"\nResumed from checkpoint at epoch {resumed_from_epoch} "
+                      f"(continuing from epoch {start_epoch} → {args.epochs})")
         else:
-            print(f"\nTraining for {args.epochs} epochs ...")
+            if args.load_patch and args.load_patch.exists():
+                print(f"\nWarm-start: initialized from {args.load_patch}")
+            print(f"Training for {args.epochs} epochs ...")
 
         for epoch in tqdm(range(start_epoch, args.epochs + 1), desc="Training"):
             batch_idx = torch.randperm(len(train_images_dev))[: args.batch_size].tolist()
             epoch_loss_det = 0.0
+            epoch_loss_tv  = 0.0
+            epoch_loss_nps = 0.0
 
             for idx in batch_idx:
                 img = train_images_dev[idx]
@@ -635,7 +699,8 @@ def main() -> None:
 
                 loss_det = detection_loss(preds, topk=args.topk, is_v26=is_v26)
 
-                # Joint multi-model loss: average with co-model if present.
+                # Joint multi-model loss: combine with co-model if present.
+                # --co-weight controls the co-model's share (default 0.5 = equal).
                 if co_inner is not None:
                     co_preds = predict_with_grad(
                         co_inner, patched_img.unsqueeze(0),
@@ -643,7 +708,8 @@ def main() -> None:
                         model_name=args.co_model,
                     )
                     co_loss_det = detection_loss(co_preds, topk=args.topk, is_v26=is_v26_co)
-                    loss_det = (loss_det + co_loss_det) * 0.5
+                    loss_det = (loss_det * (1.0 - args.co_weight)
+                                + co_loss_det * args.co_weight)
 
                 # NPS loss uses the unaugmented patch_c (physical constraint on the
                 # stored patch, not the augmented version used in the forward pass).
@@ -660,26 +726,38 @@ def main() -> None:
 
                 optimizer.step()
                 epoch_loss_det += loss_det.item()
+                epoch_loss_tv  += loss_tv.item()
+                epoch_loss_nps += loss_nps.item()
 
-            avg = epoch_loss_det / len(batch_idx)
-            loss_history.append(avg)
+            n = len(batch_idx)
+            avg_det = epoch_loss_det / n
+            avg_tv  = epoch_loss_tv  / n
+            avg_nps = epoch_loss_nps / n
+            det_history.append(avg_det)
+            tv_history.append(avg_tv)
+            nps_history.append(avg_nps)
 
             if epoch % 50 == 0 or epoch == 1:
-                tqdm.write(f"  Epoch {epoch:4d}/{args.epochs} — det_loss: {avg:.4f}")
+                tqdm.write(
+                    f"  Epoch {epoch:4d}/{args.epochs} — "
+                    f"det: {avg_det:.4f}  tv: {avg_tv:.5f}  nps: {avg_nps:.5f}"
+                )
 
             if args.checkpoint_interval > 0 and epoch % args.checkpoint_interval == 0:
                 torch.save({
                     "epoch": epoch,
                     "patch": patch.detach().clamp(0, 1).cpu(),
                     "optimizer": optimizer.state_dict(),
-                    "loss_history": loss_history,
+                    "loss_history": det_history,   # keep backward-compat key name
                 }, checkpoint_path)
 
         patch_final = patch.detach().clamp(0, 1).cpu()
         patch_save = (patch_final.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
         Image.fromarray(patch_save).save(run_dir / "patches" / "patch.png")
         print(f"\nPatch saved → {run_dir}/patches/patch.png")
-        (run_dir / "loss_history.json").write_text(json.dumps(loss_history))
+        (run_dir / "loss_history.json").write_text(
+            json.dumps({"det": det_history, "tv": tv_history, "nps": nps_history})
+        )
 
     # -----------------------------------------------------------------------
     # Evaluation
@@ -716,30 +794,42 @@ def main() -> None:
     # Summary
     # -----------------------------------------------------------------------
     summary = {
+        # Identity
+        "run_name": run_name,
         "model": args.model,
         "co_model": args.co_model,
+        # Training provenance
         "epochs": args.epochs,
+        "resumed_from_epoch": resumed_from_epoch,
+        "manifest_path": str(args.manifest) if args.manifest else None,
+        "manifest_count": len(image_paths),
         "training_images": len(train_images),
         "subset_size": len(train_images),
+        "warm_start_from": str(args.load_patch) if (args.load_patch and not args.eval_only) else None,
+        # Results
         "patch_size": args.patch_size,
-        "final_det_loss": round(loss_history[-1], 5) if loss_history else None,
+        "final_det_loss": round(det_history[-1], 5) if det_history else None,
         "clean_person_detections": total_clean,
         "patched_person_detections": total_patched,
         "detection_suppression_pct": round(suppression_pct, 1),
         "mean_conf_clean": mean_conf_clean,
         "mean_conf_patched": mean_conf_patched,
+        # Architecture
         "loss_source": "one2many_scores" if is_v26 else "channel4",
         "score_tensor_shape": last_preds_shape,
         "head_end2end": is_v26,
+        # Hyperparameters
         "lr": args.lr,
         "tv_weight": args.tv_weight,
         "nps_weight": args.nps_weight,
+        "co_weight": args.co_weight if args.co_model else None,
         "block_erase_prob": args.block_erase_prob,
         "cutout_prob": args.cutout_prob,
         "cutout_size": args.cutout_size,
         "rot_max": args.rot_max,
         "grad_clip": args.grad_clip,
         "checkpoint_interval": args.checkpoint_interval,
+        "checkpoint_path": str(checkpoint_path),
         "resumed": args.resume,
         "device": device,
     }
@@ -749,8 +839,8 @@ def main() -> None:
     print(f"  Model              : {args.model}")
     print(f"  Training images    : {len(train_images)}")
     print(f"  Epochs             : {args.epochs}")
-    if loss_history:
-        print(f"  Final det loss     : {loss_history[-1]:.4f}  (↓ = more effective)")
+    if det_history:
+        print(f"  Final det loss     : {det_history[-1]:.4f}  (↓ = more effective)")
     print(f"  Person dets BEFORE : {total_clean}  (mean conf {mean_conf_clean:.3f})")
     print(f"  Person dets AFTER  : {total_patched}  (mean conf {mean_conf_patched:.3f})")
     print(f"  Detection suppression: {suppression_pct:.1f}%")
