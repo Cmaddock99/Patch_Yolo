@@ -407,6 +407,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--co-model", type=str, default=None,
                    help="Second model for joint multi-model training (e.g. yolo11n). "
                         "Both model losses are averaged. Improves cross-model transfer.")
+
+    # ---- Checkpoint / resume (Colab disconnect safety) ----------------------
+    p.add_argument("--checkpoint-interval", type=int, default=100,
+                   help="Save checkpoint every N epochs so a disconnected Colab run can "
+                        "resume. Set 0 to disable. (default: 100)")
+    p.add_argument("--resume", action="store_true",
+                   help="Resume from the latest checkpoint.pt in the run directory if "
+                        "it exists. Skips already-completed epochs.")
     return p.parse_args()
 
 
@@ -529,12 +537,26 @@ def main() -> None:
     # -----------------------------------------------------------------------
     loss_history: list[float] = []
     last_preds_shape: list[int] | None = None
+    start_epoch = 1
+    checkpoint_path = run_dir / "checkpoint.pt"
 
     if not args.eval_only:
         optimizer = torch.optim.Adam([patch], lr=args.lr, betas=(0.9, 0.999))
-        print(f"\nTraining for {args.epochs} epochs ...")
 
-        for epoch in tqdm(range(1, args.epochs + 1), desc="Training"):
+        # Resume from checkpoint if requested and file exists.
+        if args.resume and checkpoint_path.exists():
+            ckpt = torch.load(checkpoint_path, map_location=device)
+            with torch.no_grad():
+                patch.copy_(ckpt["patch"])
+            optimizer.load_state_dict(ckpt["optimizer"])
+            loss_history = ckpt.get("loss_history", [])
+            start_epoch = ckpt["epoch"] + 1
+            print(f"\nResumed from checkpoint at epoch {ckpt['epoch']} "
+                  f"(continuing from epoch {start_epoch})")
+        else:
+            print(f"\nTraining for {args.epochs} epochs ...")
+
+        for epoch in tqdm(range(start_epoch, args.epochs + 1), desc="Training"):
             batch_idx = torch.randperm(len(train_images_dev))[: args.batch_size].tolist()
             epoch_loss_det = 0.0
 
@@ -601,6 +623,14 @@ def main() -> None:
             if epoch % 50 == 0 or epoch == 1:
                 tqdm.write(f"  Epoch {epoch:4d}/{args.epochs} — det_loss: {avg:.4f}")
 
+            if args.checkpoint_interval > 0 and epoch % args.checkpoint_interval == 0:
+                torch.save({
+                    "epoch": epoch,
+                    "patch": patch.detach().clamp(0, 1).cpu(),
+                    "optimizer": optimizer.state_dict(),
+                    "loss_history": loss_history,
+                }, checkpoint_path)
+
         patch_final = patch.detach().clamp(0, 1).cpu()
         patch_save = (patch_final.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
         Image.fromarray(patch_save).save(run_dir / "patches" / "patch.png")
@@ -665,6 +695,8 @@ def main() -> None:
         "cutout_size": args.cutout_size,
         "rot_max": args.rot_max,
         "grad_clip": args.grad_clip,
+        "checkpoint_interval": args.checkpoint_interval,
+        "resumed": args.resume,
         "device": device,
     }
     (run_dir / "results.json").write_text(json.dumps(summary, indent=2))
