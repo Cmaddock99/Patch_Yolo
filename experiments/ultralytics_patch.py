@@ -167,7 +167,37 @@ def predict_with_grad(
     #   preds_dict["one2one"]["scores"]:  (B, 80, 8400), NO grad_fn (detached)
     _, preds_dict = out
     src = loss_source if loss_source != "auto" else "one2many"
-    return preds_dict[src]["scores"]  # (B, 80, 8400)
+
+    # Probe the structure and find the differentiable score tensor.
+    # Ultralytics may rename keys across versions — try known variants in order.
+    if not isinstance(preds_dict, dict):
+        raise RuntimeError(
+            f"Expected preds_dict to be a dict but got {type(preds_dict)}.\n"
+            f"Full out structure: {[type(o) for o in out]}"
+        )
+    if src not in preds_dict:
+        raise RuntimeError(
+            f"Key '{src}' not found in preds_dict.\n"
+            f"Available keys: {list(preds_dict.keys())}"
+        )
+    inner = preds_dict[src]
+    if not isinstance(inner, dict):
+        raise RuntimeError(
+            f"preds_dict['{src}'] is not a dict, got {type(inner)}.\n"
+            f"Value: {inner}"
+        )
+    for score_key in ("scores", "cls", "pred_scores"):
+        if score_key in inner:
+            tensor = inner[score_key]
+            if tensor.grad_fn is not None:
+                return tensor
+            # Found the key but no gradient — warn and keep trying
+            print(f"  [warn] preds_dict['{src}']['{score_key}'] has no grad_fn, skipping")
+    raise RuntimeError(
+        f"No differentiable score tensor found in preds_dict['{src}'].\n"
+        f"Available keys: {list(inner.keys())}\n"
+        f"Grad fns: { {k: getattr(inner[k], 'grad_fn', None) for k in inner} }"
+    )
 
 
 def detection_loss(preds: torch.Tensor, topk: int = 10, is_v26: bool = False) -> torch.Tensor:
