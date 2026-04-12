@@ -288,23 +288,36 @@ def predict_with_grad(
               — person class at channel 0.
               Requires restore_v26_one2many_head() to have been called first
               so that cv2/cv3 are non-None and forward_head produces real scores.
+
+    The model is temporarily put in train() mode for the forward pass so that:
+      1. The v26 Detect head returns a raw dict (no postprocessing / NMS).
+      2. torch.enable_grad() works reliably — newer ultralytics wraps predict()
+         in @smart_inference_mode, which leaves inference-tensor state that
+         torch.enable_grad() alone cannot override; switching to train mode
+         forces a clean differentiable forward path.
+    eval() is restored immediately after.
     """
     is_v26 = "26" in model_name
 
-    with torch.enable_grad():
-        out = inner_model(image_bchw)
+    was_training = inner_model.training
+    inner_model.train()
+    try:
+        with torch.inference_mode(False), torch.enable_grad():
+            out = inner_model(image_bchw)
+    finally:
+        if not was_training:
+            inner_model.eval()
 
     if not is_v26:
         # v8/v11: out is a tuple; out[0] is (B, 84, 8400)
         return out[0] if isinstance(out, (tuple, list)) else out
 
-    # v26: Detect.forward returns:
-    #   eval  mode → (postprocessed_y, {"one2many": {...}, "one2one": {...}})
-    #   train mode → {"one2many": {...}, "one2one": {...}}
+    # v26: train mode → {"one2many": {...}, "one2one": {...}}
+    #      eval  mode → (postprocessed_y, {"one2many": {...}, "one2one": {...}})
     if isinstance(out, dict):
-        preds_dict = out                     # train mode
+        preds_dict = out                     # train mode (expected)
     elif isinstance(out, (tuple, list)) and len(out) == 2 and isinstance(out[1], dict):
-        preds_dict = out[1]                  # eval mode
+        preds_dict = out[1]                  # eval mode fallback
     else:
         raise RuntimeError(
             f"[v26] Unexpected output structure: "
@@ -324,9 +337,8 @@ def predict_with_grad(
         )
     if scores.grad_fn is None:
         raise RuntimeError(
-            "[v26] scores.grad_fn is None — gradients not flowing.\n"
-            "Ensure restore_v26_one2many_head() ran and the model is NOT in "
-            "inference_mode() context during the forward pass."
+            "[v26] scores.grad_fn is None even after train() + inference_mode(False).\n"
+            "Check that at least one of: model params or image_bchw has requires_grad=True."
         )
     return scores  # (B, 80, total_anchors)
 
