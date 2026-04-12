@@ -623,7 +623,7 @@ def main() -> None:
         patch = torch.from_numpy(patch_np).permute(2, 0, 1).to(device).requires_grad_(not args.eval_only)
     else:
         patch = torch.rand(3, args.patch_size, args.patch_size,
-                           device=device, requires_grad=True)
+                           device=device, requires_grad=not args.eval_only)
 
     # -----------------------------------------------------------------------
     # Training loop
@@ -761,10 +761,17 @@ def main() -> None:
                     "loss_history": det_history,   # keep backward-compat key name
                 }, checkpoint_path)
 
-        patch_final = patch.detach().clamp(0, 1).cpu()
-        patch_save = (patch_final.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
-        Image.fromarray(patch_save).save(run_dir / "patches" / "patch.png")
-        print(f"\nPatch saved → {run_dir}/patches/patch.png")
+        # Only write patch.png if training actually ran this session.
+        # If the run was already COMPLETE (start_epoch > args.epochs caused
+        # args.eval_only to be set True above), saving from the Drive checkpoint
+        # would overwrite a committed patch with a stale copy — skip it.
+        if start_epoch <= args.epochs:
+            patch_final = patch.detach().clamp(0, 1).cpu()
+            patch_save = (patch_final.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
+            Image.fromarray(patch_save).save(run_dir / "patches" / "patch.png")
+            print(f"\nPatch saved → {run_dir}/patches/patch.png")
+        else:
+            print(f"\nPatch save skipped — run was already COMPLETE, no new training occurred.")
         (run_dir / "loss_history.json").write_text(
             json.dumps({"det": det_history, "tv": tv_history, "nps": nps_history})
         )
@@ -777,7 +784,7 @@ def main() -> None:
     total_patched = 0
     total_clean_conf = sum(b[4] for boxes in training_boxes for b in boxes)
     total_patched_conf = 0.0
-    patch_eval = patch.detach().clamp(0, 1) if not args.eval_only else patch.clamp(0, 1)
+    patch_eval = patch.detach().clamp(0, 1)  # always detach — patch is never used for grad after this point
 
     for idx in range(len(train_images)):
         img = train_images_dev[idx]
