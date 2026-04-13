@@ -3,7 +3,7 @@
   "model": "yolov8n",
   "co_model": "yolo26n",
   "epochs": 1000,
-  "resumed_from_epoch": 0,
+  "resumed_from_epoch": 1000,
   "manifest_path": "data/manifests/common_all_models.txt",
   "manifest_count": 48,
   "training_images": 18,
@@ -17,11 +17,7 @@
   "mean_conf_clean": 0.5893,
   "mean_conf_patched": 0.6112,
   "loss_source": "channel4",
-  "score_tensor_shape": [
-    1,
-    84,
-    8400
-  ],
+  "score_tensor_shape": null,
   "head_end2end": false,
   "lr": 0.01,
   "tv_weight": 0.05,
