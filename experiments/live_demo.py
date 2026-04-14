@@ -31,6 +31,7 @@ import argparse
 import sys
 from collections import deque
 from pathlib import Path
+from typing import Sequence
 
 import cv2
 import numpy as np
@@ -41,7 +42,9 @@ from ultralytics import YOLO
 # ---------------------------------------------------------------------------
 # Import shared helpers from the training script
 # ---------------------------------------------------------------------------
-sys.path.insert(0, str(Path(__file__).parent))
+EXPERIMENTS_DIR = str(Path(__file__).parent)
+if EXPERIMENTS_DIR not in sys.path:
+    sys.path.insert(0, EXPERIMENTS_DIR)
 from ultralytics_patch import apply_patch, compute_torso_placement, run_predict
 
 # ---------------------------------------------------------------------------
@@ -107,7 +110,6 @@ def run_digital(args: argparse.Namespace, yolo: YOLO, patch_t: torch.Tensor) -> 
     if not cap.isOpened():
         sys.exit(f"Error: cannot open camera index {args.camera}")
 
-    ph, pw = patch_t.shape[1], patch_t.shape[2]
     # Upscale patch for the digital overlay (preserves adversarial pattern)
     s = args.patch_scale
     patch_scaled = torch.nn.functional.interpolate(
@@ -131,11 +133,16 @@ def run_digital(args: argparse.Namespace, yolo: YOLO, patch_t: torch.Tensor) -> 
 
         # --- Build patched frame ---
         img_t = torch.from_numpy(frame_rgb).permute(2, 0, 1).float() / 255.0
-        top, left = compute_torso_placement(clean_boxes, h, w,
-                                            patch_scaled.shape[1], patch_scaled.shape[2])
-        # clamp so patch stays in frame
-        top  = max(0, min(top,  h - patch_scaled.shape[1]))
-        left = max(0, min(left, w - patch_scaled.shape[2]))
+        ph_s, pw_s = patch_scaled.shape[1], patch_scaled.shape[2]
+        # Reuse the training/eval torso-placement heuristic so the demo stays
+        # aligned with how the patch is applied elsewhere in the repo.
+        top, left = compute_torso_placement(
+            clean_boxes,
+            h,
+            ph_s,
+            image_width=w,
+            patch_width=pw_s,
+        )
         patched_t = apply_patch(img_t, patch_scaled, top, left)
         patched_rgb = (patched_t.permute(1, 2, 0).numpy() * 255).clip(0, 255).astype(np.uint8)
         patched_bgr = cv2.cvtColor(patched_rgb, cv2.COLOR_RGB2BGR)
@@ -223,7 +230,7 @@ def run_physical(args: argparse.Namespace, yolo: YOLO) -> None:
 # Entry point
 # ---------------------------------------------------------------------------
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description="Adversarial patch live demo",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -243,19 +250,23 @@ def parse_args() -> argparse.Namespace:
                    help="Upscale factor for digital overlay patch (default: 4 → 400×400px)")
     p.add_argument("--export-print", type=int, metavar="DPI", default=0,
                    help="Export print-ready PNG at given DPI and exit (e.g. 300)")
-    return p.parse_args()
+    return p.parse_args(argv)
 
 
-def main() -> None:
-    args = parse_args()
+def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv)
 
     if not args.patch.exists():
         sys.exit(f"Patch not found: {args.patch}")
+    if args.patch_scale <= 0:
+        raise ValueError("--patch-scale must be >= 1")
+    if args.export_print < 0:
+        raise ValueError("--export-print must be >= 0")
 
     # Print export — no camera or model needed
     if args.export_print:
         export_print(args.patch, args.export_print)
-        return
+        return 0
 
     # Load patch tensor (CHW float [0,1])
     patch_img = Image.open(args.patch).convert("RGB")
@@ -269,7 +280,8 @@ def main() -> None:
         run_digital(args, yolo, patch_t)
     else:
         run_physical(args, yolo)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

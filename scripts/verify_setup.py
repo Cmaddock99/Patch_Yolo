@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_MODULES = [
     "cv2",
+    "fitz",
     "matplotlib",
     "numpy",
     "torch",
@@ -68,6 +69,7 @@ def main() -> int:
         "research_config": ROOT / "research/config/research_queries.yaml",
         "research_seeds": ROOT / "research/config/seed_papers.yaml",
         "research_schema": ROOT / "research/schemas/paper_record.example.json",
+        "research_auto_note": ROOT / "research/scripts/auto_note.py",
     }
 
     for label, path in paths.items():

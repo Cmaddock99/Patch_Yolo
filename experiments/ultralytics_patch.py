@@ -53,6 +53,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Sequence
 
 import cv2
 import numpy as np
@@ -201,17 +202,30 @@ def save_image_with_boxes(
     Image.fromarray(canvas).save(path)
 
 
-def compute_torso_placement(boxes: list, image_size: int, patch_size: int) -> tuple[int, int]:
-    """Return (top, left) to place the patch on the largest person's chest area."""
+def compute_torso_placement(
+    boxes: list,
+    image_height: int,
+    patch_height: int,
+    image_width: int | None = None,
+    patch_width: int | None = None,
+) -> tuple[int, int]:
+    """Return (top, left) to place the patch on the largest person's chest area.
+
+    Defaults to square image / patch dimensions so training and evaluation code
+    can keep using the compact 3-argument form.
+    """
+    image_width = image_height if image_width is None else image_width
+    patch_width = patch_height if patch_width is None else patch_width
     if not boxes:
-        mid = image_size // 2 - patch_size // 2
-        return mid, mid
+        top = image_height // 2 - patch_height // 2
+        left = image_width // 2 - patch_width // 2
+        return top, left
     box = max(boxes, key=lambda b: (b[2] - b[0]) * (b[3] - b[1]))
     x1, y1, x2, y2 = box[:4]
     cx = int((x1 + x2) / 2)
     cy = int(y1 + 0.35 * (y2 - y1))   # 35% down from top of person = chest
-    top = int(np.clip(cy - patch_size // 2, 0, image_size - patch_size))
-    left = int(np.clip(cx - patch_size // 2, 0, image_size - patch_size))
+    top = int(np.clip(cy - patch_height // 2, 0, image_height - patch_height))
+    left = int(np.clip(cx - patch_width // 2, 0, image_width - patch_width))
     return top, left
 
 
@@ -480,7 +494,7 @@ def load_and_resize_images(
 # Main
 # ---------------------------------------------------------------------------
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Adversarial patch vs Ultralytics YOLO")
     p.add_argument("--model", default="yolov8n",
                    help="Ultralytics model name: yolov8n, yolo11n, yolo26n, ...")
@@ -566,11 +580,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--resume", action="store_true",
                    help="Resume from the latest checkpoint.pt in the run directory if "
                         "it exists. Skips already-completed epochs.")
-    return p.parse_args()
+    return p.parse_args(argv)
 
 
-def main() -> None:
-    args = parse_args()
+def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv)
+
+    if args.eval_only and not args.load_patch:
+        raise ValueError("--eval-only requires --load-patch so evaluation is reproducible.")
 
     if args.seed is not None:
         import random as _random
@@ -975,7 +992,8 @@ def main() -> None:
     print(f"  Detection suppression: {suppression_pct:.1f}%")
     print(f"  Output dir         : {run_dir}/")
     print(f"{'='*52}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

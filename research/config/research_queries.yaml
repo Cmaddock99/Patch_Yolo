@@ -20,6 +20,37 @@ queries:
   # Defense
   - "adversarial patch detector defense person detection"
 
+  # ---------------------------------------------------------------
+  # YOLO26 / end-to-end detector block (new for this cycle)
+  # ---------------------------------------------------------------
+  # Hungarian matching is the root cause of the v26n paradox.
+  # YOLO26 uses the same one2one assignment as DETR-family models.
+  # Papers attacking DETR directly are the primary source of loss
+  # designs that can actually target the one2one head.
+  - "adversarial attack DETR detection transformer"
+  - "adversarial patch detection transformer end-to-end"
+  - "adversarial attack Hungarian matching object detection"
+  - "adversarial attack bipartite matching object detector"
+  - "adversarial patch NMS-free object detector"
+  - "adversarial attack RT-DETR"
+  - "adversarial patch YOLOv9"
+  - "adversarial patch YOLOv10"
+  - "adversarial attack one-to-one assignment detector"
+  - "adversarial perturbation DETR object query manipulation"
+  - "gradient attack end-to-end transformer detector"
+  - "adversarial attack DINO DETR DAB-DETR"
+  # Differentiable matching relaxations — needed to backprop through Hungarian
+  - "sinkhorn matching adversarial object detection"
+  - "differentiable matching adversarial attack detector"
+  # Dual-head / auxiliary-head attack design
+  - "adversarial attack auxiliary head primary head detector"
+  - "adversarial loss design one-to-one one-to-many detection"
+  # YOLO26 architecture understanding (to reverse-engineer loss targets)
+  - "YOLO end-to-end detection one-to-one matching ultralytics"
+  - "YOLOv10 NMS-free detection head adversarial"
+  # RT-DETR specifically (closest published architecture to YOLO26 backbone)
+  - "RT-DETR adversarial robustness real-time detection transformer"
+
 filters:
   min_year: 2018
 
@@ -43,9 +74,9 @@ ranking:
     transfer: 1.5
     transferability: 2.0
     nms: 1.5
-    nms-free: 2.0
+    nms-free: 3.0
     anchor-free: 2.0
-    end-to-end detector: 2.0
+    end-to-end detector: 3.0
     defense: 1.0
     robustness: 1.0
     person: 2.5
@@ -55,6 +86,33 @@ ranking:
     wearable: 1.5
     evasion: 1.5
     human detection: 2.0
+    # --- YOLO26 / end-to-end detector boosts ---
+    hungarian: 5.0
+    hungarian matching: 5.0
+    bipartite matching: 4.5
+    one-to-one assignment: 5.0
+    one2one: 4.5
+    one-to-many: 3.0
+    one2many: 3.0
+    DETR: 4.0
+    detection transformer: 4.0
+    RT-DETR: 4.0
+    transformer detector: 3.5
+    object query: 3.0
+    sinkhorn: 4.0
+    differentiable matching: 4.0
+    auxiliary head: 3.5
+    dual head: 3.0
+    YOLOv9: 2.5
+    YOLOv10: 2.5
+    end-to-end object detection: 3.5
+    DAB-DETR: 3.0
+    DINO: 2.5
+    deformable DETR: 3.0
+    assignment: 2.5
+    matching loss: 4.0
+    set prediction: 3.0
+    loss design: 2.0
   soft_penalties:
     image classification: -1.0
     mnist: -2.0

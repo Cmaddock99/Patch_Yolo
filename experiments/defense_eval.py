@@ -23,7 +23,7 @@ Usage
     # Fast dev pass on common_all_models.txt
     python experiments/defense_eval.py \
         --patches outputs/yolov8n_patch_v2/patches/patch.png \
-                  outputs/yolov8n+yolo11n+yolo26n_joint_patch_v1/patches/patch.png \
+        --patches outputs/yolov8n+yolo11n+yolo26n_joint_patch_v1/patches/patch.png \
         --model yolov8n \
         --manifest data/manifests/common_all_models.txt \
         --output-dir outputs/defense_eval
@@ -44,6 +44,7 @@ import io
 import json
 import random
 from pathlib import Path
+from typing import Sequence
 
 import cv2
 import numpy as np
@@ -230,6 +231,13 @@ PASS_CLEAN_COST_THRESHOLD_PP = 5.0   # defence costs < 5 pp clean detection rate
 PASS_MIN_ATTACK_REDUCTION_PP = 0.0   # defence must reduce suppression at all
 
 
+def passes_gate(attack_reduction_pp: float, clean_cost_pp: float) -> bool:
+    return (
+        attack_reduction_pp > PASS_MIN_ATTACK_REDUCTION_PP and
+        clean_cost_pp < PASS_CLEAN_COST_THRESHOLD_PP
+    )
+
+
 def format_markdown_table(rows: list[dict], patch_name: str) -> str:
     header = (
         f"\n### {patch_name}\n\n"
@@ -240,17 +248,13 @@ def format_markdown_table(rows: list[dict], patch_name: str) -> str:
     )
     lines = []
     for r in rows:
-        passed = (
-            r["attack_reduction_pp"] > PASS_MIN_ATTACK_REDUCTION_PP and
-            r["clean_cost_pp"] < PASS_CLEAN_COST_THRESHOLD_PP
-        )
         lines.append(
             f"| {r['defense']} | {r['setting']} "
             f"| {r['suppression_undefended']:.1f}% "
             f"| {r['suppression_defended']:.1f}% "
             f"| {r['attack_reduction_pp']:+.1f} pp "
             f"| {r['clean_cost_pp']:+.1f} pp "
-            f"| {'✓' if passed else '✗'} |"
+            f"| {'✓' if r['passes_gate'] else '✗'} |"
         )
     return header + "\n".join(lines) + "\n"
 
@@ -259,7 +263,7 @@ def format_markdown_table(rows: list[dict], patch_name: str) -> str:
 # Main
 # ---------------------------------------------------------------------------
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Preprocessing defense sweep for adversarial patches")
     p.add_argument("--patches", type=Path, action="append", dest="patches",
                    help="Path to a patch.png to evaluate (repeatable: --patches a --patches b)")
@@ -269,7 +273,7 @@ def parse_args() -> argparse.Namespace:
                    default=Path("data/manifests/common_all_models.txt"),
                    help="Image list (one path per line)")
     p.add_argument("--output-dir", type=Path, default=Path("outputs/defense_eval"),
-                   help="Directory for CSV and markdown report")
+                   help="Directory for JSON results and markdown report")
     p.add_argument("--conf", type=float, default=0.5,
                    help="Detection confidence threshold (default: 0.5)")
     p.add_argument("--image-size", type=int, default=640,
@@ -277,16 +281,18 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--defenses", nargs="+", default=["jpeg", "blur", "crop_resize"],
                    choices=["jpeg", "blur", "crop_resize"],
                    help="Defense families to evaluate (default: all)")
-    return p.parse_args()
+    return p.parse_args(argv)
 
 
-def main() -> None:
-    args = parse_args()
+def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv)
 
     patch_paths: list[Path] = [p for p in (args.patches or []) if str(p).strip()]
 
     if not patch_paths:
         raise ValueError("No --patches provided.")
+    if not args.manifest.exists():
+        raise FileNotFoundError(f"Manifest not found: {args.manifest}")
 
     for p in patch_paths:
         if not p.exists():
@@ -343,9 +349,11 @@ def main() -> None:
 
                 attack_reduction_pp = supp_undefended - supp_defended
                 clean_cost_pp = (clean_rate_undefended - clean_rate_defended) * 100.0
+                passed = passes_gate(attack_reduction_pp, clean_cost_pp)
 
                 row = {
                     "patch": patch_name,
+                    "patch_path": str(patch_path),
                     "defense": defense_name,
                     "setting": setting_str,
                     "suppression_undefended": supp_undefended,
@@ -355,14 +363,11 @@ def main() -> None:
                     "clean_rate_undefended": clean_rate_undefended,
                     "clean_rate_defended": clean_rate_defended,
                     "n_images": baseline["n_images"],
+                    "passes_gate": passed,
                 }
                 all_results.append(row)
                 patch_rows.append(row)
 
-                passed = (
-                    attack_reduction_pp > PASS_MIN_ATTACK_REDUCTION_PP and
-                    clean_cost_pp < PASS_CLEAN_COST_THRESHOLD_PP
-                )
                 print(f"supp={supp_defended:.1f}%  attack_reduction={attack_reduction_pp:+.1f}pp  "
                       f"clean_cost={clean_cost_pp:+.1f}pp  {'PASS' if passed else 'FAIL'}")
 
@@ -394,7 +399,7 @@ def main() -> None:
     for patch_name, group in groupby(all_results, key=lambda r: r["patch"]):
         candidates = [
             r for r in group
-            if r["clean_cost_pp"] < PASS_CLEAN_COST_THRESHOLD_PP
+            if r["passes_gate"]
         ]
         if candidates:
             best = max(candidates, key=lambda r: r["attack_reduction_pp"])
@@ -403,7 +408,8 @@ def main() -> None:
                   f"clean_cost={best['clean_cost_pp']:+.1f}pp")
         else:
             print(f"  {patch_name}: no defense passed the clean_cost gate")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

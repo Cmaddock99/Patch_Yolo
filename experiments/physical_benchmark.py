@@ -43,6 +43,7 @@ import json
 import random
 import time
 from pathlib import Path
+from typing import Sequence
 
 import cv2
 import numpy as np
@@ -192,7 +193,7 @@ def save_still(still: np.ndarray | None, path: Path) -> None:
 # Main
 # ---------------------------------------------------------------------------
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Structured physical adversarial patch benchmark")
     p.add_argument("--patch", type=Path, required=True,
                    help="Path to patch.png artifact to benchmark")
@@ -212,14 +213,22 @@ def parse_args() -> argparse.Namespace:
                    help=f"Number of trials per condition (default: {TRIALS})")
     p.add_argument("--dry-run", action="store_true",
                    help="Run one condition only with a 2 s window; for testing without camera")
-    return p.parse_args()
+    return p.parse_args(argv)
 
 
-def main() -> None:
-    args = parse_args()
+def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv)
+
+    if not args.patch.exists():
+        raise FileNotFoundError(f"Patch not found: {args.patch}")
+    if args.trials <= 0:
+        raise ValueError("--trials must be >= 1")
+    if args.capture_seconds <= 0:
+        raise ValueError("--capture-seconds must be > 0")
 
     # Output layout
     out_dir = args.output_dir
+    out_dir.mkdir(parents=True, exist_ok=True)
     stills_dir = out_dir / "stills" / args.artifact_name
     stills_dir.mkdir(parents=True, exist_ok=True)
 
@@ -377,6 +386,9 @@ def main() -> None:
         summary = {
             "artifact": args.artifact_name,
             "model": args.model,
+            "patch_path": str(args.patch),
+            "dry_run": args.dry_run,
+            "conditions_targeted": total,
             "conditions_completed": len(all_rows),
             "suppression_mean": round(float(np.mean(supp_vals)), 2),
             "suppression_std":  round(float(np.std(supp_vals)), 2),
@@ -405,7 +417,8 @@ def main() -> None:
 
     print(f"CSV log → {csv_path}")
     print(f"Stills  → {stills_dir}/")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

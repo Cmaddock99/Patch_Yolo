@@ -27,3 +27,38 @@ seeds:
     label: "Huang et al. (2022) T-SEA"
     title: "T-SEA: Transfer-based Self-Ensemble Attack on Object Detection"
     arxiv_id: "2211.09773"
+
+  # --- YOLO26 / end-to-end detector seeds (new for this cycle) ---
+
+  wang2026_chosen_object_attack:
+    label: "Wang et al. (2026) Chosen-Object Attack"
+    title: "The Chosen-Object Attack: Exploiting the Hungarian Matching Loss in Detection Transformers for Fun and Profit"
+    # IEEE Xplore DOI — no arXiv preprint confirmed yet
+    doi: "10.1109/TIFS.2026.10879485"
+    # Citation expansion from this seed will surface DETR adversarial
+    # papers that share the Hungarian-matching loss design YOLO26 needs.
+    notes: >
+      PRIMARY seed for YOLO26 one2one head fix. This paper derives the
+      exact loss needed to attack Hungarian-matching detectors. Expand
+      its references AND its citing papers aggressively.
+
+  carion2020_detr:
+    label: "Carion et al. (2020) DETR — End-to-End Object Detection"
+    title: "End-to-End Object Detection with Transformers"
+    arxiv_id: "2005.12872"
+    notes: >
+      Founding paper for Hungarian-matching detection. Not an adversarial
+      paper, but expanding its citing graph surfaces every adversarial
+      DETR paper. High-value seed for citation expansion.
+
+  zhao2024_detr_survey:
+    label: "Zhao et al. (2024) DETR Variants Survey"
+    title: "DETRS Beat YOLOs on Real-time Object Detection"
+    # This is the RT-DETR paper (Zhao et al., 2024) — the architecture
+    # closest to YOLO26's backbone design.
+    arxiv_id: "2304.08069"
+    notes: >
+      RT-DETR is the closest published architecture to YOLO26's
+      end-to-end head. Any adversarial work on RT-DETR is directly
+      applicable. Also surfaces the architecture paper used as YOLO26
+      backbone reference.
