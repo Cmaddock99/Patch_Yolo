@@ -238,8 +238,8 @@ def format_markdown_table(rows: list[dict], patch_name: str) -> str:
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Preprocessing defense sweep for adversarial patches")
-    p.add_argument("--patches", type=Path, nargs="+", action="append",
-                   help="Path(s) to patch.png files to evaluate (repeatable)")
+    p.add_argument("--patches", type=Path, action="append", dest="patches",
+                   help="Path to a patch.png to evaluate (repeatable: --patches a --patches b)")
     p.add_argument("--model", type=str, default="yolov8n",
                    help="YOLO model for evaluation (default: yolov8n)")
     p.add_argument("--manifest", type=Path,
@@ -260,14 +260,14 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    # Flatten potentially nested patch lists from repeated --patches flags
-    patch_paths: list[Path] = []
-    if args.patches:
-        for group in args.patches:
-            patch_paths.extend(group)
+    patch_paths: list[Path] = [p for p in (args.patches or []) if str(p).strip()]
 
     if not patch_paths:
         raise ValueError("No --patches provided.")
+
+    for p in patch_paths:
+        if not p.exists():
+            raise FileNotFoundError(f"Patch not found: {p}")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
