@@ -135,15 +135,46 @@
   <!-- ─── SLIDE 1: TITLE ─── -->
   <div class="slide active" id="s1">
     <div class="tag">Capstone Research</div>
-    <h1>Adversarial Patch<br><span class="green">Attacks on YOLO</span></h1>
-    <p class="subtitle">Gradient-based person detection suppression across YOLOv8n, YOLO11n, and YOLO26n</p>
+    <h1>Adversarial Robustness<br><span class="green">Framework</span></h1>
+    <p class="subtitle">A two-track pipeline for systematic attack and defense evaluation across YOLO model generations</p>
     <hr class="rule" style="margin-top:40px; max-width:120px; border-color:#3effa044;">
     <p class="author dim">April 2026</p>
   </div>
 
-  <!-- ─── SLIDE 2: WHAT IS AN ADVERSARIAL PATCH ─── -->
+  <!-- ─── SLIDE 2: PIPELINE ARCHITECTURE ─── -->
+  <div class="slide" id="s2new">
+    <div class="tag">Framework Overview</div>
+    <h1>Two-Track<br><span class="blue">Pipeline</span></h1>
+    <div class="cols" style="margin-top:36px; align-items:start;">
+      <div class="card info">
+        <h3>Attack Track &nbsp;<span class="dim" style="font-size:0.75rem; letter-spacing:0; text-transform:none; font-weight:400;">Adversarial_Patch</span></h3>
+        <hr class="rule">
+        <ul>
+          <li>Gradient-based patch training against any Ultralytics YOLO model</li>
+          <li>Multi-model and joint ensemble attack modes</li>
+          <li>Cross-architecture transfer evaluation</li>
+          <li>Defense robustness benchmarking (JPEG, blur, crop-resize)</li>
+          <li>Live demo + 300 DPI physical print export</li>
+        </ul>
+      </div>
+      <div class="card highlight">
+        <h3>Defense Track &nbsp;<span class="dim" style="font-size:0.75rem; letter-spacing:0; text-transform:none; font-weight:400;">YOLO-Bad-Triangle</span></h3>
+        <hr class="rule">
+        <ul>
+          <li>Plugin-based attack and defense registry</li>
+          <li>22 automated hyperparameter-optimisation cycles</li>
+          <li>Adversarial model finetuning with clean A/B deployment gate</li>
+          <li>Schema-enforced artifact contracts + provenance tracking</li>
+          <li>Automated reporting pipeline</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:32px;" class="dim">Both tracks share a common image set and produce structured artifacts — findings from each cycle inform the next.</p>
+  </div>
+
+  <!-- ─── SLIDE 3: WHAT IS AN ADVERSARIAL PATCH ─── -->
   <div class="slide" id="s2">
-    <div class="tag">Background</div>
+    <div class="tag">Attack Track · Background</div>
     <h1>What Is an<br><span class="blue">Adversarial Patch?</span></h1>
     <div style="margin-top:40px;" class="cols">
       <div>
@@ -179,7 +210,7 @@
 
   <!-- ─── SLIDE 3: RESULTS ─── -->
   <div class="slide" id="s3">
-    <div class="tag">Results</div>
+    <div class="tag">Attack Track · Findings</div>
     <h1>Detection<br><span class="green">Suppression</span></h1>
     <div style="margin-top:44px;" class="cols3">
       <div class="card highlight stat">
@@ -207,7 +238,7 @@
 
   <!-- ─── SLIDE 4: DEFENSE ROBUSTNESS ─── -->
   <div class="slide" id="s4">
-    <div class="tag">Defense Robustness</div>
+    <div class="tag">Attack Track · Defense Benchmark</div>
     <h1>Preprocessing<br><span class="red">Makes It Worse</span></h1>
     <div class="cols" style="margin-top:32px; align-items:start;">
       <div>
@@ -248,7 +279,7 @@
 
   <!-- ─── SLIDE 5: v26n PARADOX ─── -->
   <div class="slide" id="s4">
-    <div class="tag">Key Research Finding</div>
+    <div class="tag">Attack Track · Architectural Finding</div>
     <h1>The <span class="red">v26n Paradox</span></h1>
     <div class="cols" style="margin-top:36px; align-items:start;">
       <div>
@@ -290,78 +321,9 @@
     </div>
   </div>
 
-  <!-- ─── SLIDE 6: TRANSFER MATRIX ─── -->
-  <div class="slide" id="s5">
-    <div class="tag">Cross-Model Generalization</div>
-    <h1>Transfer <span class="blue">Matrix</span></h1>
-    <div class="cols" style="margin-top:36px; align-items:start; gap:40px;">
-      <div>
-        <h3>Single-source transfers</h3>
-        <table>
-          <thead><tr><th>Patch source</th><th>Eval model</th><th>Suppression</th></tr></thead>
-          <tbody>
-            <tr><td>v8n</td><td>v11n</td><td><div class="bar-cell"><div class="bar med" style="width:73px"></div>36.4%</div></td></tr>
-            <tr><td>v11n</td><td>v8n</td><td><div class="bar-cell"><div class="bar" style="width:100px"></div>50.0%</div></td></tr>
-            <tr><td>v26n</td><td>v8n</td><td><div class="bar-cell"><div class="bar" style="width:90px"></div>45.0%</div></td></tr>
-            <tr><td>v26n</td><td>v11n</td><td><div class="bar-cell"><div class="bar med" style="width:48px"></div>24.2%</div></td></tr>
-            <tr><td>v8n</td><td>v26n</td><td><div class="bar-cell"><div class="bar low" style="width:23px"></div>11.6%</div></td></tr>
-            <tr><td>v11n</td><td>v26n</td><td><div class="bar-cell"><div class="bar low" style="width:19px"></div>9.3%</div></td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div>
-        <h3>Joint patches</h3>
-        <table>
-          <thead><tr><th>Joint source</th><th>Eval</th><th>Suppression</th></tr></thead>
-          <tbody>
-            <tr><td>v8n + v11n</td><td>v8n</td><td><div class="bar-cell"><div class="bar" style="width:170px"></div>85%</div></td></tr>
-            <tr><td>v8n + v11n</td><td>v11n</td><td><div class="bar-cell"><div class="bar" style="width:133px"></div>66.7%</div></td></tr>
-            <tr><td>v8n + v26n</td><td>v26n</td><td><div class="bar-cell"><div class="bar low" style="width:37px"></div>18.6%</div></td></tr>
-          </tbody>
-        </table>
-        <hr class="rule">
-        <div class="card info" style="margin-top:0;">
-          <h3>Key insight</h3>
-          <p>Transfer rates vary by architecture — not by patch placement. This rules out occlusion as the primary mechanism.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ─── SLIDE 7: LIVE DEMO ─── -->
-  <div class="slide" id="s6">
-    <div class="tag">Live Demonstration</div>
-    <div class="cols" style="align-items:center; gap:80px;">
-      <div>
-        <h1><span class="green">Live Demo</span></h1>
-        <p style="margin-top:24px;">Split-screen: clean YOLO detections on the left, patch digitally overlaid on the right.</p>
-        <hr class="rule">
-        <ul style="margin-top:4px;">
-          <li>Patch: <span class="green">100×100 px</span>, YOLOv8n</li>
-          <li>Placed on torso of largest detected person</li>
-          <li>Rolling 30-frame suppression average</li>
-        </ul>
-        <hr class="rule">
-        <div class="card warn" style="margin-top:0;">
-          <h3>Physical print</h3>
-          <p>Patch exported at <span class="yellow">300 DPI, 8"×8"</span>.<br>
-          Physical suppression ~30–60% (printer colour shift, lighting).<br>
-          NPS loss during training partially compensates.</p>
-        </div>
-      </div>
-      <div style="text-align:center;">
-        <img src="outputs/yolov8n_patch_v2/patches/patch.png"
-             class="patch-img"
-             style="width:200px; height:200px;"
-             alt="v8n adversarial patch">
-        <p class="dim" style="margin-top:12px; font-size:0.85rem;">YOLOv8n patch — 90% suppression<br>100×100 px · shown 2×</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ─── SLIDE 8: YOLO-BAD-TRIANGLE ─── -->
+  <!-- ─── SLIDE 7: DEFENSE TRACK ─── -->
   <div class="slide" id="s8">
-    <div class="tag">Parallel Defense Track</div>
+    <div class="tag">Defense Track · Findings</div>
     <h1>Automated<br><span class="blue">Arms Race</span></h1>
     <div class="cols" style="margin-top:32px; align-items:start;">
       <div>
@@ -394,14 +356,45 @@
     </div>
   </div>
 
+  <!-- ─── SLIDE 8: LIVE DEMO ─── -->
+  <div class="slide" id="s6">
+    <div class="tag">Live Demonstration</div>
+    <div class="cols" style="align-items:center; gap:80px;">
+      <div>
+        <h1><span class="green">Live Demo</span></h1>
+        <p style="margin-top:24px;">Split-screen: clean YOLO detections on the left, patch digitally overlaid on the right.</p>
+        <hr class="rule">
+        <ul style="margin-top:4px;">
+          <li>Patch: <span class="green">100×100 px</span>, YOLOv8n</li>
+          <li>Placed on torso of largest detected person</li>
+          <li>Rolling 30-frame suppression average</li>
+        </ul>
+        <hr class="rule">
+        <div class="card warn" style="margin-top:0;">
+          <h3>Physical print</h3>
+          <p>Patch exported at <span class="yellow">300 DPI, 8"×8"</span>.<br>
+          Physical suppression ~30–60% (printer colour shift, lighting).<br>
+          NPS loss during training partially compensates.</p>
+        </div>
+      </div>
+      <div style="text-align:center;">
+        <img src="outputs/yolov8n_patch_v2/patches/patch.png"
+             class="patch-img"
+             style="width:200px; height:200px;"
+             alt="v8n adversarial patch">
+        <p class="dim" style="margin-top:12px; font-size:0.85rem;">YOLOv8n patch — 90% suppression<br>100×100 px · shown 2×</p>
+      </div>
+    </div>
+  </div>
+
   <!-- ─── SLIDE 9: CONCLUSIONS ─── -->
   <div class="slide" id="s9">
     <div class="tag">Conclusions</div>
     <h1>What We<br><span class="green">Learned</span></h1>
     <div class="cols3" style="margin-top:44px;">
       <div class="card highlight">
-        <h3>Patches work</h3>
-        <p>A 2.4% image patch suppresses YOLOv8n person detection by 90%. The effect transfers across model families at 10–50%.</p>
+        <h3>Framework contribution</h3>
+        <p>A reproducible two-track pipeline producing schema-enforced results across 3 YOLO generations, 3 attack types, and 4 defense types — 22 automated cycles and counting.</p>
       </div>
       <div class="card info">
         <h3>Architecture matters</h3>
