@@ -234,7 +234,7 @@ def slide3_results(prs):
     add_rich_textbox(slide, [
         {"text": "Patch size: 100×100 px  ·  Image size: 640×640  ·  2.4% of total pixels",
          "size": 13, "color": RGBColor(0xcc, 0xcc, 0xcc)},
-        {"text": "⚠ v26n loss converged lower than v8n/v11n yet suppression failed — see next slide",
+        {"text": "⚠ Within v26n runs, better objective convergence did not yield better suppression — see next slide",
          "size": 10, "color": DIMMER, "space_before": 6},
     ], Inches(0.9), Inches(5.85), Inches(11.5), Inches(0.9))
 
@@ -257,8 +257,8 @@ def slide4_paradox(prs):
     add_filled_rect(slide, lx, cy, cw, Inches(1.55), CARD_WN)
     add_textbox(slide, "WHAT HAPPENED", lx + Inches(0.2), cy + Inches(0.15), cw, Inches(0.25), size=9, bold=True, color=BLUE)
     add_rich_textbox(slide, [
-        {"text": "Optimizer fully converged.", "size": 12, "color": RGBColor(0xcc,0xcc,0xcc)},
-        {"text": "final_det_loss = 0.108  — lower than v8n (0.543) and v11n (0.597).", "size": 12, "color": RED},
+        {"text": "The optimized objective converged on the scored head.", "size": 12, "color": RGBColor(0xcc,0xcc,0xcc)},
+        {"text": "final_det_loss = 0.108  on the one2many path.", "size": 12, "color": RED},
         {"text": "Suppression: only 16.3%.", "size": 12, "color": RGBColor(0xcc,0xcc,0xcc)},
     ], lx + Inches(0.2), cy + Inches(0.5), cw - Inches(0.3), Inches(0.95))
 
@@ -287,8 +287,8 @@ def slide4_paradox(prs):
     add_filled_rect(slide, rx, Inches(4.05), cw, Inches(1.95), CARD_HL)
     add_textbox(slide, "WHAT THIS MEANS", rx + Inches(0.2), Inches(4.2), cw, Inches(0.25), size=9, bold=True, color=BLUE)
     add_textbox(slide,
-        "YOLO26n's architecture is a natural defense against this class of attack. "
-        "The correct follow-up is to route gradients through the one2one head directly during training.",
+        "YOLO26n shows strong resistance to this attack class in the current setup. "
+        "The correct follow-up is to use an attack objective aligned with the inference path.",
         rx + Inches(0.2), Inches(4.55), cw - Inches(0.3), Inches(1.2), size=12, color=RGBColor(0xcc,0xcc,0xcc))
 
 
@@ -442,8 +442,8 @@ def slide7_conclusions(prs):
     add_filled_rect(slide, x2, card_y, card_w, card_h, CARD_INF)
     add_textbox(slide, "ARCHITECTURE MATTERS", x2 + Inches(0.2), card_y + Inches(0.2), card_w, Inches(0.25), size=9, bold=True, color=BLUE)
     add_textbox(slide,
-        "YOLO26n's end-to-end Hungarian matching head creates a structural barrier. "
-        "Loss convergence does not equal detection suppression.",
+        "YOLO26n's end-to-end matching breaks the usual assumption that "
+        "optimizing the attack objective will directly reduce detections.",
         x2 + Inches(0.2), card_y + Inches(0.6), card_w - Inches(0.3), Inches(1.6),
         size=13, color=RGBColor(0xcc,0xcc,0xcc))
 

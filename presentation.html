@@ -172,42 +172,6 @@
     <p style="margin-top:32px;" class="dim">Both tracks share a common image set and produce structured artifacts — findings from each cycle inform the next.</p>
   </div>
 
-  <!-- ─── SLIDE 3: WHAT IS AN ADVERSARIAL PATCH ─── -->
-  <div class="slide" id="s2">
-    <div class="tag">Attack Track · Background</div>
-    <h1>What Is an<br><span class="blue">Adversarial Patch?</span></h1>
-    <div style="margin-top:40px;" class="cols">
-      <div>
-        <h3>The idea</h3>
-        <p>A small image region, optimized through gradient descent, that causes a neural network to stop detecting objects — even when the object is fully visible.</p>
-        <hr class="rule">
-        <h3>How it's different from occlusion</h3>
-        <p>Covering a face with any object reduces features. An adversarial patch exploits the model's <em>internal representations</em> — creating activation patterns the detector interprets as "no person."</p>
-      </div>
-      <div>
-        <div class="card info" style="margin-bottom:16px;">
-          <h3>Training loop</h3>
-          <ul>
-            <li>Freeze model weights</li>
-            <li>Overlay patch on person's torso</li>
-            <li>Forward pass → detection confidence</li>
-            <li>Backpropagate to <span class="green">patch pixels only</span></li>
-            <li>Repeat until detections suppress</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3>Robustness augmentations</h3>
-          <ul>
-            <li>Random rotation ±15°</li>
-            <li>Cutout masking (T-SEA)</li>
-            <li>Block erasing (DePatch)</li>
-            <li>Non-Printability Score loss</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- ─── SLIDE 3: RESULTS ─── -->
   <div class="slide" id="s3">
     <div class="tag">Attack Track · Findings</div>
@@ -233,7 +197,59 @@
       </div>
     </div>
     <p style="margin-top:36px;">Patch size: <span class="green">100×100 px</span> &nbsp;·&nbsp; Image size: 640×640 &nbsp;·&nbsp; <span class="dim">2.4% of total pixels</span></p>
-    <p class="footnote">⚠ v26n loss converged lower than v8n/v11n yet suppression failed — see slides 5 &amp; 6</p>
+    <p class="footnote">⚠ Within v26n runs, better objective convergence did not yield better suppression — see The v26n Paradox</p>
+  </div>
+
+  <!-- ─── SLIDE NEW: THE BAD TRIANGLE ─── -->
+  <div class="slide" id="s-triangle">
+    <div class="tag">Attack Track · Transfer Analysis</div>
+    <h1>The <span class="blue">Bad Triangle</span></h1>
+    <div class="cols" style="margin-top:28px; align-items:start;">
+      <div>
+        <h3>Cross-model suppression matrix &nbsp;<span class="dim" style="font-size:0.75rem; letter-spacing:0; text-transform:none; font-weight:400;">row = patch trained on · column = model tested against</span></h3>
+        <table>
+          <thead>
+            <tr><th>Patch source</th><th>→ v8n</th><th>→ v11n</th><th>→ v26n</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="dim">v8n</td>
+              <td><div class="bar-cell"><div class="bar" style="width:90px;"></div><span class="green">90% ★</span></div></td>
+              <td><div class="bar-cell"><div class="bar med" style="width:36px;"></div><span class="yellow">36.4%</span></div></td>
+              <td><div class="bar-cell"><div class="bar low" style="width:12px;"></div><span class="red">11.6%</span></div></td>
+            </tr>
+            <tr>
+              <td class="dim">v11n</td>
+              <td><div class="bar-cell"><div class="bar med" style="width:50px;"></div><span class="yellow">50.0%</span></div></td>
+              <td><div class="bar-cell"><div class="bar" style="width:73px;"></div><span class="green">72.7% ★</span></div></td>
+              <td><div class="bar-cell"><div class="bar low" style="width:9px;"></div><span class="red">9.3%</span></div></td>
+            </tr>
+            <tr>
+              <td class="dim">v26n</td>
+              <td><div class="bar-cell"><div class="bar med" style="width:45px;"></div><span class="yellow">45.0%</span></div></td>
+              <td><div class="bar-cell"><div class="bar low" style="width:24px;"></div><span class="yellow">24.2%</span></div></td>
+              <td><div class="bar-cell"><div class="bar low" style="width:16px;"></div><span class="red">16.3% ★</span></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="footnote" style="margin-top:10px;">★ = white-box (patch trained and tested on same model) &nbsp;·&nbsp; off-diagonal = black-box transfer</p>
+        <div class="card info" style="margin-top:16px;">
+          <h3>Joint patches</h3>
+          <p>Trained simultaneously against two models: &nbsp;v8n+v11n → v8n <span class="green">85%</span> &nbsp;·&nbsp; v8n+v11n → v11n <span class="green">66.7%</span> &nbsp;·&nbsp; v8n+v26n → v26n <span class="yellow">18.6%</span> <span class="dim">(best v26n result)</span></p>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px; border-color:#ffe06655; background:#1a180d;">
+          <h3>Asymmetry</h3>
+          <p>v11n→v8n = <span class="yellow">50%</span> &nbsp;&gt;&nbsp; v8n→v11n = <span class="yellow">36.4%</span><br><br>
+          Newer-generation patches reach <em>back</em> further than older patches reach forward. Architectural refinements carry adversarial signal across generations.</p>
+        </div>
+        <div class="card warn">
+          <h3>The v26n firewall</h3>
+          <p>v26n is the hardest <em>target</em> in this matrix — nothing exceeds 18.6% against it. Yet its own patch still transfers out at <span class="yellow">45%</span> and <span class="yellow">24.2%</span>. In this setup, resistance as a target did not stop it from producing transferable adversarial structure.</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ─── SLIDE 4: DEFENSE ROBUSTNESS ─── -->
@@ -285,8 +301,8 @@
       <div>
         <div class="card warn" style="margin-bottom:20px;">
           <h3>What happened</h3>
-          <p>Optimizer fully converged.<br>
-          <span class="red">final_det_loss = 0.108</span> — <em>lower</em> than v8n (0.543) and v11n (0.597).<br>
+          <p>The optimized objective converged on the scored head.<br>
+          <span class="red">final_det_loss = 0.108</span> on the <code>one2many</code> path.<br>
           Suppression: only 16.3%.</p>
         </div>
         <div class="card info">
@@ -315,7 +331,7 @@
         </div>
         <div class="card highlight">
           <h3>Conclusion</h3>
-          <p>YOLO26n is a <span class="green">natural defense</span> against this attack class. The Hungarian matching layer fully decouples loss from inference output — targeting either head in isolation cannot overcome it. No existing patch attack is designed for this architecture.</p>
+          <p>YOLO26n shows <span class="green">strong resistance</span> to this attack class in the current setup. The matching architecture decouples the optimized objective from the inference path, so targeting either head in isolation did not break through. This points to a different attack formulation, not just more optimization.</p>
         </div>
       </div>
     </div>
@@ -351,6 +367,49 @@
         <div class="card highlight">
           <h3>State of play</h3>
           <p>Defenses partially recover attacked performance — from −60% to −34%. Model finetuning is clean-safe but hasn't moved the needle on resistance. The arms race is live.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SLIDE NEW: ARMS RACE METHODOLOGY ─── -->
+  <div class="slide" id="s-method">
+    <div class="tag">Defense Track · Methodology</div>
+    <h1>Arms Race<br><span class="blue">Engineering</span></h1>
+    <div class="cols" style="margin-top:32px; align-items:start;">
+      <div class="card info">
+        <h3>22-cycle automation pipeline</h3>
+        <hr class="rule">
+        <ul>
+          <li><span class="blue">Phase 1 — Attack:</span> optimise patch hyperparameters against the current model; record mAP50 drop</li>
+          <li><span class="blue">Phase 2 — Defense:</span> tune preprocessing or learned denoiser against best attack; record mAP50 recovery</li>
+          <li><span class="blue">Phase 3 — Gate + report:</span> deploy defense only if clean mAP50 ≥ baseline; emit schema-enforced JSON artifact</li>
+        </ul>
+        <hr class="rule">
+        <p>Each cycle produces a provenance-tracked artifact — attack config, defense config, before/after mAP50. No manual bookkeeping.</p>
+        <hr class="rule">
+        <div style="display:flex; gap:32px; text-align:center; margin-top:4px;">
+          <div><div class="stat-num green" style="font-size:2rem;">22</div><div class="stat-label">cycles run</div></div>
+          <div><div class="stat-num blue" style="font-size:2rem;">4</div><div class="stat-label">defense types</div></div>
+          <div><div class="stat-num yellow" style="font-size:2rem;">3</div><div class="stat-label">attack types</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="card highlight" style="margin-bottom:16px;">
+          <h3>c_dog — best defense</h3>
+          <p>A small convolutional denoiser trained to strip adversarial structure from input images before they reach the detector. Adapts to patch patterns rather than blindly smoothing — unlike JPEG or Gaussian blur which amplify attacks.</p>
+          <hr class="rule">
+          <p>square + c_dog: mAP50 <span class="red">0.238</span> → <span class="yellow">0.394</span> &nbsp;<span class="dim">(+65% recovery)</span></p>
+        </div>
+        <div class="card">
+          <h3>Adversarial finetuning</h3>
+          <ul>
+            <li>Architecture: DPC-UNet detector</li>
+            <li>Mix: square ×5 oversample + DeepFool + blur pairs</li>
+            <li>Gate: deploy only if clean mAP50 ≥ 0.600</li>
+            <li>Result: <span class="green">+0.003 mAP50 clean</span> — gate passed</li>
+            <li>Attack resistance: <span class="dim">Δ within noise — open problem</span></li>
+          </ul>
         </div>
       </div>
     </div>
@@ -398,7 +457,7 @@
       </div>
       <div class="card info">
         <h3>Architecture matters</h3>
-        <p>YOLO26n's end-to-end Hungarian matching head creates a structural barrier. Loss convergence does not equal detection suppression.</p>
+        <p>YOLO26n's end-to-end matching breaks the usual assumption that optimizing the attack objective will directly reduce detections.</p>
       </div>
       <div class="card" style="border-color:#ffe06655; background:#1a180d;">
         <h3>Open questions</h3>
