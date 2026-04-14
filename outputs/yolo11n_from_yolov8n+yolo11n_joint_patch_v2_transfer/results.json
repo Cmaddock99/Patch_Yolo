@@ -1,7 +1,8 @@
 {
   "run_name": "yolo11n_from_yolov8n+yolo11n_joint_patch_v2_transfer",
   "model": "yolo11n",
-  "co_model": null,
+  "joint_models": null,
+  "joint_weights": null,
   "epochs": 500,
   "resumed_from_epoch": 0,
   "manifest_path": "data/manifests/common_all_models.txt",
@@ -22,7 +23,6 @@
   "lr": 0.01,
   "tv_weight": 0.05,
   "nps_weight": 0.0,
-  "co_weight": null,
   "block_erase_prob": 0.0,
   "cutout_prob": 0.0,
   "cutout_size": 20,
