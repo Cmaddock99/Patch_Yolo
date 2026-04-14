@@ -159,20 +159,35 @@ def evaluate_patch_on_images(
 ) -> dict:
     """
     Run clean inference + patched inference (with optional defense) on all images.
-    Returns aggregated stats.
+
+    When defense_fn is provided it is applied to BOTH clean and patched images:
+    - clean + defense → frame_detection_rate_clean_defended (measures clean cost)
+    - patch + defense → frame_detection_rate_patched (measures attack success)
+    - clean undefended → used for torso placement and suppression_pct denominator
+
+    suppression_pct is always vs undefended clean (ASR framing).
+    frame_detection_rate_clean_defended enables correct clean_cost_pp in main().
     """
     total_clean = 0
     total_patched = 0
     frames_clean_with_person = 0
+    frames_clean_defended_with_person = 0
     frames_patched_with_person = 0
     patch_size = patch_hwc.shape[0]
 
     for img_hwc in images:
-        # Clean detections (no defense on clean — this is the undefended baseline)
+        # Undefended clean — used for torso placement and suppression denominator
         clean_dets = run_predict(yolo, img_hwc, conf)
         total_clean += len(clean_dets)
         if clean_dets:
             frames_clean_with_person += 1
+
+        # Defended clean — measures what the defense costs on a clean scene
+        if defense_fn is not None:
+            defended_clean_img = defense_fn(img_hwc.copy())
+            defended_clean_dets = run_predict(yolo, defended_clean_img, conf)
+            if defended_clean_dets:
+                frames_clean_defended_with_person += 1
 
         top, left = compute_torso_top_left(clean_dets, img_hwc.shape[0], patch_size)
         patched = apply_patch_hwc(img_hwc, patch_hwc, top, left)
@@ -187,11 +202,19 @@ def evaluate_patch_on_images(
             frames_patched_with_person += 1
 
     n = len(images)
+    # frame_detection_rate_clean_defended equals the undefended rate when no
+    # defense is active (baseline call), so clean_cost_pp is 0 in that case.
+    clean_defended_rate = (
+        round(frames_clean_defended_with_person / max(n, 1), 4)
+        if defense_fn is not None
+        else round(frames_clean_with_person / max(n, 1), 4)
+    )
     return {
         "n_images": n,
         "total_clean_detections": total_clean,
         "total_patched_detections": total_patched,
         "frame_detection_rate_clean": round(frames_clean_with_person / max(n, 1), 4),
+        "frame_detection_rate_clean_defended": clean_defended_rate,
         "frame_detection_rate_patched": round(frames_patched_with_person / max(n, 1), 4),
         "detection_suppression_pct": round(
             (1.0 - total_patched / max(total_clean, 1)) * 100.0, 2
@@ -316,7 +339,7 @@ def main() -> None:
                     yolo, images, patch_hwc, args.conf, defense_fn=fn
                 )
                 supp_defended = defended["detection_suppression_pct"]
-                clean_rate_defended = defended["frame_detection_rate_clean"]
+                clean_rate_defended = defended["frame_detection_rate_clean_defended"]
 
                 attack_reduction_pp = supp_undefended - supp_defended
                 clean_cost_pp = (clean_rate_undefended - clean_rate_defended) * 100.0

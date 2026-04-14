@@ -40,6 +40,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import random
 import time
 from pathlib import Path
 
@@ -79,24 +80,52 @@ def run_predict(yolo: YOLO, frame_bgr: np.ndarray, conf: float) -> list[dict]:
     return detections
 
 
+def synthetic_capture(
+    seconds: float,
+    is_patched: bool = False,
+    has_person_rate_clean: float = 0.75,
+    has_person_rate_patched: float = 0.20,
+) -> tuple[list[list[dict]], np.ndarray]:
+    """
+    Generate synthetic frame data for dry-run mode. No camera required.
+    Simulates ~30 fps for `seconds`. Returns (per_frame, still).
+    """
+    n_frames = max(1, int(seconds * 30))
+    rate = has_person_rate_patched if is_patched else has_person_rate_clean
+    rng = random.Random(42)
+    per_frame = []
+    for _ in range(n_frames):
+        if rng.random() < rate:
+            per_frame.append([{"xyxy": [160, 80, 400, 560], "conf": 0.72}])
+        else:
+            per_frame.append([])
+    still = np.zeros((480, 640, 3), dtype=np.uint8)
+    cv2.putText(still, "DRY-RUN SYNTHETIC FRAME", (60, 240),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (180, 180, 180), 2)
+    return per_frame, still
+
+
 def capture_window(
     cap: cv2.VideoCapture,
     yolo: YOLO,
     conf: float,
     seconds: float,
     label: str,
-) -> tuple[list[list[dict]], np.ndarray | None]:
+) -> tuple[list[list[dict]] | None, np.ndarray | None]:
     """
     Capture `seconds` of video from `cap`, running YOLO on each frame.
     Returns:
-      - per_frame_detections: list of detection lists (one per frame)
-      - representative_still: the middle frame (BGR)
+      - per_frame_detections: list of detection lists (one per frame),
+        or None if the user aborted mid-window with 'q'
+      - representative_still: the middle frame (BGR), or None on abort
+
+    Callers must check for None and skip logging aborted windows.
     """
     print(f"  [{label}] Capturing {seconds:.0f}s... press 'q' to abort.")
     per_frame: list[list[dict]] = []
     start = time.time()
-    still: np.ndarray | None = None
     frames_collected: list[np.ndarray] = []
+    aborted = False
 
     while True:
         ret, frame = cap.read()
@@ -115,12 +144,14 @@ def capture_window(
                     (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
         cv2.imshow("Physical Benchmark", disp)
         if cv2.waitKey(1) & 0xFF == ord("q"):
-            print("  Aborted by user.")
+            aborted = True
             break
 
-    if frames_collected:
-        still = frames_collected[len(frames_collected) // 2]
+    if aborted:
+        print(f"  [{label}] Aborted — {len(per_frame)} partial frames discarded.")
+        return None, None
 
+    still = frames_collected[len(frames_collected) // 2] if frames_collected else None
     print(f"  [{label}] Done — {len(per_frame)} frames captured.")
     return per_frame, still
 
@@ -206,14 +237,18 @@ def main() -> None:
     print(f"\nLoading {args.model} ...")
     yolo = YOLO(f"{args.model}.pt")
 
-    # Open camera
-    cap = cv2.VideoCapture(args.camera)
-    if not cap.isOpened():
-        raise RuntimeError(
-            f"Could not open camera {args.camera}. "
-            "Check --camera index or connect a webcam."
-        )
-    print(f"Camera opened (device {args.camera}).")
+    # Open camera — skipped in dry-run mode
+    cap = None
+    if not args.dry_run:
+        cap = cv2.VideoCapture(args.camera)
+        if not cap.isOpened():
+            raise RuntimeError(
+                f"Could not open camera {args.camera}. "
+                "Check --camera index or connect a webcam."
+            )
+        print(f"Camera opened (device {args.camera}).")
+    else:
+        print("Dry-run mode — no camera opened, using synthetic frames.")
 
     # CSV header
     fieldnames = [
@@ -263,10 +298,16 @@ def main() -> None:
                         continue
 
                 # Clean capture
-                clean_frames, clean_still = capture_window(
-                    cap, yolo, args.conf, cap_secs,
-                    label=f"CLEAN  {cond_label}"
-                )
+                if args.dry_run:
+                    clean_frames, clean_still = synthetic_capture(cap_secs, is_patched=False)
+                else:
+                    clean_frames, clean_still = capture_window(
+                        cap, yolo, args.conf, cap_secs,
+                        label=f"CLEAN  {cond_label}"
+                    )
+                    if clean_frames is None:
+                        print("  Clean window aborted — skipping this trial.")
+                        continue
                 clean_stats = compute_stats(clean_frames)
 
                 if not args.dry_run:
@@ -275,10 +316,16 @@ def main() -> None:
                         continue
 
                 # Patched capture
-                patched_frames, patched_still = capture_window(
-                    cap, yolo, args.conf, cap_secs,
-                    label=f"PATCHED  {cond_label}"
-                )
+                if args.dry_run:
+                    patched_frames, patched_still = synthetic_capture(cap_secs, is_patched=True)
+                else:
+                    patched_frames, patched_still = capture_window(
+                        cap, yolo, args.conf, cap_secs,
+                        label=f"PATCHED  {cond_label}"
+                    )
+                    if patched_frames is None:
+                        print("  Patched window aborted — skipping this trial.")
+                        continue
                 patched_stats = compute_stats(patched_frames)
 
                 # Suppression relative to clean detection rate
@@ -319,7 +366,8 @@ def main() -> None:
     except KeyboardInterrupt:
         print("\nBenchmark stopped by user.")
     finally:
-        cap.release()
+        if cap is not None:
+            cap.release()
         cv2.destroyAllWindows()
         csv_file.close()
 
