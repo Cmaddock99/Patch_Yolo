@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adversarial Patch Attacks on YOLO</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0a0f;
+    color: #e8e8f0;
+    font-family: 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  .deck { width: 100%; height: 100vh; position: relative; }
+
+  .slide {
+    display: none;
+    position: absolute;
+    inset: 0;
+    padding: 60px 80px;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .slide.active { display: flex; }
+
+  /* ── accent colours ── */
+  .green  { color: #3effa0; }
+  .yellow { color: #ffe066; }
+  .red    { color: #ff6060; }
+  .blue   { color: #60b8ff; }
+  .dim    { color: #888; }
+
+  /* ── typography ── */
+  h1 { font-size: 3rem; font-weight: 700; line-height: 1.15; letter-spacing: -1px; }
+  h2 { font-size: 2rem; font-weight: 600; margin-bottom: 36px; color: #aaa; letter-spacing: -0.5px; }
+  h3 { font-size: 1.1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #60b8ff; margin-bottom: 12px; }
+  p  { font-size: 1.15rem; line-height: 1.7; color: #ccc; max-width: 780px; }
+  li { font-size: 1.1rem; line-height: 1.8; color: #ccc; margin-left: 1.2em; }
+  li + li { margin-top: 4px; }
+
+  .subtitle { font-size: 1.25rem; color: #666; margin-top: 16px; }
+  .author   { font-size: 1rem;   color: #444; margin-top: 40px; }
+
+  /* ── layout helpers ── */
+  .cols   { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  .cols3  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+  .card   {
+    background: #12121a;
+    border: 1px solid #222;
+    border-radius: 12px;
+    padding: 28px 32px;
+  }
+  .card.highlight { border-color: #3effa055; background: #0d1a12; }
+  .card.warn      { border-color: #ff606055; background: #1a0d0d; }
+  .card.info      { border-color: #60b8ff55; background: #0d1220; }
+
+  /* ── stat blocks ── */
+  .stat       { text-align: center; padding: 24px 16px; }
+  .stat-num   { font-size: 3.5rem; font-weight: 800; line-height: 1; }
+  .stat-label { font-size: 0.85rem; color: #666; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .stat-sub   { font-size: 0.95rem; color: #888; margin-top: 6px; }
+
+  /* ── table ── */
+  table { width: 100%; border-collapse: collapse; font-size: 1rem; }
+  th { text-align: left; color: #555; font-weight: 500; font-size: 0.8rem;
+       text-transform: uppercase; letter-spacing: 1.5px; padding: 0 16px 12px; }
+  td { padding: 12px 16px; border-top: 1px solid #1a1a22; color: #ccc; }
+  tr:hover td { background: #12121a; }
+  .bar-cell { display: flex; align-items: center; gap: 12px; }
+  .bar      { height: 8px; border-radius: 4px; background: #3effa0; }
+  .bar.med  { background: #ffe066; }
+  .bar.low  { background: #ff6060; }
+
+  /* ── tag ── */
+  .tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: #60b8ff22;
+    color: #60b8ff;
+    margin-bottom: 20px;
+  }
+
+  /* ── divider ── */
+  .rule { border: none; border-top: 1px solid #1e1e28; margin: 28px 0; }
+
+  /* ── nav ── */
+  #nav {
+    position: fixed;
+    bottom: 24px; right: 32px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #333;
+    z-index: 999;
+  }
+  #nav button {
+    background: #1a1a22;
+    border: 1px solid #2a2a35;
+    color: #666;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+  #nav button:hover { background: #22222e; color: #aaa; }
+  #slide-count { color: #333; min-width: 48px; text-align: center; }
+
+  /* ── patch image ── */
+  .patch-img {
+    image-rendering: pixelated;
+    border-radius: 8px;
+    border: 1px solid #2a2a35;
+  }
+
+  .big-emoji { font-size: 3rem; margin-bottom: 16px; }
+
+  .footnote { font-size: 0.8rem; color: #444; margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ─── SLIDE 1: TITLE ─── -->
+  <div class="slide active" id="s1">
+    <div class="tag">Capstone Research</div>
+    <h1>Adversarial Patch<br><span class="green">Attacks on YOLO</span></h1>
+    <p class="subtitle">Gradient-based person detection suppression across YOLOv8n, YOLO11n, and YOLO26n</p>
+    <hr class="rule" style="margin-top:40px; max-width:120px; border-color:#3effa044;">
+    <p class="author dim">April 2026</p>
+  </div>
+
+  <!-- ─── SLIDE 2: WHAT IS AN ADVERSARIAL PATCH ─── -->
+  <div class="slide" id="s2">
+    <div class="tag">Background</div>
+    <h1>What Is an<br><span class="blue">Adversarial Patch?</span></h1>
+    <div style="margin-top:40px;" class="cols">
+      <div>
+        <h3>The idea</h3>
+        <p>A small image region, optimized through gradient descent, that causes a neural network to stop detecting objects — even when the object is fully visible.</p>
+        <hr class="rule">
+        <h3>How it's different from occlusion</h3>
+        <p>Covering a face with any object reduces features. An adversarial patch exploits the model's <em>internal representations</em> — creating activation patterns the detector interprets as "no person."</p>
+      </div>
+      <div>
+        <div class="card info" style="margin-bottom:16px;">
+          <h3>Training loop</h3>
+          <ul>
+            <li>Freeze model weights</li>
+            <li>Overlay patch on person's torso</li>
+            <li>Forward pass → detection confidence</li>
+            <li>Backpropagate to <span class="green">patch pixels only</span></li>
+            <li>Repeat until detections suppress</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Robustness augmentations</h3>
+          <ul>
+            <li>Random rotation ±15°</li>
+            <li>Cutout masking (T-SEA)</li>
+            <li>Block erasing (DePatch)</li>
+            <li>Non-Printability Score loss</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 3: RESULTS ─── -->
+  <div class="slide" id="s3">
+    <div class="tag">Results</div>
+    <h1>Detection<br><span class="green">Suppression</span></h1>
+    <div style="margin-top:44px;" class="cols3">
+      <div class="card highlight stat">
+        <div class="stat-num green">90%</div>
+        <div style="font-size:1.1rem; font-weight:600; margin-top:12px;">YOLOv8n</div>
+        <div class="stat-sub">20 → 2 detections</div>
+        <div class="stat-label" style="margin-top:16px;">1000 epochs · loss 0.543</div>
+      </div>
+      <div class="card stat" style="border-color:#ffe06655; background:#1a180d;">
+        <div class="stat-num yellow">72.7%</div>
+        <div style="font-size:1.1rem; font-weight:600; margin-top:12px;">YOLO11n</div>
+        <div class="stat-sub">33 → 9 detections</div>
+        <div class="stat-label" style="margin-top:16px;">1000 epochs · loss 0.597</div>
+      </div>
+      <div class="card warn stat">
+        <div class="stat-num red">16.3%</div>
+        <div style="font-size:1.1rem; font-weight:600; margin-top:12px;">YOLO26n</div>
+        <div class="stat-sub">43 → 36 detections</div>
+        <div class="stat-label" style="margin-top:16px;">1000 epochs · loss 0.108 ⚠</div>
+      </div>
+    </div>
+    <p style="margin-top:36px;">Patch size: <span class="green">100×100 px</span> &nbsp;·&nbsp; Image size: 640×640 &nbsp;·&nbsp; <span class="dim">2.4% of total pixels</span></p>
+    <p class="footnote">⚠ v26n loss converged lower than v8n/v11n yet suppression failed — see next slide</p>
+  </div>
+
+  <!-- ─── SLIDE 4: v26n FINDING ─── -->
+  <div class="slide" id="s4">
+    <div class="tag">Key Research Finding</div>
+    <h1>The <span class="red">v26n Paradox</span></h1>
+    <div class="cols" style="margin-top:36px; align-items:start;">
+      <div>
+        <div class="card warn" style="margin-bottom:20px;">
+          <h3>What happened</h3>
+          <p>Optimizer fully converged.<br>
+          <span class="red">final_det_loss = 0.108</span> — <em>lower</em> than v8n (0.543) and v11n (0.597).<br>
+          Suppression: only 16.3%.</p>
+        </div>
+        <div class="card info">
+          <h3>Root cause</h3>
+          <p>YOLO26n uses end-to-end Hungarian matching (<code>head_end2end: true</code>).</p>
+          <hr class="rule">
+          <ul>
+            <li><span class="yellow">Training</span> optimizes the <code>one2many</code> auxiliary head</li>
+            <li><span class="green">Inference</span> uses the <code>one2one</code> head for final detections</li>
+            <li>These heads are <strong>architecturally separate</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:20px;">
+          <h3>Warm-start experiment</h3>
+          <p>Initialized v26n training from the v8n 90% patch.<br>Trained 2000 epochs.</p>
+          <hr class="rule">
+          <p><strong>Result: 14.0%</strong> — nearly identical to cold-start.</p>
+          <p style="margin-top:8px;" class="dim">The barrier is structural, not a local minimum you can escape from.</p>
+        </div>
+        <div class="card highlight">
+          <h3>What this means</h3>
+          <p>YOLO26n's architecture is a <span class="green">natural defense</span> against this class of attack. The correct follow-up is to route gradients through the <code>one2one</code> head directly during training.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 5: TRANSFER MATRIX ─── -->
+  <div class="slide" id="s5">
+    <div class="tag">Cross-Model Generalization</div>
+    <h1>Transfer <span class="blue">Matrix</span></h1>
+    <div class="cols" style="margin-top:36px; align-items:start; gap:40px;">
+      <div>
+        <h3>Single-source transfers</h3>
+        <table>
+          <thead><tr><th>Patch source</th><th>Eval model</th><th>Suppression</th></tr></thead>
+          <tbody>
+            <tr><td>v8n</td><td>v11n</td><td><div class="bar-cell"><div class="bar med" style="width:73px"></div>36.4%</div></td></tr>
+            <tr><td>v11n</td><td>v8n</td><td><div class="bar-cell"><div class="bar" style="width:100px"></div>50.0%</div></td></tr>
+            <tr><td>v26n</td><td>v8n</td><td><div class="bar-cell"><div class="bar" style="width:90px"></div>45.0%</div></td></tr>
+            <tr><td>v26n</td><td>v11n</td><td><div class="bar-cell"><div class="bar med" style="width:48px"></div>24.2%</div></td></tr>
+            <tr><td>v8n</td><td>v26n</td><td><div class="bar-cell"><div class="bar low" style="width:23px"></div>11.6%</div></td></tr>
+            <tr><td>v11n</td><td>v26n</td><td><div class="bar-cell"><div class="bar low" style="width:19px"></div>9.3%</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Joint patches</h3>
+        <table>
+          <thead><tr><th>Joint source</th><th>Eval</th><th>Suppression</th></tr></thead>
+          <tbody>
+            <tr><td>v8n + v11n</td><td>v8n</td><td><div class="bar-cell"><div class="bar" style="width:170px"></div>85%</div></td></tr>
+            <tr><td>v8n + v11n</td><td>v11n</td><td><div class="bar-cell"><div class="bar" style="width:133px"></div>66.7%</div></td></tr>
+            <tr><td>v8n + v26n</td><td>v26n</td><td><div class="bar-cell"><div class="bar low" style="width:37px"></div>18.6%</div></td></tr>
+          </tbody>
+        </table>
+        <hr class="rule">
+        <div class="card info" style="margin-top:0;">
+          <h3>Key insight</h3>
+          <p>Transfer rates vary by architecture — not by patch placement. This rules out occlusion as the primary mechanism.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 6: LIVE DEMO ─── -->
+  <div class="slide" id="s6">
+    <div class="tag">Live Demonstration</div>
+    <div class="cols" style="align-items:center; gap:80px;">
+      <div>
+        <h1><span class="green">Live Demo</span></h1>
+        <p style="margin-top:24px;">Split-screen: clean YOLO detections on the left, patch digitally overlaid on the right.</p>
+        <hr class="rule">
+        <ul style="margin-top:4px;">
+          <li>Patch: <span class="green">100×100 px</span>, YOLOv8n</li>
+          <li>Placed on torso of largest detected person</li>
+          <li>Rolling 30-frame suppression average</li>
+        </ul>
+        <hr class="rule">
+        <div class="card warn" style="margin-top:0;">
+          <h3>Physical print</h3>
+          <p>Patch exported at <span class="yellow">300 DPI, 8"×8"</span>.<br>
+          Physical suppression ~30–60% (printer colour shift, lighting).<br>
+          NPS loss during training partially compensates.</p>
+        </div>
+      </div>
+      <div style="text-align:center;">
+        <img src="outputs/yolov8n_patch_v2/patches/patch.png"
+             class="patch-img"
+             style="width:200px; height:200px;"
+             alt="v8n adversarial patch">
+        <p class="dim" style="margin-top:12px; font-size:0.85rem;">YOLOv8n patch — 90% suppression<br>100×100 px · shown 2×</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 7: CONCLUSIONS ─── -->
+  <div class="slide" id="s7">
+    <div class="tag">Conclusions</div>
+    <h1>What We<br><span class="green">Learned</span></h1>
+    <div class="cols3" style="margin-top:44px;">
+      <div class="card highlight">
+        <h3>Patches work</h3>
+        <p>A 2.4% image patch suppresses YOLOv8n person detection by 90%. The effect transfers across model families at 10–50%.</p>
+      </div>
+      <div class="card info">
+        <h3>Architecture matters</h3>
+        <p>YOLO26n's end-to-end Hungarian matching head creates a structural barrier. Loss convergence does not equal detection suppression.</p>
+      </div>
+      <div class="card" style="border-color:#ffe06655; background:#1a180d;">
+        <h3>Next steps</h3>
+        <p>Route gradients through the <code>one2one</code> head (Wang et al. 2026). Adversarial training as a defense. Physical robustness evaluation.</p>
+      </div>
+    </div>
+    <hr class="rule" style="margin-top:48px;">
+    <p class="dim" style="font-size:0.95rem;">
+      Training script · Colab notebook · Live demo · All results →
+      <span class="blue">github.com/Cmaddock99/Patch_Yolo</span>
+    </p>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- ─── NAV ─── -->
+<div id="nav">
+  <button onclick="prev()">←</button>
+  <span id="slide-count">1 / 7</span>
+  <button onclick="next()">→</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let cur = 0;
+
+  function show(n) {
+    slides[cur].classList.remove('active');
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    document.getElementById('slide-count').textContent = (cur + 1) + ' / ' + slides.length;
+  }
+  function next() { show(cur + 1); }
+  function prev() { show(cur - 1); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown'  || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     { e.preventDefault(); prev(); }
+    if (e.key === 'f' || e.key === 'F') { document.documentElement.requestFullscreen?.(); }
+  });
+</script>
+
+</body>
+</html>

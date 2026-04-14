@@ -14,10 +14,12 @@ For YOLOv8 / YOLO11: inner_model returns (B, 84, 8400) — channels 0-3 are box
   coordinates, channels 4-83 are class scores. Person = channel 4.
 
 For YOLO26 (end2end=True): inner_model returns (y, preds_dict). y=(B,300,6)
-  is post-processed and has no useful gradients. preds_dict["one2many"]["scores"]
-  is (B, 80, 8400) raw class logits computed from non-detached features —
-  this is the differentiable tensor used for gradient-based optimization.
-  (one2one is computed from detached features → no gradient flow.)
+  is post-processed and has no useful gradients. By default (--loss-source auto),
+  compute_v26_one2one_scores() is used: a pre-hook captures the feature maps
+  entering the Detect head before the internal detach fires, then applies
+  detect_head.one2one_cv3 on live tensors → (B, 80, total_anchors) with
+  grad_fn intact. This matches the inference objective exactly.
+  (--loss-source one2many uses the restored one2many head as an ablation path.)
 
 Loss: L_total = L_det + tv_weight * L_tv
   L_det : mean of top-k person class scores (sigmoid-scaled to [0,1])
@@ -256,6 +258,60 @@ def restore_v26_one2many_head(inner_model: torch.nn.Module) -> None:
           "one2many head is now live and differentiable")
 
 
+def compute_v26_one2one_scores(
+    inner_model: torch.nn.Module,
+    image_bchw: torch.Tensor,
+) -> torch.Tensor:
+    """
+    Compute YOLO26 one2one class scores from non-detached feature maps.
+
+    The Detect head internally detaches feature maps before passing them to
+    one2one_cv2/cv3, which breaks gradient flow (grad_fn is None on
+    preds_dict["one2one"]["scores"]). This function bypasses that detach by:
+      1. Registering a forward pre-hook on the Detect head to capture the
+         live feature map list before the head's forward() runs.
+      2. Applying detect_head.one2one_cv3[i] directly on each captured tensor.
+
+    Returns (B, 80, total_anchors) with grad_fn intact, matching the inference
+    objective exactly (inference uses one2one, not one2many).
+    """
+    detect_head = inner_model.model[-1]
+    captured: dict = {}
+
+    def _pre_hook(module, inp):
+        # inp is a tuple; inp[0] is the list/tuple of per-scale feature tensors.
+        x = inp[0]
+        captured["x"] = list(x) if isinstance(x, (list, tuple)) else [x]
+
+    h = detect_head.register_forward_pre_hook(_pre_hook)
+    was_training = inner_model.training
+    try:
+        with torch.inference_mode(False), torch.enable_grad():
+            inner_model.train()
+            inner_model(image_bchw)
+    finally:
+        inner_model.train(was_training)
+        h.remove()
+
+    if "x" not in captured:
+        raise RuntimeError(
+            "[v26-one2one] Pre-hook did not fire — Detect head may not be "
+            "inner_model.model[-1]. Check model architecture."
+        )
+
+    x = captured["x"]  # list of (B, C, H, W) with grad_fn
+    cls_preds = [detect_head.one2one_cv3[i](x[i]) for i in range(len(x))]
+    scores = torch.cat([c.flatten(2) for c in cls_preds], dim=2)  # (B, 80, A)
+
+    if scores.grad_fn is None:
+        raise RuntimeError(
+            "[v26-one2one] scores.grad_fn is None after hook-based forward.\n"
+            "Ensure image_bchw or model params have requires_grad=True, "
+            "and that one2one_cv3 layers exist on the Detect head."
+        )
+    return scores
+
+
 # ---------------------------------------------------------------------------
 # Core inference (differentiable)
 # ---------------------------------------------------------------------------
@@ -284,10 +340,11 @@ def predict_with_grad(
     Run the inner DetectionModel with gradients enabled.
 
     v8/v11 : returns (B, 84, 8400) — person class at channel 4.
-    v26     : returns preds_dict["one2many"]["scores"] (B, 80, total_anchors)
-              — person class at channel 0.
-              Requires restore_v26_one2many_head() to have been called first
-              so that cv2/cv3 are non-None and forward_head produces real scores.
+    v26     : default (auto/one2one) delegates to compute_v26_one2one_scores(),
+              returning (B, 80, total_anchors) with grad_fn intact.
+              With --loss-source one2many: extracts preds_dict["one2many"]["scores"]
+              from the standard forward (ablation path, requires
+              restore_v26_one2many_head() to have been called first).
 
     The model is temporarily put in train() mode for the forward pass so that:
       1. The v26 Detect head returns a raw dict (no postprocessing / NMS).
@@ -298,6 +355,14 @@ def predict_with_grad(
     eval() is restored immediately after.
     """
     is_v26 = "26" in model_name
+
+    # v26 one2one path: delegate immediately to avoid a redundant forward pass.
+    # compute_v26_one2one_scores() runs its own forward internally via the hook.
+    if is_v26:
+        resolved = loss_source if loss_source != "auto" else "one2one"
+        if resolved == "one2one":
+            return compute_v26_one2one_scores(inner_model, image_bchw)
+        # resolved == "one2many" — fall through to standard forward below
 
     was_training = inner_model.training
     inner_model.train()
@@ -312,6 +377,7 @@ def predict_with_grad(
         # v8/v11: out is a tuple; out[0] is (B, 84, 8400)
         return out[0] if isinstance(out, (tuple, list)) else out
 
+    # v26 one2many ablation path — requires restore_v26_one2many_head()
     # v26: train mode → {"one2many": {...}, "one2one": {...}}
     #      eval  mode → (postprocessed_y, {"one2many": {...}, "one2one": {...}})
     if isinstance(out, dict):
@@ -446,7 +512,10 @@ def parse_args() -> argparse.Namespace:
                         "initialization). With --eval-only: transfer/evaluation mode.")
     p.add_argument("--loss-source", default="auto",
                    choices=["auto", "one2many", "one2one"],
-                   help="Raw score tensor for YOLO26 gradient loss (default: auto=one2many)")
+                   help="Raw score tensor for YOLO26 gradient loss. "
+                        "auto → one2one for v26 (matches inference objective); "
+                        "one2many → ablation path using restored one2many head; "
+                        "ignored for v8/v11 (always channel4). Default: auto")
     p.add_argument("--grad-clip", type=float, default=0.0,
                    help="Max gradient norm for patch update (0 = disabled)")
     p.add_argument("--seed", type=int, default=None,
@@ -470,13 +539,16 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--nps-weight", type=float, default=0.0,
                    help="Non-Printability Score loss weight (Thys 2019 / DePatch). "
                         "Penalizes non-printable colors. Recommended: 0.01")
-    p.add_argument("--co-model", type=str, default=None,
-                   help="Second model for joint multi-model training (e.g. yolo11n). "
-                        "Losses are combined via --co-weight. Improves cross-model transfer.")
-    p.add_argument("--co-weight", type=float, default=0.5,
-                   help="Co-model loss weight for joint training (0.0–1.0). "
-                        "Primary model gets (1 - co_weight). Default 0.5 = equal split. "
-                        "Use 0.3 to give primary model 70%% of gradient budget.")
+    p.add_argument("--co-model", type=str, action="append", default=None,
+                   dest="co_models",
+                   help="Additional model for joint multi-model training (repeatable). "
+                        "E.g. --co-model yolo11n --co-model yolo26n. "
+                        "Each --co-model must be paired with a --co-weight.")
+    p.add_argument("--co-weight", type=float, action="append", default=None,
+                   dest="co_weights",
+                   help="Loss weight for the corresponding --co-model (repeatable). "
+                        "Primary model receives (1 - sum(co_weights)); sum must be < 1.0. "
+                        "E.g. --co-weight 0.20 --co-weight 0.55 gives primary 0.25.")
 
     # ---- Run identity and checkpoint location --------------------------------
     p.add_argument("--run-name", type=str, default=None,
@@ -514,13 +586,29 @@ def main() -> None:
     print(f"Device: {device}")
     print(f"Model:  {args.model}  (end2end={'yes' if is_v26 else 'no'})")
 
+    # Normalize co-model / co-weight lists and validate.
+    co_models: list[str] = args.co_models or []
+    co_weights: list[float] = args.co_weights or []
+    if len(co_models) != len(co_weights):
+        raise ValueError(
+            f"--co-model and --co-weight must be paired: "
+            f"got {len(co_models)} model(s) but {len(co_weights)} weight(s)."
+        )
+    if co_models and sum(co_weights) >= 1.0:
+        raise ValueError(
+            f"sum(co_weights)={sum(co_weights):.3f} must be < 1.0 "
+            f"(primary model needs a positive share of the gradient budget)."
+        )
+    primary_weight = 1.0 - sum(co_weights) if co_models else 1.0
+
     # Output directory — eval-only runs get a distinct name so they don't
     # overwrite training results for the same model.
     if args.eval_only and args.load_patch:
         source_model = args.load_patch.parts[-3] if len(args.load_patch.parts) >= 3 else "unknown"
         run_name = f"{args.model}_from_{source_model}_transfer"
-    elif args.co_model:
-        run_name = f"{args.model}+{args.co_model}_joint_patch_v2"
+    elif co_models:
+        co_str = "+".join(co_models)
+        run_name = f"{args.model}+{co_str}_joint_patch_v2"
     else:
         run_name = f"{args.model}_patch_v2"
     # --run-name overrides the auto-generated name so new runs don't clobber old ones.
@@ -576,29 +664,33 @@ def main() -> None:
     prepare_inner_for_grad(inner)
 
     # YOLO26: undo the auto-fuse that YOLO() applies on load.
-    # fuse() sets cv2=cv3=None so forward_head() returns {} — no scores, no grads.
-    # Restoring cv2/cv3 from one2one_cv2/cv3 makes the one2many head live again.
+    # Only needed for the one2many ablation path; compute_v26_one2one_scores()
+    # uses a hook and does not require this. Restore anyway so the one2many
+    # ablation path is always available without a restart.
     if is_v26 and not args.eval_only:
         restore_v26_one2many_head(inner)
 
-    # Load co-model for joint multi-model training (optional).
-    co_inner = None
-    is_v26_co = False
-    if args.co_model and not args.eval_only:
-        print(f"\nLoading co-model {args.co_model} for joint training ...")
-        co_yolo = YOLO(f"{args.co_model}.pt")
-        co_inner = co_yolo.model.to(device)
-        co_inner.eval()
-        for param in co_inner.parameters():
-            param.requires_grad_(False)
-        is_v26_co = "26" in args.co_model
-        # Warm up co-model so anchor/stride tensors are initialized.
+    # Load co-models for joint multi-model training (optional, repeatable).
+    co_inners: list[torch.nn.Module] = []
+    co_is_v26s: list[bool] = []
+    if co_models and not args.eval_only:
         _dummy = np.zeros((args.image_size, args.image_size, 3), dtype=np.uint8)
-        co_yolo.predict(_dummy, verbose=False)
-        prepare_inner_for_grad(co_inner)
-        if is_v26_co:
-            restore_v26_one2many_head(co_inner)
-        print(f"  Co-model ready: {args.co_model}")
+        for co_model_name in co_models:
+            print(f"\nLoading co-model {co_model_name} for joint training ...")
+            co_yolo_i = YOLO(f"{co_model_name}.pt")
+            co_inner_i = co_yolo_i.model.to(device)
+            co_inner_i.eval()
+            for param in co_inner_i.parameters():
+                param.requires_grad_(False)
+            is_v26_co_i = "26" in co_model_name
+            # Warm up so anchor/stride tensors are initialized.
+            co_yolo_i.predict(_dummy, verbose=False)
+            prepare_inner_for_grad(co_inner_i)
+            if is_v26_co_i:
+                restore_v26_one2many_head(co_inner_i)
+            co_inners.append(co_inner_i)
+            co_is_v26s.append(is_v26_co_i)
+            print(f"  Co-model ready: {co_model_name}")
 
     train_images = images_nchw[training_indices]
     train_paths = [image_paths[i] for i in training_indices]
@@ -719,19 +811,20 @@ def main() -> None:
                 if last_preds_shape is None:
                     last_preds_shape = list(preds.shape)
 
-                loss_det = detection_loss(preds, topk=args.topk, is_v26=is_v26)
+                loss_det = detection_loss(preds, topk=args.topk, is_v26=is_v26) * primary_weight
 
-                # Joint multi-model loss: combine with co-model if present.
-                # --co-weight controls the co-model's share (default 0.5 = equal).
-                if co_inner is not None:
+                # Joint multi-model loss: sum co-model contributions.
+                for co_inner_i, co_model_i, co_weight_i, is_v26_co_i in zip(
+                    co_inners, co_models, co_weights, co_is_v26s
+                ):
                     co_preds = predict_with_grad(
-                        co_inner, patched_img.unsqueeze(0),
+                        co_inner_i, patched_img.unsqueeze(0),
                         loss_source=args.loss_source,
-                        model_name=args.co_model,
+                        model_name=co_model_i,
                     )
-                    co_loss_det = detection_loss(co_preds, topk=args.topk, is_v26=is_v26_co)
-                    loss_det = (loss_det * (1.0 - args.co_weight)
-                                + co_loss_det * args.co_weight)
+                    loss_det = loss_det + detection_loss(
+                        co_preds, topk=args.topk, is_v26=is_v26_co_i
+                    ) * co_weight_i
 
                 # NPS loss uses the unaugmented patch_c (physical constraint on the
                 # stored patch, not the augmented version used in the forward pass).
@@ -822,11 +915,19 @@ def main() -> None:
     # -----------------------------------------------------------------------
     # Summary
     # -----------------------------------------------------------------------
+    # Resolve loss_source label for results.json.
+    if is_v26:
+        _resolved_src = args.loss_source if args.loss_source != "auto" else "one2one"
+        loss_source_label = f"{_resolved_src}_scores"
+    else:
+        loss_source_label = "channel4"
+
     summary = {
         # Identity
         "run_name": run_name,
         "model": args.model,
-        "co_model": args.co_model,
+        "joint_models": [args.model] + co_models if co_models else None,
+        "joint_weights": [round(primary_weight, 4)] + [round(w, 4) for w in co_weights] if co_models else None,
         # Training provenance
         "epochs": args.epochs,
         "resumed_from_epoch": resumed_from_epoch,
@@ -844,14 +945,13 @@ def main() -> None:
         "mean_conf_clean": mean_conf_clean,
         "mean_conf_patched": mean_conf_patched,
         # Architecture
-        "loss_source": "one2many_scores" if is_v26 else "channel4",
+        "loss_source": loss_source_label,
         "score_tensor_shape": last_preds_shape,
         "head_end2end": is_v26,
         # Hyperparameters
         "lr": args.lr,
         "tv_weight": args.tv_weight,
         "nps_weight": args.nps_weight,
-        "co_weight": args.co_weight if args.co_model else None,
         "block_erase_prob": args.block_erase_prob,
         "cutout_prob": args.cutout_prob,
         "cutout_size": args.cutout_size,
