@@ -359,8 +359,43 @@
     </div>
   </div>
 
-  <!-- ─── SLIDE 8: CONCLUSIONS ─── -->
-  <div class="slide" id="s7">
+  <!-- ─── SLIDE 8: YOLO-BAD-TRIANGLE ─── -->
+  <div class="slide" id="s8">
+    <div class="tag">Parallel Defense Track</div>
+    <h1>Automated<br><span class="blue">Arms Race</span></h1>
+    <div class="cols" style="margin-top:32px; align-items:start;">
+      <div>
+        <h3>YOLO-Bad-Triangle framework</h3>
+        <p style="margin-bottom:20px;">22 automated cycles: optimised attacks vs optimised defenses, each tuned against the other. Attacks: square, DeepFool, dispersion reduction. Defenses: JPEG, median filter, bit-depth reduction, c_dog (learned denoiser).</p>
+        <table>
+          <thead><tr><th>Config</th><th>mAP50</th><th>vs clean</th></tr></thead>
+          <tbody>
+            <tr><td>Clean baseline</td><td><span class="green">0.600</span></td><td class="dim">—</td></tr>
+            <tr><td>Best attack &nbsp;<span class="dim" style="font-size:0.85em;">dispersion_reduction</span></td><td><span class="red">0.238</span></td><td class="red">−60%</td></tr>
+            <tr><td>Best defense &nbsp;<span class="dim" style="font-size:0.85em;">square + c_dog</span></td><td><span class="yellow">0.394</span></td><td class="yellow">−34%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="card info" style="margin-bottom:20px;">
+          <h3>Adversarial finetuning</h3>
+          <p>DPC-UNet detector finetuned on adversarial examples (square ×5 oversample + DeepFool + blur pairs). Deployed after clean A/B gate.</p>
+          <hr class="rule">
+          <ul>
+            <li>Clean performance: <span class="green">+0.003 mAP50</span> — no regression</li>
+            <li>Attack resistance: <span class="dim">Δ within noise</span> — no measurable gain yet</li>
+          </ul>
+        </div>
+        <div class="card highlight">
+          <h3>State of play</h3>
+          <p>Defenses partially recover attacked performance — from −60% to −34%. Model finetuning is clean-safe but hasn't moved the needle on resistance. The arms race is live.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SLIDE 9: CONCLUSIONS ─── -->
+  <div class="slide" id="s9">
     <div class="tag">Conclusions</div>
     <h1>What We<br><span class="green">Learned</span></h1>
     <div class="cols3" style="margin-top:44px;">
@@ -374,7 +409,7 @@
       </div>
       <div class="card" style="border-color:#ffe06655; background:#1a180d;">
         <h3>Open questions</h3>
-        <p>Does the NMS-free shift create a new attack class, or does it port from DETR literature? Adversarial training recovers mAP50 to 0.394 from 0.600 baseline — 22 automated cycles ongoing. Physical robustness at scale.</p>
+        <p>Does the NMS-free shift create a new attack class, or does it port from DETR literature? What attack formulation breaks through the Hungarian matching layer? Physical robustness at scale.</p>
       </div>
     </div>
     <hr class="rule" style="margin-top:48px;">
@@ -403,6 +438,8 @@
     slides[cur].classList.add('active');
     document.getElementById('slide-count').textContent = (cur + 1) + ' / ' + slides.length;
   }
+
+  document.getElementById('slide-count').textContent = '1 / ' + slides.length;
   function next() { show(cur + 1); }
   function prev() { show(cur - 1); }
 
