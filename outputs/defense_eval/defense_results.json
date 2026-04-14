@@ -6,9 +6,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 95.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -18,9 +18,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3333,
     "n_images": 48
   },
   {
@@ -30,9 +30,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 10.42,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.2708,
     "n_images": 48
   },
   {
@@ -42,9 +42,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": 5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 29.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.0833,
     "n_images": 48
   },
   {
@@ -54,9 +54,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 8.33,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.2917,
     "n_images": 48
   },
   {
@@ -66,9 +66,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 100.0,
     "attack_reduction_pp": -15.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 27.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.1042,
     "n_images": 48
   },
   {
@@ -78,9 +78,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 95.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 33.33,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.0417,
     "n_images": 48
   },
   {
@@ -102,9 +102,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -10.42,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4792,
     "n_images": 48
   },
   {
@@ -114,9 +114,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 85.0,
     "attack_reduction_pp": 0.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -6.25,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4375,
     "n_images": 48
   },
   {
@@ -126,9 +126,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 100.0,
     "attack_reduction_pp": -15.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -138,9 +138,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 95.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4167,
     "n_images": 48
   },
   {
@@ -150,9 +150,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3542,
     "n_images": 48
   },
   {
@@ -162,9 +162,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -12.5,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.5,
     "n_images": 48
   },
   {
@@ -174,9 +174,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 100.0,
     "attack_reduction_pp": -15.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -186,9 +186,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 95.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -198,9 +198,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3542,
     "n_images": 48
   },
   {
@@ -210,9 +210,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 8.33,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.2917,
     "n_images": 48
   },
   {
@@ -222,9 +222,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -234,9 +234,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 85.0,
     "attack_reduction_pp": 0.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3542,
     "n_images": 48
   },
   {
@@ -258,9 +258,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": 5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -270,9 +270,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 95.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3542,
     "n_images": 48
   },
   {
@@ -282,9 +282,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 95.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -10.42,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4792,
     "n_images": 48
   },
   {
@@ -294,9 +294,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 100.0,
     "attack_reduction_pp": -15.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3333,
     "n_images": 48
   },
   {
@@ -306,9 +306,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -6.25,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4375,
     "n_images": 48
   },
   {
@@ -318,9 +318,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 85.0,
     "attack_reduction_pp": 0.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4167,
     "n_images": 48
   },
   {
@@ -330,9 +330,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 95.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3333,
     "n_images": 48
   },
   {
@@ -342,9 +342,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 85.0,
     "attack_reduction_pp": 0.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -14.58,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.5208,
     "n_images": 48
   },
   {
@@ -354,9 +354,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 75.0,
     "attack_reduction_pp": 10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4167,
     "n_images": 48
   },
   {
@@ -366,9 +366,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": 5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -10.42,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4792,
     "n_images": 48
   },
   {
@@ -378,9 +378,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -10.42,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4792,
     "n_images": 48
   },
   {
@@ -390,9 +390,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 95.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3542,
     "n_images": 48
   },
   {
@@ -402,9 +402,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 6.25,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3125,
     "n_images": 48
   },
   {
@@ -426,9 +426,9 @@
     "suppression_undefended": 85.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": 5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -8.33,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4583,
     "n_images": 48
   },
   {
@@ -450,9 +450,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -462,9 +462,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 85.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3333,
     "n_images": 48
   },
   {
@@ -474,9 +474,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 10.42,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.2708,
     "n_images": 48
   },
   {
@@ -486,9 +486,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 95.0,
     "attack_reduction_pp": -20.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 29.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.0833,
     "n_images": 48
   },
   {
@@ -498,9 +498,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 8.33,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.2917,
     "n_images": 48
   },
   {
@@ -510,9 +510,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -15.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 27.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.1042,
     "n_images": 48
   },
   {
@@ -522,9 +522,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 90.0,
     "attack_reduction_pp": -15.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 33.33,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.0417,
     "n_images": 48
   },
   {
@@ -546,9 +546,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -10.42,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4792,
     "n_images": 48
   },
   {
@@ -558,9 +558,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 75.0,
     "attack_reduction_pp": 0.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -6.25,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4375,
     "n_images": 48
   },
   {
@@ -570,9 +570,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 85.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -582,9 +582,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 85.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4167,
     "n_images": 48
   },
   {
@@ -594,9 +594,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3542,
     "n_images": 48
   },
   {
@@ -606,9 +606,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 65.0,
     "attack_reduction_pp": 10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -12.5,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.5,
     "n_images": 48
   },
   {
@@ -618,9 +618,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 70.0,
     "attack_reduction_pp": 5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -630,9 +630,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -642,9 +642,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 75.0,
     "attack_reduction_pp": 0.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3542,
     "n_images": 48
   },
   {
@@ -654,9 +654,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 75.0,
     "attack_reduction_pp": 0.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 8.33,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.2917,
     "n_images": 48
   },
   {
@@ -666,9 +666,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -678,9 +678,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 75.0,
     "attack_reduction_pp": 0.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3542,
     "n_images": 48
   },
   {
@@ -702,9 +702,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 65.0,
     "attack_reduction_pp": 10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3958,
     "n_images": 48
   },
   {
@@ -714,9 +714,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3542,
     "n_images": 48
   },
   {
@@ -726,9 +726,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 70.0,
     "attack_reduction_pp": 5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -10.42,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4792,
     "n_images": 48
   },
   {
@@ -738,9 +738,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 85.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3333,
     "n_images": 48
   },
   {
@@ -750,9 +750,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 55.0,
     "attack_reduction_pp": 20.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -6.25,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4375,
     "n_images": 48
   },
   {
@@ -762,9 +762,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 65.0,
     "attack_reduction_pp": 10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4167,
     "n_images": 48
   },
   {
@@ -774,9 +774,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 85.0,
     "attack_reduction_pp": -10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3333,
     "n_images": 48
   },
   {
@@ -786,9 +786,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 45.0,
     "attack_reduction_pp": 30.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -14.58,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.5208,
     "n_images": 48
   },
   {
@@ -798,9 +798,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 75.0,
     "attack_reduction_pp": 0.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -4.17,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4167,
     "n_images": 48
   },
   {
@@ -810,9 +810,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 55.0,
     "attack_reduction_pp": 20.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -10.42,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4792,
     "n_images": 48
   },
   {
@@ -822,9 +822,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 65.0,
     "attack_reduction_pp": 10.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -10.42,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4792,
     "n_images": 48
   },
   {
@@ -834,9 +834,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 75.0,
     "attack_reduction_pp": 0.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 2.08,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3542,
     "n_images": 48
   },
   {
@@ -846,9 +846,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 80.0,
     "attack_reduction_pp": -5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": 6.25,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.3125,
     "n_images": 48
   },
   {
@@ -870,9 +870,9 @@
     "suppression_undefended": 75.0,
     "suppression_defended": 70.0,
     "attack_reduction_pp": 5.0,
-    "clean_cost_pp": 0.0,
+    "clean_cost_pp": -8.33,
     "clean_rate_undefended": 0.375,
-    "clean_rate_defended": 0.375,
+    "clean_rate_defended": 0.4583,
     "n_images": 48
   },
   {
