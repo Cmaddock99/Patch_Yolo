@@ -22,11 +22,11 @@ YOLO26n's low suppression despite full loss convergence (`final_det_loss: 0.108`
 
 | Patch Source → Eval Model | Suppression |
 |---|---|
-| v8n → v11n | 36.4% |
+| v8n → v11n | 33.3% |
 | v11n → v8n | 50.0% |
 | v26n → v8n | 45.0% |
 | v26n → v11n | 24.2% |
-| v8n → v26n | 11.6% |
+| v8n → v26n | 14.0% |
 | v11n → v26n | 9.3% |
 
 ### Joint Patches (one patch trained against two models simultaneously)
@@ -96,7 +96,7 @@ python experiments/live_demo.py \
   --mode physical
 ```
 
-Physical suppression will be lower than digital (~30–60% typical) due to printer color shift and lighting. The patch was trained with Non-Printability Score (NPS) loss to partially compensate.
+Physical suppression will be lower than digital because printer color shift, lighting, and viewing angle perturb the patch. The patch was trained with Non-Printability Score (NPS) loss to partially compensate. Use `experiments/physical_benchmark.py` for a structured physical benchmark instead of quoting a fixed percentage from the deck.
 
 ### Demo options
 
@@ -139,7 +139,7 @@ The training script (`experiments/ultralytics_patch.py`) supports:
 
 **Why YOLO26n is hard:** YOLO26n uses end-to-end Hungarian matching (`head_end2end: true`). During training, gradients flow through the `one2many` auxiliary head. During inference, detections come from the `one2one` head. These heads are architecturally separate — minimizing `one2many` scores does not suppress `one2one` detections. This explains why `final_det_loss` converges lower than v8n/v11n yet suppression is far weaker.
 
-**Transfer asymmetry:** v11n → v8n transfers better (50%) than v8n → v11n (36.4%), suggesting v11n's adversarial features are a superset. v26n patches transfer well to v8n/v11n despite low self-suppression.
+**Transfer asymmetry:** v11n → v8n transfers better (50%) than v8n → v11n (33.3%), suggesting v11n's adversarial features are a superset. v26n patches transfer well to v8n/v11n despite low self-suppression.
 
 **Joint patches:** Joint training with equal gradient weight produces patches that generalize better, at a modest cost to per-model peak suppression.
 

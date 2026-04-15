@@ -141,7 +141,7 @@ def slide1_title(prs: Presentation):
     )
     textbox(
         slide,
-        "A two-track pipeline for systematic attack and defense evaluation across YOLO model generations",
+        "Two complementary tracks for attack analysis and defense-cycle evaluation across YOLO generations",
         Inches(0.9),
         Inches(3.05),
         Inches(9.6),
@@ -159,8 +159,8 @@ def slide2_pipeline(prs: Presentation):
     title_block(
         slide,
         [
-            {"text": "Two-Track", "size": 38, "bold": True, "color": WHITE},
-            {"text": "Pipeline", "size": 38, "bold": True, "color": BLUE},
+            {"text": "Two Complementary", "size": 38, "bold": True, "color": WHITE},
+            {"text": "Tracks", "size": 38, "bold": True, "color": BLUE},
         ],
     )
 
@@ -179,7 +179,7 @@ def slide2_pipeline(prs: Presentation):
             [
                 "Gradient-based patch training against any Ultralytics YOLO model",
                 "Multi-model and joint ensemble attack modes",
-                "Cross-architecture transfer evaluation",
+                "Cross-model transfer evaluation across YOLO generations",
                 "Defense robustness benchmarking (JPEG, blur, crop-resize)",
                 "Live demo plus 300 DPI physical print export",
             ],
@@ -199,8 +199,8 @@ def slide2_pipeline(prs: Presentation):
         bullet_lines(
             [
                 "Plugin-based attack and defense registry",
-                "22 automated hyperparameter-optimization cycles",
-                "Adversarial finetuning with a clean A/B deployment gate",
+                "22 recorded automated cycles in the defense repo",
+                "DPC-UNet checkpoint finetuning with clean A/B deployment gate",
                 "Schema-enforced artifact contracts and provenance tracking",
                 "Automated reporting pipeline",
             ],
@@ -214,12 +214,12 @@ def slide2_pipeline(prs: Presentation):
 
     textbox(
         slide,
-        "Both tracks share a common image set and produce structured artifacts. Findings from each cycle inform the next.",
+        "These are complementary sibling repos, not one shared-image runtime loop: the attack track uses a 48-image common manifest, while the defense track runs automated cycles on a COCO subset and writes its own reports.",
         Inches(0.9),
         Inches(5.45),
         Inches(11.4),
-        Inches(0.6),
-        size=13,
+        Inches(0.8),
+        size=12,
         color=DIM,
     )
 
@@ -312,7 +312,7 @@ def slide4_bad_triangle(prs: Presentation):
 
     headers = ["Patch source", "-> v8n", "-> v11n", "-> v26n"]
     rows = [
-        ["v8n", "90% *", "36.4%", "11.6%"],
+        ["v8n", "90% *", "33.3%", "14.0%"],
         ["v11n", "50.0%", "72.7% *", "9.3%"],
         ["v26n", "45.0%", "24.2%", "16.3% *"],
     ]
@@ -372,25 +372,25 @@ def slide4_bad_triangle(prs: Presentation):
     card_title(slide, "ASYMMETRY", rx + Inches(0.2), top + Inches(0.5), Inches(3.9))
     textbox(
         slide,
-        "v11n -> v8n = 50%  >  v8n -> v11n = 36.4%\nNewer-generation patches reach backward better than older patches reach forward.",
+        "v11n -> v8n = 50.0%  >  v8n -> v11n = 33.3%\nThe asymmetry remains in the current v2 artifacts: newer-generation patches still reach backward better than older patches reach forward.",
         rx + Inches(0.2),
         top + Inches(0.82),
         Inches(3.85),
-        Inches(0.9),
-        size=12,
+        Inches(1.0),
+        size=11,
         color=RGBColor(0xCC, 0xCC, 0xCC),
     )
 
-    rect(slide, rx, top + Inches(2.0), Inches(4.25), Inches(2.0), CARD_WN)
+    rect(slide, rx, top + Inches(2.0), Inches(4.25), Inches(2.05), CARD_WN)
     card_title(slide, "THE v26n FIREWALL", rx + Inches(0.2), top + Inches(2.15), Inches(3.9))
     textbox(
         slide,
-        "v26n is the hardest target in this matrix - nothing exceeds 18.6% against it.\nIts own patch still transfers out at 45% and 24.2%.\nIn this setup, resistance as a target did not stop it from producing transferable adversarial structure.",
+        "v26n remains the hardest target in this study. Nothing in the direct matrix exceeds 16.3% against it, and even the best joint patch only reaches 18.6%.\nYet the v26n patch still transfers out at 45.0% and 24.2%.",
         rx + Inches(0.2),
         top + Inches(2.47),
         Inches(3.85),
-        Inches(1.4),
-        size=12,
+        Inches(1.45),
+        size=11,
         color=RGBColor(0xCC, 0xCC, 0xCC),
     )
 
@@ -433,12 +433,12 @@ def slide5_preprocessing(prs: Presentation):
     card_title(slide, "CROP-RESIZE", left + Inches(0.2), Inches(5.58), width)
     textbox(
         slide,
-        "High variance across seeds. No consistent reduction at 95% or 90% retention. Occasional reductions at 85% retention were unreliable and costly to clean detection rate.",
+        "High variance across seeds. At 95% and 90% retention there is no reliable benefit. Some 85% retention and isolated 90% retention seeds reduce suppression, but the effect is unstable and often trades off against clean detections.",
         left + Inches(0.2),
         Inches(5.82),
         width - Inches(0.35),
-        Inches(0.45),
-        size=11,
+        Inches(0.6),
+        size=10,
         color=RGBColor(0xCC, 0xCC, 0xCC),
     )
 
@@ -587,67 +587,68 @@ def slide7_arms_race(prs: Presentation):
 
     textbox(
         slide,
-        "YOLO-Bad-Triangle framework: 22 automated cycles of optimized attacks versus optimized defenses. Attacks: square, DeepFool, dispersion reduction. Defenses: JPEG, median filter, bit-depth reduction, c_dog.",
+        "This slide uses the latest canonical cycle from YOLO-Bad-Triangle. The repo records 22 cycles overall, but this snapshot is cycle 22 from the current attack_then_defense series. Latest validated attacks: DeepFool, dispersion reduction, and square. Active defenses: JPEG, median filter, bit-depth reduction, and c_dog.",
         left,
         Inches(2.0),
         Inches(5.8),
-        Inches(0.8),
-        size=13,
+        Inches(1.15),
+        size=12,
         color=RGBColor(0xCC, 0xCC, 0xCC),
     )
 
-    rect(slide, left, Inches(2.9), Inches(5.8), Inches(1.7), CARD_BG)
+    rect(slide, left, Inches(3.1), Inches(5.8), Inches(1.7), CARD_BG)
     rich_textbox(
         slide,
         [
             {"text": "Config                                   mAP50      vs clean", "size": 10, "color": DIM},
             {"text": "Clean baseline                           0.600      -", "size": 12, "color": GREEN},
-            {"text": "Best attack   dispersion_reduction       0.238      -60%", "size": 12, "color": RED},
-            {"text": "Best defense  square + c_dog             0.394      -34%", "size": 12, "color": YELLOW},
+            {"text": "Worst latest-cycle attack   dispersion_reduction    0.238   -60%", "size": 11, "color": RED},
+            {"text": "Best latest-cycle defended config  square + c_dog  0.394   -34%", "size": 11, "color": YELLOW},
         ],
         left + Inches(0.2),
-        Inches(3.2),
+        Inches(3.38),
         Inches(5.4),
         Inches(1.0),
     )
 
-    rect(slide, right, Inches(2.0), Inches(5.25), Inches(2.1), CARD_INF)
+    rect(slide, right, Inches(2.0), Inches(5.25), Inches(2.35), CARD_INF)
     card_title(slide, "ADVERSARIAL FINETUNING", right + Inches(0.2), Inches(2.15), Inches(4.8))
     textbox(
         slide,
-        "DPC-UNet detector finetuned on adversarial examples (square x5 oversample + DeepFool + blur pairs). Deployed only after the clean A/B gate.",
+        "DPC-UNet denoiser checkpoint finetuned on adversarial image pairs (square x5 oversample + DeepFool + blur + square pairs). Candidate deployed only after clean A/B comparison against the current c_dog checkpoint.",
         right + Inches(0.2),
         Inches(2.48),
         Inches(4.9),
-        Inches(0.8),
-        size=12,
+        Inches(1.0),
+        size=11,
         color=RGBColor(0xCC, 0xCC, 0xCC),
     )
     rich_textbox(
         slide,
         bullet_lines(
             [
-                "Clean performance: +0.003 mAP50 - no regression",
+                "Clean performance: +0.0025 mAP50 versus previous checkpoint - no regression",
                 "Attack resistance: delta within noise - no measurable gain yet",
             ],
             RGBColor(0xCC, 0xCC, 0xCC),
+            11,
         ),
         right + Inches(0.2),
-        Inches(3.35),
+        Inches(3.5),
         Inches(4.9),
-        Inches(0.55),
+        Inches(0.65),
     )
 
-    rect(slide, right, Inches(4.45), Inches(5.25), Inches(1.55), CARD_HL)
+    rect(slide, right, Inches(4.55), Inches(5.25), Inches(1.45), CARD_HL)
     card_title(slide, "STATE OF PLAY", right + Inches(0.2), Inches(4.6), Inches(4.8))
     textbox(
         slide,
-        "Defenses partially recover attacked performance - from -60% to -34%. Finetuning is clean-safe but has not moved the needle on robustness yet. The arms race is still live.",
+        "No universal defense has emerged. In the current canonical series, c_dog is strongest on square, while median preprocessing is stronger on deepfool. Finetuning is clean-safe but has not yet produced a measurable robustness gain.",
         right + Inches(0.2),
-        Inches(4.93),
         Inches(4.9),
-        Inches(0.82),
-        size=12,
+        Inches(4.9),
+        Inches(0.9),
+        size=11,
         color=RGBColor(0xCC, 0xCC, 0xCC),
     )
 
@@ -667,82 +668,83 @@ def slide8_engineering(prs: Presentation):
     right = Inches(7.15)
 
     rect(slide, left, Inches(2.0), Inches(5.8), Inches(4.2), CARD_INF)
-    card_title(slide, "22-CYCLE AUTOMATION PIPELINE", left + Inches(0.2), Inches(2.15), Inches(5.4))
+    card_title(slide, "4-PHASE AUTOMATION PIPELINE", left + Inches(0.2), Inches(2.15), Inches(5.4))
     rich_textbox(
         slide,
         bullet_lines(
             [
-                "Phase 1 - Attack: optimize patch hyperparameters against the current model; record mAP50 drop",
-                "Phase 2 - Defense: tune preprocessing or learned denoiser against the best attack; record mAP50 recovery",
-                "Phase 3 - Gate + report: deploy only if clean mAP50 stays at or above baseline; emit schema-enforced JSON",
+                "Phase 1 - Characterize: smoke-rank candidate attacks",
+                "Phase 2 - Matrix: smoke-rank candidate defenses against top attacks",
+                "Phase 3 - Tune: coordinate-descent best attack and defense params",
+                "Phase 4 - Validate + report: full-dataset mAP50 validation and artifact/report generation",
             ],
             RGBColor(0xCC, 0xCC, 0xCC),
-            12,
+            11,
         ),
         left + Inches(0.2),
         Inches(2.55),
         Inches(5.4),
-        Inches(1.8),
+        Inches(2.05),
     )
     textbox(
         slide,
-        "Each cycle produces a provenance-tracked artifact: attack config, defense config, before/after mAP50. No manual bookkeeping.",
+        "Checkpoint promotion is a separate clean A/B step for the c_dog denoiser: deploy only if the candidate does not regress versus the current checkpoint.",
         left + Inches(0.2),
-        Inches(4.45),
+        Inches(4.62),
         Inches(5.4),
-        Inches(0.45),
-        size=12,
+        Inches(0.55),
+        size=11,
         color=RGBColor(0xCC, 0xCC, 0xCC),
     )
-    textbox(slide, "22", left + Inches(0.4), Inches(5.2), Inches(1.0), Inches(0.4), size=24, bold=True, color=GREEN, align=PP_ALIGN.CENTER)
-    textbox(slide, "4", left + Inches(2.15), Inches(5.2), Inches(1.0), Inches(0.4), size=24, bold=True, color=BLUE, align=PP_ALIGN.CENTER)
-    textbox(slide, "3", left + Inches(3.85), Inches(5.2), Inches(1.0), Inches(0.4), size=24, bold=True, color=YELLOW, align=PP_ALIGN.CENTER)
-    textbox(slide, "cycles run", left + Inches(0.35), Inches(5.58), Inches(1.1), Inches(0.2), size=9, color=DIM, align=PP_ALIGN.CENTER)
-    textbox(slide, "defense types", left + Inches(1.95), Inches(5.58), Inches(1.4), Inches(0.2), size=9, color=DIM, align=PP_ALIGN.CENTER)
-    textbox(slide, "attack types", left + Inches(3.7), Inches(5.58), Inches(1.3), Inches(0.2), size=9, color=DIM, align=PP_ALIGN.CENTER)
+    textbox(slide, "22", left + Inches(0.4), Inches(5.35), Inches(1.0), Inches(0.4), size=24, bold=True, color=GREEN, align=PP_ALIGN.CENTER)
+    textbox(slide, "4", left + Inches(2.15), Inches(5.35), Inches(1.0), Inches(0.4), size=24, bold=True, color=BLUE, align=PP_ALIGN.CENTER)
+    textbox(slide, "5", left + Inches(3.85), Inches(5.35), Inches(1.0), Inches(0.4), size=24, bold=True, color=YELLOW, align=PP_ALIGN.CENTER)
+    textbox(slide, "recorded cycles", left + Inches(0.2), Inches(5.73), Inches(1.4), Inches(0.2), size=9, color=DIM, align=PP_ALIGN.CENTER)
+    textbox(slide, "active defenses", left + Inches(1.8), Inches(5.73), Inches(1.7), Inches(0.2), size=9, color=DIM, align=PP_ALIGN.CENTER)
+    textbox(slide, "canonical post-switch cycles", left + Inches(3.2), Inches(5.73), Inches(2.3), Inches(0.2), size=8, color=DIM, align=PP_ALIGN.CENTER)
 
-    rect(slide, right, Inches(2.0), Inches(5.25), Inches(1.8), CARD_HL)
-    card_title(slide, "c_dog - BEST DEFENSE", right + Inches(0.2), Inches(2.15), Inches(4.8))
+    rect(slide, right, Inches(2.0), Inches(5.25), Inches(1.95), CARD_HL)
+    card_title(slide, "c_dog - STRONGEST SQUARE DEFENSE IN CYCLE 22", right + Inches(0.2), Inches(2.15), Inches(4.8))
     textbox(
         slide,
-        "A small convolutional denoiser trained to strip adversarial structure from inputs before they reach the detector. It adapts to patch patterns rather than blindly smoothing.",
+        "A DPC-UNet denoiser that preprocesses inputs before YOLO inference. In cycle 22, square + c_dog improves mAP50 from 0.363 to 0.394. It is not the strongest defense on every attack.",
         right + Inches(0.2),
         Inches(2.48),
         Inches(4.9),
-        Inches(0.95),
-        size=12,
+        Inches(1.05),
+        size=11,
         color=RGBColor(0xCC, 0xCC, 0xCC),
     )
     textbox(
         slide,
-        "square + c_dog: mAP50  0.238 -> 0.394   (+65% recovery)",
+        "Current snapshot: square attack 0.363 -> square + c_dog 0.394",
         right + Inches(0.2),
-        Inches(3.55),
+        Inches(3.62),
         Inches(4.9),
-        Inches(0.25),
-        size=12,
+        Inches(0.3),
+        size=11,
         color=YELLOW,
     )
 
-    rect(slide, right, Inches(4.1), Inches(5.25), Inches(1.95), CARD_BG)
+    rect(slide, right, Inches(4.18), Inches(5.25), Inches(2.0), CARD_BG)
     card_title(slide, "ADVERSARIAL FINETUNING", right + Inches(0.2), Inches(4.25), Inches(4.8))
     rich_textbox(
         slide,
         bullet_lines(
             [
-                "Architecture: DPC-UNet detector",
-                "Mix: square x5 oversample + DeepFool + blur pairs",
-                "Gate: deploy only if clean mAP50 >= 0.600",
-                "Result: +0.003 clean mAP50 - gate passed",
+                "Architecture: DPC-UNet denoiser checkpoint",
+                "Mix: square x5 oversample + DeepFool + blur + square pairs",
+                "Gate: deploy only if clean A/B does not regress vs current checkpoint",
+                "Result: +0.0025 clean mAP50 vs previous checkpoint - gate passed",
                 "Attack resistance: delta within noise - open problem",
             ],
             RGBColor(0xCC, 0xCC, 0xCC),
-            11,
+            10,
         ),
         right + Inches(0.2),
         Inches(4.58),
         Inches(4.9),
-        Inches(1.25),
+        Inches(1.45),
     )
 
 
@@ -789,7 +791,7 @@ def slide9_demo(prs: Presentation, patch_path: Path):
         slide,
         [
             {"text": "Patch exported at 300 DPI, 8 x 8 inches.", "size": 12, "color": YELLOW},
-            {"text": "Physical suppression is roughly 30-60% because printers, lighting, and angle perturb the patch.", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
+            {"text": "Physical demos underperform digital because printer color shift, lighting, and view angle perturb the patch.", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
             {"text": "NPS loss during training partially compensates.", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
         ],
         left + Inches(0.2),
@@ -826,7 +828,7 @@ def slide10_conclusions(prs: Presentation):
     )
 
     card_w = Inches(3.6)
-    card_h = Inches(2.45)
+    card_h = Inches(2.7)
     y = Inches(2.35)
     gap = Inches(0.4)
     x1 = Inches(0.9)
@@ -837,12 +839,12 @@ def slide10_conclusions(prs: Presentation):
     card_title(slide, "FRAMEWORK CONTRIBUTION", x1 + Inches(0.2), y + Inches(0.18), card_w)
     textbox(
         slide,
-        "A reproducible two-track pipeline producing schema-enforced results across 3 YOLO generations, 3 attack types, 4 defense types, and 22 automated cycles.",
+        "Two complementary repos, not one merged pipeline: Adversarial_Patch reports cross-generation patch training and transfer on YOLOv8n, YOLO11n, and YOLO26n; YOLO-Bad-Triangle reports 22 recorded defense-cycle artifacts, with current canonical trends taken from the post-switch series.",
         x1 + Inches(0.2),
         y + Inches(0.55),
         card_w - Inches(0.3),
-        Inches(1.55),
-        size=13,
+        Inches(1.9),
+        size=12,
         color=RGBColor(0xCC, 0xCC, 0xCC),
     )
 
@@ -854,8 +856,8 @@ def slide10_conclusions(prs: Presentation):
         x2 + Inches(0.2),
         y + Inches(0.55),
         card_w - Inches(0.3),
-        Inches(1.55),
-        size=13,
+        Inches(1.9),
+        size=12,
         color=RGBColor(0xCC, 0xCC, 0xCC),
     )
 
@@ -867,20 +869,20 @@ def slide10_conclusions(prs: Presentation):
         x3 + Inches(0.2),
         y + Inches(0.55),
         card_w - Inches(0.3),
-        Inches(1.55),
-        size=13,
+        Inches(1.9),
+        size=12,
         color=RGBColor(0xCC, 0xCC, 0xCC),
     )
 
     rule(slide, Inches(0.9), Inches(5.65), Inches(11.5))
     textbox(
         slide,
-        "Training script | Colab notebook | Live demo | All results -> github.com/Cmaddock99/Patch_Yolo",
+        "Attack repo -> github.com/Cmaddock99/Patch_Yolo\nDefense repo -> github.com/Cmaddock99/YOLO-Bad-Triangle",
         Inches(0.9),
         Inches(5.95),
         Inches(11.5),
-        Inches(0.4),
-        size=12,
+        Inches(0.6),
+        size=11,
         color=BLUE,
     )
 

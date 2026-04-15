@@ -18,15 +18,15 @@ Revised speaker notes for the 10-slide deck. Each slide is split into:
 - `v8n`, `v11n`, `v26n`: nano-sized versions of three YOLO generations. The `n` means the smallest and fastest model in each family.
 - `Adversarial patch`: a small image optimized to interfere with the model’s decision-making when overlaid on a person.
 
-## Slide 2 — Two-Track Pipeline
+## Slide 2 — Two Complementary Tracks
 
 ### Script
 
-"This project has two tracks that feed into each other. The attack track trains patches against YOLO models and measures direct suppression, transfer across models, and robustness under common preprocessing defenses. The defense track runs a continuous attack-defense loop: attack the current detector, tune a defense against that attack, then only keep the defense if it still performs well on clean data. Both tracks share the same image set and both output structured artifacts, so the results are reproducible rather than one-off demos."
+"This project has two complementary tracks, but they are not one merged runtime pipeline. The attack repo trains and evaluates adversarial patches on a 48-image common manifest across YOLOv8n, YOLO11n, and YOLO26n. The defense repo runs automated attack-defense cycles on a COCO subset and records cycle reports, checkpoint evaluations, and provenance-tracked artifacts. I’m presenting them together as sibling results from the same research direction, not as one shared-image loop."
 
 ### Explainer
 
-- `Pipeline`: an automated sequence of steps that turns inputs into outputs without manual intervention at every stage.
+- `Track`: one coordinated workflow inside the broader research direction.
 - `Gradient-based patch training`: the patch pixels are updated with backpropagation so they become more effective at suppressing detections.
 - `Multi-model` or `joint ensemble` training: one patch is optimized against more than one detector at the same time.
 - `Transfer evaluation`: train on one model, test on another, and measure whether the attack generalizes.
@@ -51,13 +51,13 @@ Revised speaker notes for the 10-slide deck. Each slide is split into:
 
 ### Script
 
-"This matrix is where the transfer story becomes interesting. The green diagonal is the white-box result: each patch tested on the same model it was trained on. Off the diagonal, we get transfer. A patch trained on YOLO11n fools YOLOv8n at 50 percent, but the reverse direction only reaches 36.4 percent. So newer-generation patches reach backward better than older-generation patches reach forward. And v26n is the hardest target in the matrix: nothing exceeds 18.6 percent against it. But its own patch still transfers out to v8n and v11n. In this setup, resistance as a target did not stop v26n from producing transferable adversarial structure."
+"This matrix uses the current v2 transfer artifacts. The white-box diagonal is unchanged, but two v8n-source off-diagonal values move to 33.3 percent on v11n and 14.0 percent on v26n. The asymmetry still holds because v11n to v8n is 50 percent. And v26n is still the hardest target: nothing in the direct matrix exceeds 16.3 percent against it, while the best joint patch only reaches 18.6 percent."
 
 ### Explainer
 
 - `White-box attack`: the attacker has full access to the model internals and gradients.
 - `Black-box transfer`: the attacker trains on one model and tests on another without using that second model during training.
-- `Asymmetry`: `v11n -> v8n` works better than `v8n -> v11n`, suggesting the newer model’s adversarial features generalize backward more effectively.
+- `Asymmetry`: `v11n -> v8n` works better than `v8n -> v11n` even in the current `v2` artifacts.
 - `Joint patch`: one patch trained against two models simultaneously. It usually trades peak single-model performance for broader coverage.
 - `Best joint result on v26n`: `18.6%`, which is slightly better than the single-model v26n result but still low.
 
@@ -65,7 +65,7 @@ Revised speaker notes for the 10-slide deck. Each slide is split into:
 
 ### Script
 
-"A natural defense idea is to blur or compress the image before it reaches the detector. For classic distributed adversarial noise, that sometimes helps. Here it did not. Mild JPEG compression pushed suppression from 85 percent to 95 percent. Gaussian blur at sigma 2 pushed it to 100 percent. So the simple preprocessing defenses either failed or made the attack stronger. The reason is structural: this threat is a concentrated patch, not faint noise spread across the whole image. Blur and compression damage the clean scene more than they damage the patch."
+"A natural defense idea is to blur, compress, or crop-resize the image before it reaches the detector. Here, blur and JPEG usually fail or make the patch stronger. Crop-resize occasionally helps at stronger crops, but it is too unstable to present as a reliable defense."
 
 ### Explainer
 
@@ -94,36 +94,36 @@ Revised speaker notes for the 10-slide deck. Each slide is split into:
 
 ### Script
 
-"The defense track asks a different question: once attacks exist, how much performance can we recover automatically? On clean data, the detector starts at mAP50 of 0.600. The best attack, dispersion reduction, drops that to 0.238, which is about a 60 percent collapse. The best defense combination, square plus the learned denoiser c_dog, recovers performance to 0.394. That is still below clean, but it is substantially better than leaving the model undefended. I also ran adversarial finetuning. It cleared the clean-data gate, but it has not yet produced measurable robustness gains."
+"The defense track asks a different question: what does the latest canonical cycle show? In cycle 22, clean baseline is 0.600, dispersion reduction drops it to 0.238, and the strongest defended configuration in that same latest cycle is square plus c_dog at 0.394. That does not mean c_dog wins every matchup; in the current canonical series median preprocessing is stronger on deepfool. The honest summary is partial recovery, not a universal defense."
 
 ### Explainer
 
 - `mAP50`: standard object detection metric; higher is better.
-- `0.600 -> 0.238`: the strongest attack severely degrades detector quality.
-- `c_dog`: a learned denoiser that tries to remove adversarial structure before detection.
-- `Adversarial finetuning`: continue training the detector on attacked examples so it learns robustness.
-- `Clean gate`: only deploy a defense or finetuned model if clean performance stays at or above the required baseline.
+- `Latest canonical cycle`: the repo records 22 cycles overall, but the current trend should be read from the post-switch `attack_then_defense` series.
+- `c_dog`: a learned denoiser that tries to remove adversarial structure before detection; it is strongest on square in cycle 22, not on every attack.
+- `Adversarial finetuning`: update the DPC-UNet denoiser checkpoint on adversarial image pairs, then compare it against the current checkpoint on clean data before promotion.
+- `Clean A/B gate`: deploy only if the candidate checkpoint does not regress versus the current checkpoint on clean data.
 
 ## Slide 8 — Arms Race Engineering
 
 ### Script
 
-"Mechanically, each automation cycle has three phases. First, attack the current model and record the performance drop. Second, tune a defense against that attack and record the recovery. Third, run the clean gate and only keep the change if clean mAP50 does not regress. Every cycle writes a schema-checked, provenance-tracked artifact. That matters because after 22 cycles, you do not want a spreadsheet of hand-edited notes; you want a reproducible experimental record."
+"Mechanically, the loop is four phases, not three: characterize attacks, build a defense matrix, tune the best pair, then validate on the full dataset. The clean A/B gate is a separate checkpoint-promotion step for c_dog, not a claim that every cycle stays above the 0.600 no-defense baseline. The repo has 22 recorded cycles overall, but only the post-switch attack-then-defense series should be treated as the canonical current trend."
 
 ### Explainer
 
-- `Hyperparameters`: settings such as learning rate, patch size, augmentation strength, or defense configuration.
-- `Schema-enforced JSON`: output files must match a predefined structure.
-- `Provenance hash`: fingerprint of the run inputs so results can be traced and reproduced.
-- `DPC-UNet`: detector architecture used in the defense track experiments.
-- `5× oversample`: adversarial examples are shown more frequently during finetuning to force the model to care about them.
+- `Characterize`: quick screening to identify the most damaging attacks before expensive validation.
+- `Matrix`: quick screening of candidate defenses against the strongest attacks.
+- `Validate + report`: full-dataset mAP50 validation plus report and artifact generation.
+- `DPC-UNet`: denoiser checkpoint used as a preprocessing defense before YOLO inference.
+- `5x oversample`: square-attack examples are shown more frequently during finetuning because they are currently the strongest c_dog pairing.
 - `Within noise`: any change in robustness was too small to separate from run-to-run variation.
 
 ## Slide 9 — Live Demo
 
 ### Script
 
-"In the demo, the left side shows the clean detector output and the right side shows the same feed with the patch digitally overlaid on the torso of the largest detected person. The bar at the bottom shows a rolling 30-frame suppression average so the result is readable instead of jittery. I can also show the physical version: an 8-by-8-inch print at 300 DPI. Physical performance is lower than digital because printers, lighting, and viewing angles all perturb the patch."
+"In the demo, the left side shows the clean detector output and the right side shows the same feed with the patch digitally overlaid on the torso of the largest detected person. The bar at the bottom shows a rolling 30-frame suppression average so the result is readable instead of jittery. I can also show the physical version: an 8-by-8-inch print at 300 DPI. Physical performance is directionally lower than digital because printers, lighting, and viewing angles perturb the patch. The repo includes a structured physical benchmark script, but the committed presentation artifacts should not claim a fixed physical suppression percentage."
 
 ### Explainer
 
@@ -137,7 +137,7 @@ Revised speaker notes for the 10-slide deck. Each slide is split into:
 
 ### Script
 
-"I’d close with three takeaways. First, the contribution is not just one patch result. It is a reproducible framework that produced attack, transfer, defense, and automation results across multiple YOLO generations. Second, architecture matters more than a simple leaderboard comparison suggests. In this setup, YOLO26n breaks the usual assumption that optimizing the attack objective will directly reduce detections. Third, the open research question is whether this architecture needs a different attack class entirely, possibly adapted from DETR-style matching literature. That is where the next cycle should go."
+"I’d close with three careful takeaways. First, the contribution is two complementary repos, not one merged pipeline: one captures patch training and cross-generation transfer, and the other captures automated defense-cycle evidence. Second, architecture still matters: YOLO26n breaks the usual assumption that optimizing the attack objective will directly reduce detections. Third, the defense repo shows partial recovery and clean-safe checkpoint updates, but not a universal defense."
 
 ### Explainer
 
@@ -157,8 +157,8 @@ Revised speaker notes for the 10-slide deck. Each slide is split into:
 | Best transfer (`v11n -> v8n`) | 50% |
 | Best joint result on v26n | 18.6% |
 | Clean mAP50 | 0.600 |
-| Best attack mAP50 | 0.238 |
-| Best defended mAP50 | 0.394 |
-| Finetuning clean gain | +0.003 |
-| Automated cycles | 22 |
+| Latest-cycle worst attack mAP50 | 0.238 |
+| Latest-cycle strongest defended mAP50 | 0.394 |
+| Finetuning clean gain | +0.0025 |
+| Recorded automated cycles | 22 |
 | Patch size | 100×100 px |
