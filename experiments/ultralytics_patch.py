@@ -23,10 +23,14 @@ For YOLO26 (end2end=True): inner_model returns (y, preds_dict). y=(B,300,6)
 
 Loss: L_total = L_det + tv_weight * L_tv
   L_det : mean of top-k person class scores (sigmoid-scaled to [0,1])
+          OR logsumexp over ALL anchors (--v26-loss-mode logsumexp) —
+          approximates max score, motivated by YOLOv10 §3.1 one2one selection.
   L_tv  : total variation — keeps patch smooth (printability proxy)
 
 EoT (Expectation over Transformations):
   Random ±position jitter per iteration to improve spatial robustness.
+  --multi-placement: randomly sample from ALL detected persons' torso positions
+  each step (not just the largest) — improves v26n one2one coverage.
 
 Usage
 -----
@@ -423,20 +427,37 @@ def predict_with_grad(
     return scores  # (B, 80, total_anchors)
 
 
-def detection_loss(preds: torch.Tensor, topk: int = 10, is_v26: bool = False) -> torch.Tensor:
+def detection_loss(
+    preds: torch.Tensor,
+    topk: int = 10,
+    is_v26: bool = False,
+    loss_mode: str = "topk",
+    logsumexp_temp: float = 20.0,
+) -> torch.Tensor:
     """
     Minimize the person class score across anchor points.
     Applies sigmoid to guarantee loss stays in [0, 1].
 
     preds for v8/v11: (B, 84, 8400) — person score at channel 4
     preds for v26:    (B, 80, total_anchors) — person score at channel 0
+
+    loss_mode="topk"      : mean of top-k scores (existing behaviour).
+    loss_mode="logsumexp" : temperature-scaled logsumexp ≈ soft-max over ALL anchors.
+                            As T→∞ approaches the true max; T=20 gives dense gradients
+                            while still weighting highest-confidence anchors heavily.
+                            Motivated by YOLOv10 §3.1: one2one selects the SINGLE
+                            best-matching anchor — topk may miss it if it falls outside
+                            the top-k window; logsumexp always finds and suppresses it.
     """
-    if is_v26:
-        person_scores = preds[:, PERSON_CLASS_ID, :].sigmoid()
-    else:
-        person_scores = preds[:, PERSON_CHANNEL, :].sigmoid()
-    topk_scores = person_scores.topk(min(topk, person_scores.shape[1]), dim=1).values
-    return topk_scores.mean()
+    person_ch = PERSON_CLASS_ID if is_v26 else PERSON_CHANNEL
+    person_scores = preds[:, person_ch, :].sigmoid()  # (B, A)
+
+    if loss_mode == "logsumexp":
+        T = logsumexp_temp
+        return (person_scores * T).logsumexp(dim=1).mean() / T
+    else:  # "topk" — existing behaviour
+        topk_scores = person_scores.topk(min(topk, person_scores.shape[1]), dim=1).values
+        return topk_scores.mean()
 
 
 # ---------------------------------------------------------------------------
@@ -563,6 +584,29 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
                    help="Loss weight for the corresponding --co-model (repeatable). "
                         "Primary model receives (1 - sum(co_weights)); sum must be < 1.0. "
                         "E.g. --co-weight 0.20 --co-weight 0.55 gives primary 0.25.")
+
+    # ---- v26n-specific attack improvements (literature-backed) ---------------
+    p.add_argument("--v26-loss-mode", default="topk", choices=["topk", "logsumexp"],
+                   dest="v26_loss_mode",
+                   help="Detection loss formulation for YOLO26 (and also applies to v8/v11 "
+                        "when set). topk=existing top-k mean (default). "
+                        "logsumexp=temperature-scaled soft-max over ALL anchors — "
+                        "approximates max score, motivated by YOLOv10 §3.1 one2one "
+                        "selection: the best-matching anchor is what matters, not the "
+                        "top-k average. Recommended for v26 runs: logsumexp.")
+    p.add_argument("--logsumexp-temp", type=float, default=20.0,
+                   dest="logsumexp_temp",
+                   help="Temperature for logsumexp loss mode (default: 20.0). "
+                        "Higher T → closer to true max (sparser gradients). "
+                        "Lower T → closer to mean (more distributed). T=20 is a good "
+                        "default: approximates max while keeping numerically stable gradients.")
+    p.add_argument("--multi-placement", action="store_true", default=False,
+                   dest="multi_placement",
+                   help="Multi-person placement sampling: at each training step, randomly "
+                        "select one of ALL detected persons' torso positions (not just the "
+                        "largest). Motivated by v26n one2one architecture: each person has "
+                        "exactly one detection path; training against only the largest person "
+                        "leaves all others' anchors unaffected. Recommended for v26 runs.")
 
     # ---- Run identity and checkpoint location --------------------------------
     p.add_argument("--run-name", type=str, default=None,
@@ -712,8 +756,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     train_images = images_nchw[training_indices]
     train_paths = [image_paths[i] for i in training_indices]
 
-    placements = [
-        compute_torso_placement(boxes, args.image_size, args.patch_size)
+    # all_placements[i] is a list of (top, left) tuples — one per detected person in image i.
+    # Index [0] is always the largest person (compute_torso_placement picks the largest box
+    # when given the full box list, so per-person entries use single-box sublists).
+    # Without --multi-placement only index [0] is used, preserving existing behaviour.
+    all_placements = [
+        [compute_torso_placement([box], args.image_size, args.patch_size) for box in boxes]
         for boxes in training_boxes
     ]
 
@@ -801,7 +849,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             for idx in batch_idx:
                 img = train_images_dev[idx]
-                top, left = placements[idx]
+                if args.multi_placement and len(all_placements[idx]) > 1:
+                    choice = int(np.random.randint(len(all_placements[idx])))
+                    top, left = all_placements[idx][choice]
+                else:
+                    top, left = all_placements[idx][0]
 
                 j = args.jitter
                 t_jit = int(np.clip(top + np.random.randint(-j, j + 1), 0,
@@ -828,7 +880,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                 if last_preds_shape is None:
                     last_preds_shape = list(preds.shape)
 
-                loss_det = detection_loss(preds, topk=args.topk, is_v26=is_v26) * primary_weight
+                loss_det = detection_loss(
+                    preds, topk=args.topk, is_v26=is_v26,
+                    loss_mode=args.v26_loss_mode,
+                    logsumexp_temp=args.logsumexp_temp,
+                ) * primary_weight
 
                 # Joint multi-model loss: sum co-model contributions.
                 for co_inner_i, co_model_i, co_weight_i, is_v26_co_i in zip(
@@ -840,7 +896,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                         model_name=co_model_i,
                     )
                     loss_det = loss_det + detection_loss(
-                        co_preds, topk=args.topk, is_v26=is_v26_co_i
+                        co_preds, topk=args.topk, is_v26=is_v26_co_i,
+                        loss_mode=args.v26_loss_mode,
+                        logsumexp_temp=args.logsumexp_temp,
                     ) * co_weight_i
 
                 # NPS loss uses the unaugmented patch_c (physical constraint on the
@@ -910,7 +968,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     for idx in range(len(train_images)):
         img = train_images_dev[idx]
-        top, left = placements[idx]
+        top, left = all_placements[idx][0]  # eval always uses largest-person placement
         patched_img = apply_patch(img, patch_eval, top, left)
         hwc_uint8 = (patched_img.cpu().permute(1, 2, 0).numpy() * 255).clip(0, 255).astype(np.uint8)
         patched_dets = run_predict(yolo, hwc_uint8, args.conf_threshold)
