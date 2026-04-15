@@ -55,3 +55,27 @@
 - [ ] Read Section 3 (collaborative patch optimization) for the specific loss formulation
 - [ ] Check if the attention manipulation loss can be adapted to `preds["one2many"]` in YOLO26
 - [ ] Compare with Lovisotto 2022 — both explain attention vulnerability but from different angles
+
+## Normalized Extraction
+
+- Canonical slug: `alam2023_attention_deficit`
+- Canonical source record: `docs/papers/alam2023_attention_deficit_2311.12914.pdf`
+- Evidence state: `page_cited`
+- Threat model: White-box adversarial patch attack against deformable vision transformers, including collaborative multi-patch attacks.
+- Detector family and exact version: Deformable DETR and MVDeTr.
+- Attack or defense goal: Manipulate sparse deformable attention pointers and attention scores so that a small patch can collapse detector performance.
+- Loss or objective: Pointer loss plus attention loss, optionally combined with model loss; collaborative patch attack separates source and target patches.
+- Transforms / EoT: Small fixed patch areas; physical deployment is discussed conceptually for some attack variants but not benchmarked as a physical study.
+- Dataset: MS COCO and Wildtrack.
+- Metrics: AP for single-view detection and MODA for multi-view detection.
+- Strongest quantitative result: Altering less than 1% of the image area drops Deformable DETR to 0% AP on COCO and MVDeTr to 0% MODA on Wildtrack (abstract, p. 1).
+- Transfer findings: Dense-attention attacks do not transfer cleanly to deformable attention; pointer-specific losses are required.
+- Physical findings: The paper notes that some attacks could be realized with printed shirts plus static props, but the evaluation remains digital.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: High only for YOLO26-style attention reasoning; low for YOLOv8 and YOLO11.
+- Reproducible technique to borrow: Split the attack objective into pointer-routing and downstream detector-loss components when targeting sparse attention heads.
+- Citation strength: `page_cited`
+
+## Working Packet Status
+
+- Primary repo question: `yolo26_architecture_mismatch`
+- Disposition: `architecture_explanation`

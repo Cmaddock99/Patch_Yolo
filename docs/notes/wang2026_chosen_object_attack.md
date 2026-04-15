@@ -8,6 +8,10 @@
 - URL: https://ieeexplore.ieee.org/document/10879485/
 - Access: IEEE Xplore via CSUSM
 
+## Evidence Note
+
+This file is a blocker record, not a synthesis-grade review. There is no local PDF in the repo, so details remain unverified until the full text is available inside the workspace.
+
 ## Problem
 
 - What threat model is assumed? White-box attack against detection transformers that use one-to-one assignment instead of NMS.
@@ -55,3 +59,30 @@
 - [ ] Pull the full IEEE text and extract the Hungarian-matching loss details
 - [ ] Record the main quantitative results and baseline comparisons
 - [ ] Compare the loss design against YOLO26's one-to-many / one-to-one outputs
+
+## Normalized Extraction
+
+- Canonical slug: `wang2026_chosen_object`
+- Canonical source record: `IEEE Xplore entry only; no local PDF in repo`
+- Evidence state: `blocked_access`
+- Threat model: White-box attack on end-to-end detection transformers that use Hungarian matching.
+- Detector family and exact version: DETR-style end-to-end detectors; no verified YOLO-family evaluation in the local repo.
+- Attack or defense goal: Use the matching objective itself as the attack surface instead of legacy NMS-era losses.
+- Loss or objective: Hungarian-matching-aware objective, exact formulation blocked.
+- Transforms / EoT: Unknown until full text is available.
+- Dataset: Unknown until full text is available.
+- Metrics: Unknown until full text is available.
+- Strongest quantitative result: Unknown; current repo only relies on the architectural premise, not benchmark numbers.
+- Transfer findings: Unknown.
+- Physical findings: Unknown.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: Architectural interest is high only for YOLO26-style end-to-end matching.
+- Reproducible technique to borrow: None can be promoted until the exact loss and ablations are read.
+- Citation strength: `blocked_access`
+
+## Working Packet Status
+
+- Primary repo question: `yolo26_architecture_mismatch`
+- Repo currently relies on this for: Hungarian-matching attack framing for why YOLO26 may need a different loss from v8/v11.
+- Exact missing detail preventing promotion: Exact loss formulation, datasets, ablations, and benchmark tables.
+- Blocker type: `architectural`
+- Promotion rule: Do not promote any quantitative or method-specific claim until a local full-text source is added.

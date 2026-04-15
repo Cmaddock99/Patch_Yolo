@@ -46,4 +46,5 @@ Generated: 2026-04-11
 | Guesmi 2024 DAP | `guesmi2024_DAP_CVPR.pdf` | `guesmi2024_DAP_dynamic_adversarial_patch_2305.11618.pdf` | CVPR 2024 = peer-reviewed final; arXiv = preprint |
 
 **Total duplicates found:** 2 pairs (4 PDFs, 2 canonical, 2 to treat as duplicate)
-**Non-duplicate PDFs in corpus:** 30
+**Current local PDF files in corpus:** 48
+**Effective canonical local-PDF count:** 46

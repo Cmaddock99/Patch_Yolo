@@ -61,3 +61,27 @@
 - Is the patch digital only, or physically tested? Physically tested in a controlled lab environment.
 - Is the code available? Not released (evaluation study).
 - What is missing for my project? Focuses on pre-trained patches — does not evaluate how incorporating physical augmentations during training changes robustness. Person-vanishing attack not the focus.
+
+## Normalized Extraction
+
+- Canonical slug: `schack2024_real_world`
+- Canonical source record: `docs/papers/schack2024_real_world_challenges_2410.19863.pdf`
+- Evidence state: `page_cited`
+- Threat model: Physical evaluation of pre-trained adversarial patches in a controlled indoor setting.
+- Detector family and exact version: YOLOv3 for global patches and YOLOv5 for local patches.
+- Attack or defense goal: Measure the physical-to-digital gap for existing adversarial patches under geometric and lighting variation.
+- Loss or objective: No new attack objective; this is an evaluation-only study of existing patches.
+- Transforms / EoT: Explicit physical manipulation of size, rotation around all axes, brightness, hue, and digital matching attempts.
+- Dataset: Controlled lab scenes with household objects and a person image.
+- Metrics: mAP for global patches and detector confidence for local patches.
+- Strongest quantitative result: Physical brightness changes induce up to a 64% gap from digital estimates, and hue shifts in the 200-300 degree range can render patches ineffective (Section 4 and Figures 8-9).
+- Transfer findings: No cross-model transfer study; the paper is about physical degradation rather than architectural transfer.
+- Physical findings: Rotation and size sensitivity dominate global patches; local patches tolerate roughly ±30 degrees better but still degrade with size and lighting changes.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: Direct physical-caveat reference for all later-generation YOLO claims; no direct model-specific numbers.
+- Reproducible technique to borrow: Use their evaluation grid for size, rotation, brightness, and hue rather than making blanket physical-robustness claims.
+- Citation strength: `page_cited`
+
+## Working Packet Status
+
+- Primary repo question: `physical_robustness`
+- Disposition: `physical_caveat`

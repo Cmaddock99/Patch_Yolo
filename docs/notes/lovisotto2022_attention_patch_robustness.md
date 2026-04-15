@@ -53,3 +53,27 @@
 
 - [ ] Read Section 4 (attention vulnerability analysis) carefully
 - [ ] Check if their attack formulation applies to YOLO26's one2many attention scores
+
+## Normalized Extraction
+
+- Canonical slug: `lovisotto2022_attention_patch`
+- Canonical source record: `docs/papers/lovisotto2022_attention_patch_robustness_CVPR.pdf`
+- Evidence state: `page_cited`
+- Threat model: White-box localized adversarial patch attack against dot-product attention models.
+- Detector family and exact version: ViT, DeiT, and DETR-family attention models.
+- Attack or defense goal: Explain and exploit the vulnerability of dot-product attention to small adversarial patches.
+- Loss or objective: Attention-Fool losses that optimize pre-softmax query-key dot-product similarity to redirect attention toward the patch.
+- Transforms / EoT: Fixed-location patch optimization with PGD; physical robustness is not the focus.
+- Dataset: ImageNet and MS COCO.
+- Metrics: Robust accuracy for classification and mAP for detection.
+- Strongest quantitative result: A patch covering 0.5% of the image drives ViT robust accuracy to 0% and reduces DETR mAP below 3% (abstract, p. 1).
+- Transfer findings: CNN-style patch objectives underuse the attention-weight channel and are suboptimal on transformers; attention-aware objectives are required.
+- Physical findings: None. The paper is a digital robustness and mechanism study.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: Direct mechanism reference for YOLO26-style attention reasoning; low direct value for YOLOv8 and YOLO11.
+- Reproducible technique to borrow: Optimize pre-softmax attention similarities rather than only end-task detector loss when attacking attention-based detectors.
+- Citation strength: `page_cited`
+
+## Working Packet Status
+
+- Primary repo question: `yolo26_architecture_mismatch`
+- Disposition: `architecture_explanation`

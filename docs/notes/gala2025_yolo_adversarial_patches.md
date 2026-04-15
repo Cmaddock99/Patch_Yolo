@@ -9,6 +9,10 @@
 - PDF: Not freely available (Springer paywall) — access via institution
 - Code: https://github.com/Bimo99B9/NaturalisticAdversarialPatches
 
+## Evidence Note
+
+This file is a flagged intake note, not a synthesis-grade review. There is no local PDF in the repo, so any claim not directly recoverable from repo-local materials stays unpromoted.
+
 ## Problem
 
 - What threat model is assumed? White-box (gradients of Ultralytics YOLO models used); patches are naturalistic (GAN-generated); both digital evaluation and edge device deployment considered.
@@ -62,3 +66,30 @@ cd NaturalisticAdversarialPatches
 bash setup_dataset.sh   # downloads INRIA dataset to dataset/
 # Also requires: pretrained GAN weights download (see repo README)
 ```
+
+## Normalized Extraction
+
+- Canonical slug: `gala2025_yolo`
+- Canonical source record: `Springer article entry plus repo-local note history; no local PDF in repo`
+- Evidence state: `note_only_flagged`
+- Threat model: Naturalistic adversarial patch evaluation on modern Ultralytics YOLO models, inferred from abstract-level materials and the associated code repository.
+- Detector family and exact version: YOLOv5, YOLOv8, YOLOv9, YOLOv10.
+- Attack or defense goal: Measure vulnerability of modern Ultralytics YOLO models to GAN-constrained naturalistic patches and discuss the edge-AI robustness tradeoff.
+- Loss or objective: GAN-latent-space naturalistic patch optimization, exact equations not verified from local full text.
+- Transforms / EoT: Standard patch transforms are assumed from the code lineage, but the exact training recipe is not promoted.
+- Dataset: INRIA Person and MPII Human Pose are mentioned in note history, pending full-text confirmation.
+- Metrics: Detection evasion metrics and model-size comparisons, exact tables blocked.
+- Strongest quantitative result: Unpromoted in repo-first mode; only the model-size robustness direction is retained as a flagged claim.
+- Transfer findings: Cross-version transfer is implied by the project framing, but exact numbers remain blocked.
+- Physical findings: Not promoted in repo-first mode.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: High for YOLOv8-era benchmarking; no YOLO11 or YOLO26 coverage.
+- Reproducible technique to borrow: The associated codebase is useful for implementation archaeology, but the paper itself remains unpromoted.
+- Citation strength: `note_only_flagged`
+
+## Working Packet Status
+
+- Primary repo question: `yolo11_coverage`
+- Repo currently relies on this for: The claim that modern Ultralytics YOLOv5-v10 patch benchmarking already exists.
+- Exact missing detail preventing promotion: Per-model tables, exact datasets, transfer matrix details, and full method statement from the paper text.
+- Blocker type: `access`
+- Promotion rule: Do not use as settled benchmark evidence until a local PDF or equivalent full text is available.

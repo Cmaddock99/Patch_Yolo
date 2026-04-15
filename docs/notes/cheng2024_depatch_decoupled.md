@@ -129,3 +129,27 @@
 - What are the exact per-model ASR numbers for YOLOv3 and YOLOv5 transfer? (mentioned but not prominent in pages reviewed)
 - Is code available? Unverified — check arXiv supplemental.
 - How does DePatch compare to DAP (Guesmi 2024) on physical robustness with identical evaluation conditions?
+
+## Normalized Extraction
+
+- Canonical slug: `cheng2024_depatch`
+- Canonical source record: `docs/papers/cheng2024_depatch_person_detector_2408.06625.pdf`
+- Evidence state: `page_cited`
+- Threat model: White-box physical adversarial patch attack for person detection with clothing and poster deployment.
+- Detector family and exact version: YOLOv2 primary, with one-stage transfer discussion to YOLOv3 and YOLOv5.
+- Attack or defense goal: Improve real-world robustness by solving the self-coupling failure mode in standard physical patches.
+- Loss or objective: `L_acc + α·L_nps + β·L_tv`, with block-wise Bernoulli masking, border shifting, and progressive decoupling.
+- Transforms / EoT: Rotation, contrast, brightness, TPS deformation, occlusion simulation, and Toroidal Cropping for expandable clothing patches.
+- Dataset: INRIA Person and MS COCO validation.
+- Metrics: AP in digital settings and ASR in physical evaluations.
+- Strongest quantitative result: DePatch reaches 34.10 AP overall on INRIA under simulated physical conditions, 35.09 AP on COCO, 0.8014 poster ASR, and 0.9096 clothing ASR in real-world trials (Tables 1-4, pp. 9-12).
+- Transfer findings: The paper mentions transfer within one-stage detectors, but the main quantitative contribution is physical robustness rather than modern cross-generation transfer.
+- Physical findings: Block-wise decoupling is the strongest physical-robustness technique in the first-pass set; outdoor conditions still reduce poster ASR to 0.5677.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: Detector-agnostic robustness technique with highest direct implementation value for YOLOv8 and YOLO11; loss-target changes may still be needed for YOLO26.
+- Reproducible technique to borrow: Block-wise decoupling, border shifting, and progressive decoupling should be portable to the repo’s patch optimizer.
+- Citation strength: `page_cited`
+
+## Working Packet Status
+
+- Primary repo question: `physical_robustness`
+- Disposition: `method_to_borrow`

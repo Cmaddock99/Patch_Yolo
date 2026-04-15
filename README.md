@@ -2,6 +2,11 @@
 
 A research pipeline for training, evaluating, and demonstrating adversarial patches that suppress person detection across YOLOv8n, YOLO11n, and YOLO26n.
 
+This repository is a research and artifact workspace. It is **not** the canonical
+attack-defend-fortify runtime. The canonical executable pipeline lives in
+`YOLO-Bad-Triangle`, and any future digital or printable patch support should
+enter that pipeline as an attack extension rather than as a second runner.
+
 An adversarial patch is a small image region, optimized via gradient descent, that causes a neural network to stop detecting objects when the patch is present in the scene — either overlaid digitally or printed and placed physically.
 
 ---
@@ -132,6 +137,9 @@ The training script (`experiments/ultralytics_patch.py`) supports:
 - **Joint training**: optimize one patch against two models simultaneously (`--co-model`)
 - **Robustness augmentations**: DePatch block erasing, T-SEA cutout, EoT rotation, NPS loss, TV loss
 - **Drive checkpointing**: saves to Google Drive every 100 epochs for safe Colab reconnect
+
+Outputs from this repo should be treated as external research artifacts and
+manual inputs to the broader project, not as canonical run outputs.
 
 ---
 

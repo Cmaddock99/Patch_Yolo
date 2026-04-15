@@ -66,3 +66,27 @@ vs. baselines:
 - Is the patch digital only, or physically tested? Both. T-shirt test included.
 - Is the code available? arXiv paper — check supplementary for code link.
 - What is missing for my project? Only tested on YOLOv2–v4 and Faster R-CNN. No Ultralytics models.
+
+## Normalized Extraction
+
+- Canonical slug: `tan2024_DOEPatch`
+- Canonical source record: `docs/papers/tan2024_DOEPatch_2312.16907.pdf`
+- Evidence state: `pdf_verified`
+- Threat model: White-box adversarial patch generation against an ensemble of detectors, followed by physical T-shirt deployment.
+- Detector family and exact version: YOLOv2, YOLOv3, YOLOv4, Faster R-CNN with VGG16 and ResNet50 backbones.
+- Attack or defense goal: Produce a single universal patch that remains effective across multiple object detectors by training against a dynamically weighted ensemble.
+- Loss or objective: Energy-based ensemble objective with inner maximization over model weights and outer minimization over the patch, plus NPS and TV regularization.
+- Transforms / EoT: TPS clothing deformation, Gaussian blur, brightness and contrast changes, and viewpoint variation.
+- Dataset: INRIA Person.
+- Metrics: AP after attack, plus qualitative physical-world success on printed T-shirts.
+- Strongest quantitative result: The `DOEPatch(YY)` configuration reduces YOLOv2 AP to 13.19% and YOLOv3 AP to 29.20% while remaining physically effective when printed on clothing (abstract and Section IV).
+- Transfer findings: Joint training across multiple source detectors is more stable than fixed-weight averaging and avoids collapse toward one model.
+- Physical findings: Printed T-shirts conceal persons from YOLOv2 and YOLOv3 indoors and outdoors; the paper demonstrates physical viability but does not give modern-Ultralytics numbers.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: Direct ensemble-training template for YOLOv8+YOLO11 or YOLOv8+YOLO26 joint patch experiments.
+- Reproducible technique to borrow: Min-max weight updates for joint patch training across multiple detectors.
+- Citation strength: `pdf_verified`
+
+## Working Packet Status
+
+- Primary repo question: `cross_yolo_transfer`
+- Disposition: `method_to_borrow`

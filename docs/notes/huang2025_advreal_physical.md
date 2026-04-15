@@ -135,3 +135,27 @@ AdvReal ASR under occlusion: **84.20%** vs T-SEA 36.15%, AdvPatch 26.84%. (p. 16
 - How does YOLO26's NMS-free design respond — would transfer from YOLOv2 be better or worse than to v12?
 - Can the 3D non-rigid surfaces modeling be simplified for digital-only capstone training?
 - Is code publicly available?
+
+## Normalized Extraction
+
+- Canonical slug: `huang2025_advreal`
+- Canonical source record: `docs/papers/huang2025_advreal_physical_2505.16402.pdf`
+- Evidence state: `page_cited`
+- Threat model: White-box glass-box training on YOLOv2 with closed-box transfer evaluation on newer detectors; physical adversarial clothing deployment in outdoor and rendered settings.
+- Detector family and exact version: YOLOv2, YOLOv3, YOLOv5, YOLOv8, YOLOv11, YOLOv12, Faster R-CNN, D-DETR.
+- Attack or defense goal: Person-vanishing physical adversarial patch framework with strong black-box transfer to modern detectors.
+- Loss or objective: Joint 2D detection loss, 3D detection loss, and TV regularization with ShakeDrop and realistic-matching modules.
+- Transforms / EoT: 3D non-rigid cloth deformation, time-space mapping, relight matching, distance and angle variation, and rendered-to-real consistency.
+- Dataset: INRIA Person and nuScenes.
+- Metrics: ASR, Precision, Recall, F1-score, and Average Confidence.
+- Strongest quantitative result: AdvReal achieves 70.13% ASR on YOLOv12 in closed-box evaluation and drives recall to 32.68% on YOLOv8 and 32.47% on YOLOv11 (Tables 3 and 7, pp. 14-16).
+- Transfer findings: Transfer from the YOLOv2 glass-box source remains strong across YOLOv3, YOLOv5, YOLOv8, YOLOv11, and YOLOv12; transformer-style D-DETR is comparatively harder to fool.
+- Physical findings: Physical ASR remains above 90% across multiple viewpoints and distances in the paper’s hardest controlled evaluations; non-rigid cloth modeling is the most valuable ablation component.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: Direct for YOLOv8 and YOLO11; no YOLO26 evaluation.
+- Reproducible technique to borrow: Non-rigid cloth deformation, relight matching, and ShakeDrop are the three portable upgrades to the repo’s physical-robustness path.
+- Citation strength: `page_cited`
+
+## Working Packet Status
+
+- Primary repo question: `physical_robustness`
+- Disposition: `benchmark`

@@ -119,3 +119,27 @@ Specific numeric mAP drops: available in heatmap but not extracted as discrete t
 - How does YOLOv11 fit into this compatibility matrix?
 - Does YOLO26's NMS-free design make it analogous to RT-DETR in terms of transfer resistance?
 - Would training on YOLOv8l or YOLOv8x (instead of n) significantly improve v8→v11 and v8→v26 transfer rates?
+
+## Normalized Extraction
+
+- Canonical slug: `bayer2024_network_transferability`
+- Canonical source record: `docs/papers/bayer2024_network_transferability_2408.15833.pdf`
+- Evidence state: `page_cited`
+- Threat model: White-box patch training on one source detector with black-box transfer evaluation across 28 target detectors in digital space.
+- Detector family and exact version: YOLOv7, YOLOv8, GELAN, YOLOv9, YOLOv10, YOLO-NAS, RT-DETR.
+- Attack or defense goal: Quantify cross-model adversarial-patch transferability and identify which source and target architectures dominate the transfer matrix.
+- Loss or objective: Standard detector-specific patch optimization on each source model; paper evaluates relative mAP drop rather than proposing a new loss.
+- Transforms / EoT: Digital patch placement and detector evaluation on INRIA Person and COCO; physical augmentation is not part of the paper’s core method in the pages reviewed.
+- Dataset: INRIA Person train/test and COCO test.
+- Metrics: Relative mAP drop; patch compatibility matrix; histogram-based color analyses.
+- Strongest quantitative result: Larger YOLOv9 and YOLOv10 source models yield the strongest transfer, while YOLOv8-n and YOLOv8-s cluster with the weakest-transfer groups such as YOLO-NAS and RT-DETR (Figure 6 and Section 5, pp. 6-7).
+- Transfer findings: Transfer quality is strongly source-model-size dependent; RT-DETR and YOLO-NAS are robust targets and poor source models; YOLOv8-n and YOLOv8-s are weak transfer sources.
+- Physical findings: None. This is a digital-only transfer study.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: Direct for YOLOv8; indirect for YOLO11; architectural analogy only for YOLO26 via RT-DETR-like robustness.
+- Reproducible technique to borrow: Re-run transfer studies with larger source models rather than only nano variants; use a compatibility-matrix view instead of single transfer pairs.
+- Citation strength: `page_cited`
+
+## Working Packet Status
+
+- Primary repo question: `cross_yolo_transfer`
+- Disposition: `benchmark`

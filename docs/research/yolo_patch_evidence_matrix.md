@@ -1,12 +1,36 @@
 # YOLO Adversarial Patch Evidence Matrix
 
-Generated: 2026-04-11
-Source corpus: 30 unique PDFs in docs/papers/ (32 total, 2 duplicates excluded)
+Generated: 2026-04-14
+Source corpus: 48 local PDFs in `docs/papers/` with 46 effective canonical PDFs after duplicate handling, plus note-only blocker records
 
 Legend:
 - Digital / Physical: D = digital only, P = physical tested, D+P = both
 - Transfer evaluated: Y = yes, N = no, partial = cross-class or cross-dataset only
 - Relevance to repo: 1–5 (5 = directly evaluates person suppression on YOLOv8/v11/v26)
+- Working-packet evidence states: `page_cited`, `pdf_verified`, `note_only_flagged`, `blocked_access`
+
+---
+
+## Working-Packet Evidence Overlay
+
+This overlay supersedes older “stub” interpretations for the first-pass papers and identifies which notes are still blockers.
+
+| Slug | Evidence state | Primary repo question | Working-packet role |
+|---|---|---|---|
+| `bayer2024_network_transferability` | `page_cited` | `cross_yolo_transfer` | `benchmark` |
+| `huang2025_advreal` | `page_cited` | `physical_robustness` | `benchmark` |
+| `huang2022_tsea_transfer` | `page_cited` | `cross_yolo_transfer` | `method_to_borrow` |
+| `tan2024_DOEPatch` | `pdf_verified` | `cross_yolo_transfer` | `method_to_borrow` |
+| `lovisotto2022_attention_patch` | `page_cited` | `yolo26_architecture_mismatch` | `architecture_explanation` |
+| `alam2023_attention_deficit` | `page_cited` | `yolo26_architecture_mismatch` | `architecture_explanation` |
+| `wei2024_CAP` | `page_cited` | `physical_robustness` | `method_to_borrow` |
+| `schack2024_real_world` | `page_cited` | `physical_robustness` | `physical_caveat` |
+| `cheng2024_depatch` | `page_cited` | `physical_robustness` | `method_to_borrow` |
+| `wang2026_chosen_object` | `blocked_access` | `yolo26_architecture_mismatch` | blocker |
+| `liao2021_anchor_free` | `blocked_access` | `yolo26_architecture_mismatch` | blocker |
+| `li2025_elevpatch` | `blocked_access` | `yolo11_coverage` | blocker |
+| `zimon2025_GAN_YOLO` | `blocked_access` | `cross_yolo_transfer` | blocker |
+| `gala2025_yolo` | `note_only_flagged` | `yolo11_coverage` | blocker |
 
 ---
 
@@ -92,6 +116,9 @@ Legend:
 ---
 
 ## Updated Summary Statistics
+
+- First-pass normalized notes: 9 total (`8 page_cited`, `1 pdf_verified`)
+- First-pass blockers: 5 total (`4 blocked_access`, `1 note_only_flagged`)
 
 - Papers with direct YOLOv8 evaluation: 4 confirmed (huang2025_advreal, delacruz2026_physical, bagley2025_spap, li2025_uvattack) + 2 note-only [unverified-from-pdf] (gala2025, zimon2025)
 - Papers with direct YOLOv11 evaluation: 1 confirmed (huang2025_advreal) + 2 note-only [unverified-from-pdf] (li2025_elevpatch, zimon2025)

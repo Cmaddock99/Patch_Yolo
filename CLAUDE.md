@@ -4,10 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Purpose
 
-Research and experimentation workspace for studying adversarial patch attacks against Ultralytics YOLO models (YOLOv8, YOLO11, YOLO26). There are two tracks:
+Research and experimentation workspace for studying adversarial patch attacks against Ultralytics YOLO models (YOLOv8, YOLO11, YOLO26).
 
-1. **Baseline (runnable now)**: `create_adv_patch.py` — trains a `DPatch` adversarial patch against a pretrained YOLOv5 detector using IBM's Adversarial Robustness Toolbox (ART).
-2. **Research track**: `docs/` — literature review, study roadmap, and paper notes targeting YOLOv8/YOLO11/YOLO26.
+This repo is not the canonical runtime for the broader attack-defend-fortify project.
+`YOLO-Bad-Triangle` is the only canonical execution surface. Work here should be framed as:
+
+1. Patch training and patch-demo research.
+2. Patch artifact generation for later manual import into the main pipeline.
+3. Literature review and experiment notes.
 
 ## Environment Setup
 
@@ -69,6 +73,10 @@ ART's `DPatch` performs gradient ascent on the patch pixels to maximize the YOLO
 ## Key Scope Constraint
 
 `create_adv_patch.py` targets **YOLOv5 only** because ART's `PyTorchYolo` wrapper is built around the `yolov5` pip package internals. Extending to YOLOv8/YOLO11/YOLO26 requires a different ART estimator or a custom training loop — see `docs/research/study_roadmap.md` for the phased plan.
+
+Do not present this repo as a second orchestrator for the main project. If patch
+support is promoted later, the integration point should be a profile-aware attack
+plugin inside `YOLO-Bad-Triangle`.
 
 ## Research Docs
 

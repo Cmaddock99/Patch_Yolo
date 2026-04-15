@@ -8,6 +8,10 @@
 - URL: https://ieeexplore.ieee.org/document/9428098
 - Note: Companion preprint arXiv 2106.xxxxx
 
+## Evidence Note
+
+This file is a blocker record, not a synthesis-grade review. There is no local PDF in the repo, so architecture and result claims remain unverified until the full text is available inside the workspace.
+
 ## Problem
 
 - What threat model is assumed? Black-box transferability of adversarial patches/perturbations from anchor-based to anchor-free detectors.
@@ -53,3 +57,30 @@
 - [ ] Access via CSUSM IEEE Xplore
 - [ ] Read Section 4 for the specific category-wise loss formulation
 - [ ] Determine if the loss can be adapted for YOLO26's `one2many["scores"]` format
+
+## Normalized Extraction
+
+- Canonical slug: `liao2021_anchor_free`
+- Canonical source record: `IEEE ICME entry only; no local PDF in repo`
+- Evidence state: `blocked_access`
+- Threat model: Transfer attack from anchor-based to anchor-free detection, currently inferred from metadata and prior repo notes.
+- Detector family and exact version: Anchor-based YOLOv3 and anchor-free detectors such as CenterNet or FCOS, pending full-text confirmation.
+- Attack or defense goal: Explain or improve transfer from anchor-based outputs to anchor-free outputs.
+- Loss or objective: Architecture-aware category-wise attack loss, exact formulation blocked.
+- Transforms / EoT: Unknown until full text is available.
+- Dataset: Unknown until full text is available.
+- Metrics: Unknown until full text is available.
+- Strongest quantitative result: Unknown in repo-first mode; previously cited percentages remain unpromoted.
+- Transfer findings: Repo currently treats this as the anchor-free mismatch citation, but exact effect size is blocked.
+- Physical findings: Unknown.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: Potentially high for YOLO26 output-format mismatch, but still blocked.
+- Reproducible technique to borrow: None can be promoted until the exact attack loss is verified from full text.
+- Citation strength: `blocked_access`
+
+## Working Packet Status
+
+- Primary repo question: `yolo26_architecture_mismatch`
+- Repo currently relies on this for: Anchor-free output mismatch as a secondary explanation for poor v8/v26 transfer.
+- Exact missing detail preventing promotion: Exact models, loss definition, and quantitative transfer results.
+- Blocker type: `architectural`
+- Promotion rule: Keep this paper out of promoted benchmark claims until a local PDF is added and read.

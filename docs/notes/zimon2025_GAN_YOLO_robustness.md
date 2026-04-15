@@ -10,7 +10,7 @@
 
 ## ⚠️ Access Note
 
-The Springer URL provided leads to a paywalled chapter. The WebFetch tool cannot follow Springer's redirect chain. Paper confirmed real by user; content below is based on the provided description. **Read the full paper for authoritative details.**
+The Springer URL provided leads to a paywalled chapter. This file remains a blocker record, not a synthesis-grade review, until a local full text is available.
 
 ## Problem (from description)
 
@@ -34,3 +34,30 @@ If the paper includes systematic results comparing patch effectiveness and trans
 - Direct relevance to YOLOv8/YOLO11: **Extremely high** — this paper likely contains the benchmark numbers my capstone extends to YOLO26.
 - Direct relevance to YOLO26: Not included — this is the gap my capstone fills.
 - What I can cite: As the most direct predecessor to my capstone's cross-YOLO-version evaluation.
+
+## Normalized Extraction
+
+- Canonical slug: `zimon2025_GAN_YOLO`
+- Canonical source record: `Springer chapter entry only; no local PDF in repo`
+- Evidence state: `blocked_access`
+- Threat model: GAN-based adversarial patch attack across multiple YOLO generations, currently inferred from title and note history.
+- Detector family and exact version: YOLOv3, YOLOv5, YOLOv8, YOLOv11, pending full-text confirmation.
+- Attack or defense goal: Systematic cross-YOLO comparison of GAN-based patch attacks and possibly defenses.
+- Loss or objective: Unknown until full text is available.
+- Transforms / EoT: Unknown until full text is available.
+- Dataset: Unknown until full text is available.
+- Metrics: Unknown until full text is available.
+- Strongest quantitative result: Unknown; repo-first mode only confirms scope, not numbers.
+- Transfer findings: Likely central to the paper, but all transfer claims are blocked.
+- Physical findings: Unknown.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: High for YOLOv8 and YOLO11, gap-framing only for YOLO26.
+- Reproducible technique to borrow: None can be promoted until the chapter is available locally.
+- Citation strength: `blocked_access`
+
+## Working Packet Status
+
+- Primary repo question: `cross_yolo_transfer`
+- Repo currently relies on this for: The claim that a near-scope cross-YOLO predecessor exists for v3/v5/v8/v11.
+- Exact missing detail preventing promotion: Per-version benchmark numbers, transfer matrix details, datasets, and defense conclusions.
+- Blocker type: `quantitative`
+- Promotion rule: Treat as a scope placeholder only until a local PDF is added.

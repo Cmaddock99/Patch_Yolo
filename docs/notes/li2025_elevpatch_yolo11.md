@@ -9,6 +9,10 @@
 - URL: https://link.springer.com/chapter/10.1007/978-981-96-9872-1_15
 - Access: Springer — ILL request needed via CSUSM
 
+## Evidence Note
+
+This file is a blocker record, not a synthesis-grade review. There is no local PDF in the repo, so method and benchmark claims remain blocked.
+
 ## Problem
 
 - What threat model is assumed? White-box adversarial patch attack against YOLO11 specifically.
@@ -55,3 +59,30 @@
 - [ ] Once received: fill in Results section above
 - [ ] Compare their YOLO11 result to your 78.8% suppression
 - [ ] Check if their training hyperparameters match yours (patch size 100, 1000 epochs, lr 0.01)
+
+## Normalized Extraction
+
+- Canonical slug: `li2025_elevpatch`
+- Canonical source record: `Springer chapter entry only; no local PDF in repo`
+- Evidence state: `blocked_access`
+- Threat model: YOLO11-targeted adversarial patch attack, inferred from the chapter title and note history.
+- Detector family and exact version: YOLO11.
+- Attack or defense goal: Provide the only currently known YOLO11-specific patch benchmark in the repo literature.
+- Loss or objective: Unknown until full text is available.
+- Transforms / EoT: Unknown until full text is available.
+- Dataset: Unknown until full text is available.
+- Metrics: Unknown until full text is available.
+- Strongest quantitative result: Unknown; this is the main missing YOLO11 benchmark.
+- Transfer findings: Unknown.
+- Physical findings: Unknown.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: High only for YOLO11 benchmarking.
+- Reproducible technique to borrow: None can be promoted until the chapter is available locally.
+- Citation strength: `blocked_access`
+
+## Working Packet Status
+
+- Primary repo question: `yolo11_coverage`
+- Repo currently relies on this for: The existence of a YOLO11-specific literature comparison point.
+- Exact missing detail preventing promotion: YOLO11 suppression numbers, dataset, EoT details, and whether evaluation is digital or physical.
+- Blocker type: `quantitative`
+- Promotion rule: Do not cite this as a benchmark beyond existence until the chapter is locally available.

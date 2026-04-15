@@ -1,5 +1,5 @@
 # Master Literature Summary: Adversarial Patches Against YOLO
-*Running document — last updated 2026-04-11 (batch 4)*
+*Running document — last updated 2026-04-14 (working-packet sync)*
 *Sources: Original papers, arXiv full text, CVPR/ICCV open access pages, GitHub repos, CSUSM library*
 
 ---
@@ -11,7 +11,13 @@ This is the living synthesis document for the capstone. Every paper processed ge
 - For full method details, loss terms, and numbers: see the individual note files.
 - For source verification: see `verified_sources.md`.
 - For original PDFs: see `docs/papers/`.
-- Current verified coverage: 35 research papers aligned with `verified_sources.md` (model-reference docs remain bibliography-only).
+- Working-packet sync for this pass: 9 first-pass notes normalized (`8 page_cited`, `1 pdf_verified`) and 5 blockers explicitly bounded (`4 blocked_access`, `1 note_only_flagged`).
+
+## Working-Packet Sync
+
+- The first-pass notes for Bayer, AdvReal, T-SEA, DOEPatch, Lovisotto, Alam, CAP, Schack, and DePatch are no longer stub-level working notes.
+- The blocker notes for Chosen-Object, Liao anchor-free, ElevPatch, Zimon, and Gala should not be treated as promoted benchmark evidence in repo-first mode.
+- Where this document still uses older labels such as `Fully processed` or `Stub`, defer to the note-level evidence state and the working packet audit.
 
 ---
 
@@ -22,12 +28,12 @@ This is the living synthesis document for the capstone. Every paper processed ge
 | Brown et al. — Adversarial Patch | 2017 | `notes/brown2017_adversarial_patch.md` | `papers/brown2017_adversarial_patch_1712.09665.pdf` | Fully processed |
 | Liu et al. — DPatch | 2019 | `notes/liu2019_dpatch.md` | `papers/liu2019_dpatch_1806.02299.pdf` | Fully processed |
 | Thys et al. — Fooling Surveillance Cameras | 2019 | `notes/thys2019_fooling_surveillance.md` | `papers/thys2019_fooling_surveillance_1904.08653.pdf` | Fully processed |
-| Huang et al. — Universal Physical Camouflage | 2019 | `notes/huang2019_universal_physical_camouflage.md` | arXiv open access (not yet downloaded) | Stub — physical camouflage baseline |
+| Huang et al. — Universal Physical Camouflage | 2019 | `notes/huang2019_universal_physical_camouflage.md` | `papers/huang2019_universal_physical_camouflage_1909.04326.pdf` | Processed baseline |
 | Hoory et al. — Dynamic Adversarial Patch | 2020 | `notes/hoory2020_dynamic_patch.md` | `papers/hoory2020_dynamic_patch_2010.13070.pdf` | Fully processed |
 | Hu et al. — Naturalistic Physical Patch | 2021 | `notes/hu2021_naturalistic_patch.md` | `papers/hu2021_naturalistic_patch_ICCV.pdf` | Processed (abstract+method; full numbers in PDF) |
 | Zolfi et al. — Translucent Patch | 2021 | `notes/zolfi2021_translucent_patch.md` | `papers/zolfi2021_translucent_patch_2012.12528.pdf` | Fully processed |
 | Schack et al. — Real-world Challenges | 2024 | `notes/schack2024_real_world_challenges.md` | `papers/schack2024_real_world_challenges_2410.19863.pdf` | Fully processed |
-| Gala et al. — YOLO Models IJIS 2025 | 2025 | `notes/gala2025_yolo_adversarial_patches.md` | Not available (Springer paywall) | Processed via GitHub README |
+| Gala et al. — YOLO Models IJIS 2025 | 2025 | `notes/gala2025_yolo_adversarial_patches.md` | Not available (Springer paywall) | `note_only_flagged` — modern Ultralytics intake only |
 | Guesmi et al. — DAP | 2024 | `notes/guesmi2024_DAP_dynamic_adversarial_patch.md` | `papers/guesmi2024_DAP_CVPR.pdf` | Fully processed |
 | Wu et al. — NAPGuard | 2024 | `notes/wu2024_NAPGuard.md` | `papers/wu2024_NAPGuard_CVPR.pdf` | Processed (abstract+method) |
 | Tan et al. — DOEPatch | 2024 | `notes/tan2024_DOEPatch.md` | `papers/tan2024_DOEPatch_2312.16907.pdf` | Fully processed |
@@ -38,19 +44,19 @@ This is the living synthesis document for the capstone. Every paper processed ge
 | Bagley et al. — SPAP/SPAP-2 | 2025 | `notes/bagley2025_dynamically_optimized_clusters.md` | `papers/bagley2025_dynamically_optimized_clusters_2511.18656.pdf` | Fully processed |
 | Li et al. — Diff-NAT | 2026 | `notes/diffnat2026_AAAI.md` | `papers/diffnat2026_AAAI.pdf` | Fully processed |
 | Ma et al. — XAIAD-YOLO | 2026 | `notes/ma2026_XAIAD_YOLO.md` | No PDF (Elsevier paywall) | Processed (abstract+method; numbers need institutional access) |
-| Zimoň — GAN YOLO v3/v5/v8/v11 | 2025 | `notes/zimon2025_GAN_YOLO_robustness.md` | No PDF (Springer paywall) | Access-limited — quantitative details pending |
+| Zimoň — GAN YOLO v3/v5/v8/v11 | 2025 | `notes/zimon2025_GAN_YOLO_robustness.md` | No PDF (Springer paywall) | `blocked_access` — near-scope predecessor, numbers unavailable |
 | Lin et al. — Entropy Patch | 2024 | `notes/lin2024_entropy_adversarial_patch.md` | No PDF (IEEE Access paywall) | Access-limited — quantitative details pending |
 | Truong et al. — AYO-GAN | 2024 | `notes/truong2024_AYO_GAN.md` | No PDF (Springer paywall) | Access-limited — quantitative details pending |
 | Gu & Jafarnejadsani — SAR | 2025 | `notes/gu2025_SAR_segment_recover.md` | No PDF (MDPI bot-blocked) | Access-limited — open access in browser |
-| Bayer et al. — Network Transferability | 2024 | `notes/bayer2024_network_transferability.md` | `papers/bayer2024_network_transferability_2408.15833.pdf` | Stub — read for transfer numbers |
-| Huang et al. — T-SEA | 2022 | `notes/huang2022_tsea_transfer.md` | `papers/huang2022_tsea_transfer_2211.09773.pdf` | Stub — has open code |
-| Lovisotto et al. — Attention Patch Robustness | 2022 | `notes/lovisotto2022_attention_patch_robustness.md` | `papers/lovisotto2022_attention_patch_robustness_CVPR.pdf` | Stub — critical for v26 |
-| Alam et al. — Attention Deficit | 2023 | `notes/alam2023_attention_deficit_deformable.md` | `papers/alam2023_attention_deficit_2311.12914.pdf` | Stub — critical for v26 |
-| Wang et al. — Chosen-Object Attack | 2026 | `notes/wang2026_chosen_object_attack.md` | CSUSM IEEE access (no local PDF) | Stub — Hungarian matching citation for v26 |
-| Liao et al. — Anchor-Free Adversarial | 2021 | `notes/liao2021_anchor_free_adversarial.md` | CSUSM IEEE access (no local PDF) | Stub — critical for v26 transfer |
+| Bayer et al. — Network Transferability | 2024 | `notes/bayer2024_network_transferability.md` | `papers/bayer2024_network_transferability_2408.15833.pdf` | `page_cited` — transfer benchmark |
+| Huang et al. — T-SEA | 2022 | `notes/huang2022_tsea_transfer.md` | `papers/huang2022_tsea_transfer_2211.09773.pdf` | `page_cited` — transfer method |
+| Lovisotto et al. — Attention Patch Robustness | 2022 | `notes/lovisotto2022_attention_patch_robustness.md` | `papers/lovisotto2022_attention_patch_robustness_CVPR.pdf` | `page_cited` — attention mechanism |
+| Alam et al. — Attention Deficit | 2023 | `notes/alam2023_attention_deficit_deformable.md` | `papers/alam2023_attention_deficit_2311.12914.pdf` | `page_cited` — deformable-attention mechanism |
+| Wang et al. — Chosen-Object Attack | 2026 | `notes/wang2026_chosen_object_attack.md` | CSUSM IEEE access (no local PDF) | `blocked_access` — Hungarian-matching blocker |
+| Liao et al. — Anchor-Free Adversarial | 2021 | `notes/liao2021_anchor_free_adversarial.md` | CSUSM IEEE access (no local PDF) | `blocked_access` — anchor-free mismatch blocker |
 | Xu et al. — Adversarial T-shirt | 2020 | `notes/xu2020_adversarial_tshirt.md` | `papers/xu2020_adversarial_tshirt_1910.11099.pdf` | Stub — primary physical benchmark |
-| Huang et al. — AdvReal | 2025 | `notes/huang2025_advreal_physical.md` | `papers/huang2025_advreal_physical_2505.16402.pdf` | Stub — most recent physical benchmark |
-| Li et al. — ElevPatch YOLO11 | 2025 | `notes/li2025_elevpatch_yolo11.md` | ILL needed | Stub — only YOLO11-specific paper |
+| Huang et al. — AdvReal | 2025 | `notes/huang2025_advreal_physical.md` | `papers/huang2025_advreal_physical_2505.16402.pdf` | `page_cited` — physical benchmark |
+| Li et al. — ElevPatch YOLO11 | 2025 | `notes/li2025_elevpatch_yolo11.md` | ILL needed | `blocked_access` — only YOLO11-specific paper |
 | Ji et al. — Adversarial YOLO defense | 2021 | `notes/ji2021_adversarial_yolo_defense.md` | `papers/ji2021_adversarial_yolo_defense_2103.08860.pdf` | Stub — defense benchmark |
 | Wu et al. — Invisibility Cloak | 2020 | `notes/wu2020_invisibility_cloak.md` | `papers/wu2020_invisibility_cloak_1910.14667.pdf` | Stub — physical transfer study |
 | Zhou et al. — MVPatch | 2023 | `notes/zhou2023_mvpatch.md` | `papers/zhou2023_mvpatch_2312.17431.pdf` | Stub — transfer + stealth benchmark |

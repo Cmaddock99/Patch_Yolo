@@ -121,3 +121,27 @@ In AdvReal Table 3: T-SEA closed-box ASR on YOLOv12 = 21.65% vs AdvReal 70.13%. 
 - Does ShakeDrop work with YOLOv8n C2f blocks?
 - Can T-SEA + DePatch block-wise decoupling be combined for additive benefit?
 - Is CCTV-person dataset publicly available?
+
+## Normalized Extraction
+
+- Canonical slug: `huang2022_tsea_transfer`
+- Canonical source record: `docs/papers/huang2022_tsea_transfer_2211.09773.pdf`
+- Evidence state: `page_cited`
+- Threat model: White-box optimization on one detector with transfer-based black-box evaluation on seven unseen detectors; digital-first with one qualitative physical demonstration.
+- Detector family and exact version: YOLOv5 source; black-box YOLOv2, YOLOv3, YOLOv3-tiny, YOLOv4, YOLOv4-tiny, Faster R-CNN, SSD.
+- Attack or defense goal: Improve transferability of adversarial patches without requiring an explicit multi-model ensemble.
+- Loss or objective: Standard detector attack objective augmented by self-ensemble training via constrained data augmentation, model ShakeDrop, and patch cutout.
+- Transforms / EoT: Constrained data augmentation, model ShakeDrop, patch cutout, and standard patch placement during optimization.
+- Dataset: INRIA Person, COCO-person, and CCTV-person.
+- Metrics: White-box and black-box mAP.
+- Strongest quantitative result: T-SEA reduces black-box average mAP to 9.16% versus 36.46% for AdvPatch and also improves CCTV-person transfer (Tables 1, 3, and 5, pp. 5, 8-9).
+- Transfer findings: All three self-ensemble components improve transfer; the method substantially outperforms a standard single-model patch baseline.
+- Physical findings: Physical support is qualitative only; the paper is not a strong physical benchmark.
+- Direct relevance to YOLOv8 / YOLO11 / YOLO26: Directly reusable transfer technique for YOLOv8 and YOLO11; unknown effect size for YOLO26.
+- Reproducible technique to borrow: Add ShakeDrop-style model self-ensemble and patch cutout to the repo’s transfer experiments.
+- Citation strength: `page_cited`
+
+## Working Packet Status
+
+- Primary repo question: `cross_yolo_transfer`
+- Disposition: `method_to_borrow`
