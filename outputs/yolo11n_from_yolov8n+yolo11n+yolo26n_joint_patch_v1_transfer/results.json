@@ -16,7 +16,7 @@
   "patched_person_detections": 25,
   "detection_suppression_pct": 24.2,
   "mean_conf_clean": 0.6829,
-  "mean_conf_patched": 0.6705,
+  "mean_conf_patched": 0.6718,
   "loss_source": "channel4",
   "score_tensor_shape": null,
   "head_end2end": false,
