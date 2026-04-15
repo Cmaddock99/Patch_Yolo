@@ -890,7 +890,7 @@ def slide10_conclusions(prs: Presentation):
 def main():
     root = Path(__file__).parent.parent
     patch_path = root / "outputs" / "yolov8n_patch_v2" / "patches" / "patch.png"
-    out_path = root / "presentation.pptx"
+    out_path = root / "deck.pptx"
 
     prs = new_prs()
     slide1_title(prs)

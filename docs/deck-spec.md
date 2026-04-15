@@ -73,7 +73,7 @@ Required presentation-source files:
 
 - `presentation.html`
 - `scripts/html_to_pptx.py`
-- `presenter_guide.md`
+- `speaker-notes.md`
 
 Required support-file sync:
 
@@ -81,9 +81,9 @@ Required support-file sync:
 
 Optional only if the user later asks for it:
 
-- `presenter_guide.txt`
+- `speaker-notes.txt`
 
-Do not hand-edit `presentation.pptx`. Regenerate it from `scripts/html_to_pptx.py` after the source copy is fixed.
+Do not hand-edit `deck.pptx`. Regenerate it from `scripts/html_to_pptx.py` after the source copy is fixed.
 
 ## Global Rules
 
@@ -123,7 +123,7 @@ Files:
 
 - `presentation.html`
 - `scripts/html_to_pptx.py`
-- `presenter_guide.md`
+- `speaker-notes.md`
 
 On-slide title replacement:
 
@@ -170,7 +170,7 @@ Files:
 
 - `presentation.html`
 - `scripts/html_to_pptx.py`
-- `presenter_guide.md`
+- `speaker-notes.md`
 - `README.md`
 
 Use current `v2` transfer artifacts for the whole direct matrix.
@@ -234,7 +234,7 @@ Files:
 
 - `presentation.html`
 - `scripts/html_to_pptx.py`
-- `presenter_guide.md`
+- `speaker-notes.md`
 
 Crop-resize paragraph replacement:
 
@@ -262,7 +262,7 @@ Files:
 
 - `presentation.html`
 - `scripts/html_to_pptx.py`
-- `presenter_guide.md`
+- `speaker-notes.md`
 
 Intro paragraph replacement:
 
@@ -319,7 +319,7 @@ Files:
 
 - `presentation.html`
 - `scripts/html_to_pptx.py`
-- `presenter_guide.md`
+- `speaker-notes.md`
 
 Replace the current "three-phase" framing with the real four-phase loop.
 
@@ -388,7 +388,7 @@ Files:
 
 - `presentation.html`
 - `scripts/html_to_pptx.py`
-- `presenter_guide.md`
+- `speaker-notes.md`
 - `README.md`
 
 Physical-print card replacement:
@@ -419,7 +419,7 @@ Files:
 
 - `presentation.html`
 - `scripts/html_to_pptx.py`
-- `presenter_guide.md`
+- `speaker-notes.md`
 
 Framework-contribution card replacement:
 
@@ -478,10 +478,10 @@ No other README changes are required for this handoff.
 ## Implementation Notes
 
 - `presentation.html` and `scripts/html_to_pptx.py` should end with the same visible wording.
-- `presenter_guide.md` should match the final visible deck scope and terminology.
+- `speaker-notes.md` should match the final visible deck scope and terminology.
 - Expect layout pressure on slides 2, 7, 8, and 10 after the copy changes. Adjust card widths, font size, or spacing as needed, but do not cut factual qualifiers to save space.
-- Do not touch the untracked `presenter_guide.txt` unless the user explicitly asks for a `.txt` sync artifact.
-- Be careful with the already-modified `presentation.pptx` in the worktree. Regenerate only after source copy is correct.
+- Keep `speaker-notes.txt` synced with the Markdown notes if a plain-text handoff copy is needed.
+- Regenerate `deck.pptx` only after the source copy is correct.
 
 ## Acceptance Criteria
 
@@ -494,8 +494,8 @@ The implementation is complete when all of the following are true.
 - The deck no longer shows `0.238 -> 0.394` for `square + c_dog`.
 - The deck no longer claims a fixed physical suppression range without benchmark artifacts.
 - The conclusion slide cites both repos.
-- `presentation.html`, `scripts/html_to_pptx.py`, `presenter_guide.md`, and `README.md` are mutually consistent.
-- `presentation.pptx` is regenerated from `scripts/html_to_pptx.py`.
+- `presentation.html`, `scripts/html_to_pptx.py`, `speaker-notes.md`, and `README.md` are mutually consistent.
+- `deck.pptx` is regenerated from `scripts/html_to_pptx.py`.
 
 ## Verification
 

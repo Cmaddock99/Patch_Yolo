@@ -1,4 +1,4 @@
-# Presenter Guide: Adversarial Robustness Framework
+# Speaker Notes: Adversarial Robustness Framework
 
 Revised speaker notes for the 10-slide deck. Each slide is split into:
 
