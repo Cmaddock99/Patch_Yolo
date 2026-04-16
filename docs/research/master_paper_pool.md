@@ -1,7 +1,7 @@
 # Master Paper Pool — Adversarial Patch Research
 
 **Document status**: Authoritative unified registry  
-**Generated**: 2026-04-11  
+**Generated**: 2026-04-15
 **Scope**: All papers known to the repo across tiers A–E  
 **Supporting documents**: See `docs/research/pdf_corpus_synthesis.md`, `docs/research/yolo_patch_evidence_matrix.md`, `docs/research/yolo_patch_defense_and_gap_summary.md`
 
@@ -13,20 +13,20 @@
 
 | Tier | Label | Count |
 |------|-------|-------|
-| A | PDF + deep note (page-cited) | 8 |
+| A | PDF + deep note (page-cited) | 10 |
 | B | PDF + skim note | 25 |
-| C | Note-only (no local PDF) | 12 |
+| C | Unpromoted / unverified note records | 10 |
 | D | Ranked candidates (not yet in repo) | 4 |
 | E | First-party experimental results | 1 (special entry) |
 | **Total** | | **50** |
 
-Notes: Tier B count is 25 (not 22 from previous synthesis) because this run adds 3 newly-downloaded PDFs (huang2019, kolter2019, patchzero2022) and upgrades their notes. Two PDFs are duplicates (zolfi2021_CVPR = canonical; guesmi2024_CVPR = canonical) per `research/data/ranked/pdf_duplicates.md`.
+Notes: Tier B count is 25 (not 22 from previous synthesis) because this run added 3 newly-downloaded PDFs (huang2019, kolter2019, patchzero2022) and upgraded their notes. Gala 2025 and Liao 2021 have now been promoted from Tier C into Tier A after local-PDF verification. Two PDFs are duplicates (zolfi2021_CVPR = canonical; guesmi2024_CVPR = canonical) per `research/data/ranked/pdf_duplicates.md`.
 
 ### Coverage of Target Models
 
-| Model | Tier A (deep-read) | Tier B (skimmed) | Tier C (note-only) | Tier D (candidate) | First-party |
+| Model | Tier A (deep-read) | Tier B (skimmed) | Tier C (unpromoted) | Tier D (candidate) | First-party |
 |-------|-------------------|-----------------|-------------------|-------------------|-------------|
-| YOLOv8 | 2 (huang2025_advreal, bayer2024) | 4 | 3 (gala2025, zimon2025, imran2025*) | 1 (AdvTexture — unconfirmed) | Yes (90% suppression) |
+| YOLOv8 | 3 (huang2025_advreal, bayer2024, gala2025) | 4 | 2 (zimon2025, imran2025*) | 1 (AdvTexture — unconfirmed) | Yes (90% suppression) |
 | YOLO11 | 1 (huang2025_advreal) | 1 (zhou2025) | 2 (li2025_elevpatch, zimon2025) | 0 confirmed | Yes (84.8% suppression) |
 | YOLO26 | 0 | 0 | 0 | 0 confirmed | Yes (11.6% suppression, difficult) |
 
@@ -95,11 +95,11 @@ Legend — Evidence confidence: **high** = PDF + page citations | **medium** = P
 | **kolter2019_global_patch** | **Global Patch Suppression** | **2019** | **ICML Workshop** | **B** | **Yes** | **Yes (upgraded)** | YOLOv3 | Global scene-level suppression | **high** | 3 | Open |
 | **patchzero2022** | **PatchZero** | **2022/2023** | **WACV 2023** | **B** | **Yes** | **Yes (upgraded)** | General (PASCAL VOC) | Defense: detect-and-zero | **high** | 3 | Open |
 | bae2020_TOG | TOG: Targeted Objectness Gradient | ~2020 | Unknown ⚠️ | C | No | Yes | YOLOv3, Faster-RCNN | NMS-flooding attack | low [unverified-from-pdf] | 3 | Unknown — citation needs verification |
-| gala2025_yolo_adversarial_patches | YOLO Adversarial Patches (Springer) | 2025 | IJIS/Springer | C | No | Yes | YOLOv5/v8/v9/v10 | Naturalistic patches, edge AI | low [unverified-from-pdf] | 5 | Springer paywall |
+| gala2025_yolo_adversarial_patches | YOLO Adversarial Patches (Springer) | 2025 | IJIS/Springer | A | Yes | Yes | YOLOv5/v8/v9/v10 | Naturalistic patches, edge AI | high | 5 | Local PDF |
 | gu2025_SAR | Segment and Recover (SAR) | 2025 | J. Imaging/MDPI | C | No | Yes | Unspecified YOLO | Defense: segment-recover | low [unverified-from-pdf] | 3 | Open (bot-blocked) |
 | imran2025_tkpatch | TK-Patch | 2025 | ICoDT2/IEEE | C | No | Yes | YOLOv3/v5/v7 | Multi-YOLO universal patch | low [unverified-from-pdf] | 4 | IEEE Xplore |
 | li2025_elevpatch | ElevPatch (YOLO11) | 2025 | ICIC/Springer | C | No | Yes | YOLO11 | Person evasion (YOLO11 specific) | low [unverified-from-pdf] | 5 | Springer ILL |
-| liao2021_anchor_free | Anchor-Free Adversarial Transfer | 2021 | IEEE ICME | C | No | Yes | YOLOv3, CenterNet/FCOS | Anchor-free transfer | low [unverified-from-pdf] | 4 | IEEE CSUSM |
+| liao2021_anchor_free | Anchor-Free Adversarial Transfer | 2021 | IEEE ICME | A | Yes | Yes | YOLOv3, CenterNet/FCOS | Anchor-free transfer | high | 4 | Local PDF |
 | lin2024_entropy | Entropy-Boosted Patch | 2024 | IEEE Access | C | No | Yes | YOLOv2/v3/v4 | Entropy naturalism loss | low [unverified-from-pdf] | 3 | IEEE CSUSM |
 | ma2026_XAIAD | XAIAD-YOLO | 2026 | FGCS/Elsevier | C | No | Yes | YOLO family (anchor-free incl.) | Defense: XAI test-time | low [unverified-from-pdf] | 4 | Elsevier paywall |
 | tereshonok2025_anomaly | Anomaly Localization Defense | 2025 | J. Imaging/MDPI | C | No | Yes | YOLO family | Defense: anomaly reconstruction | low [unverified-from-pdf] | 3 | Open (bot-blocked) |
@@ -220,15 +220,16 @@ All 12 papers below have notes in `docs/notes/` but no local PDF. All claims are
 
 **Note file**: `docs/notes/gala2025_yolo_adversarial_patches.md`
 
-**What the note claims** [unverified-from-pdf]: Evaluates naturalistic (GAN-generated) adversarial patches on YOLOv5, YOLOv8, YOLOv9, YOLOv10 (all Ultralytics). Key finding: larger models are generally more robust than smaller counterparts — critical security tradeoff for edge AI. High success rates in evading detection across all tested YOLO versions. Code fully released on GitHub (NaturalisticAdversarialPatches). Adapts Hu et al. (2021)'s GAN latent method to modern Ultralytics architectures. Datasets: INRIA Person, MPII Human Pose.
+**What the note shows**: Evaluates BigGAN-latent naturalistic adversarial patches on Ultralytics YOLOv5, YOLOv8, YOLOv9, and YOLOv10 using INRIA and MPII. The paper identifies four especially strong patches (`patch17`, `patch26`, `patch27`, `patch38`) and shows that smaller `n` models are consistently more vulnerable than `m` variants. On INRIA at scale `0.20`, `patch38` drives YOLOv8n mAP to `48.31`; at scale `0.22`, it reaches `31.27` (Tables 8-9, p. 13).
 
-**Why it matters**: Most directly relevant paper for YOLOv8 adversarial patch evaluation in the verified bibliography. The model-size/robustness finding directly explains why the capstone's v8n (nano) achieves high suppression — smaller models are more vulnerable per Gala et al. The GitHub repo enables reproduction. The paper evaluates YOLOv5–v10 but not YOLO11 or YOLO26 — the capstone's contribution extends to those models.
+**Why it matters**: This is the strongest local-PDF benchmark for modern Ultralytics patch vulnerability before YOLO11/YOLO26. It gives a verified literature baseline for the repo's YOLOv8 results and supports the capstone's broader claim that small edge-oriented models trade security margin for efficiency.
 
-**What needs verification from PDF**: (1) Exact per-model suppression rates or AP drop for YOLOv5/v8/v9/v10 (the primary comparison numbers for the capstone). (2) Whether cross-version transfer was evaluated. (3) Exact dataset splits and evaluation protocol.
+**Most useful citable details**:
+- BigGAN latent optimization is used instead of direct pixel optimization, with `L_total = L_det + 0.1 * L_tv` and Adam `lr = 0.01` (pp. 4-5).
+- `patch38` reduces INRIA mAP to `36.76` on YOLOv5n, `48.31` on YOLOv8n, and `39.20` on YOLOv10n at scale `0.20` (Table 8, p. 13).
+- The paper explicitly states that `n` models are more vulnerable than `m` models, while edge-device timings show the expected efficiency tradeoff (pp. 11-14).
 
-**Access path**: Springer paywall — https://link.springer.com/article/10.1007/s10207-025-01067-3. Access via CSUSM institution or request via ILL. GitHub code is available without paywall: https://github.com/Bimo99B9/NaturalisticAdversarialPatches.
-
-**Priority**: Critical — the single most important missing paper for the capstone. Per-model quantitative results are the primary literature benchmark for the v8n suppression comparison.
+**Priority**: High — now verified and directly usable in the related-work and comparison sections.
 
 ---
 
@@ -284,15 +285,16 @@ All 12 papers below have notes in `docs/notes/` but no local PDF. All claims are
 
 **Note file**: `docs/notes/liao2021_anchor_free_adversarial.md`
 
-**What the note claims** [unverified-from-pdf]: First adversarial attack targeting anchor-free detectors specifically. Shows attacks designed for anchor-based models (YOLOv3) transfer poorly to anchor-free ones (CenterNet, FCOS) — standard attacks achieve ~30% of their effectiveness. Architecture-aware loss targeting anchor-free output format (heatmaps, center points) achieves full effectiveness on both. IEEE ICME 2021.
+**What the note shows**: First adversarial attack paper targeting anchor-free detectors directly. It introduces sparse and dense category-wise attacks against CenterNet and shows strong white-box success plus meaningful black-box transfer across detector families. On PascalVOC, DLA34-SCA transfers to Faster R-CNN with `ATR 0.82`; on MS-COCO, DLA34-SCA transfers to CornerNet with `ATR 0.88` (Tables 2-3, pp. 5-6).
 
-**Why it matters**: Provides the second architectural explanation (after Lovisotto's attention argument) for the capstone's low v8→v26 transfer rate: YOLOv8's anchor-free DFL output format and YOLO26's one2many/Hungarian matching format are different enough that patches optimized for the v8 loss landscape are only weakly adversarial against YOLO26. This paper is the citation for "anchor-free format mismatch explains transfer failure."
+**Why it matters**: This is the repo's clearest local-PDF support for the claim that detector-output mismatch can break naive transfer assumptions. It does not prove anything about YOLO26 directly, but it is strong evidence that changing the detection mechanism changes the attack objective you need.
 
-**What needs verification from PDF**: (1) Exact quantitative transfer results (the ~30% claim needs confirmation from the paper). (2) Whether the category-wise anchor-free loss is adaptable to YOLO26's `one2many["scores"]` format. (3) Whether any YOLO8+ versions were tested.
+**Most useful citable details**:
+- White-box DCA drives MS-COCO CenterNet mAP down to `0.002` with `ASR 0.99` on both Resdcn18 and DLA34 (Table 1, p. 5).
+- Transfer remains meaningful across backbone and detector changes, including CenterNet to Faster R-CNN / SSD300 / CornerNet (Tables 2-3, pp. 5-6).
+- The sparse attack keeps `PL0` under `1%`, showing that strong suppression does not require dense perturbation (Table 4, p. 6).
 
-**Access path**: IEEE ICME 2021 via CSUSM — https://ieeexplore.ieee.org/document/9428098.
-
-**Priority**: High — explains v8→v26 transfer failure architecturally; needed for capstone results interpretation section.
+**Priority**: High — now verified and usable as the output-mismatch citation in the YOLO26 interpretation section.
 
 ---
 
@@ -459,7 +461,7 @@ YOLO26n detail: `preds_dict["one2many"]["scores"]` (B, 80, 8400); person = chann
 - delacruz2026_physical (Tier B, PDF): YOLOv8 mentioned explicitly in physical surveillance context [paper claim, limited quantification]
 - bagley2025_spap (Tier B, PDF): Person AP → 16.28% on YOLOv8 with SPAP-2 [paper claim]
 - li2025_uvattack (Tier B, PDF): YOLOv8 targeted [paper claim]
-- gala2025_yolo_adversarial_patches (Tier C, no PDF): Evaluates YOLOv8 — specific numbers unknown [unverified-from-pdf]
+- gala2025_yolo_adversarial_patches (Tier A, PDF): `patch38` reduces YOLOv8n INRIA mAP to `48.31` at scale `0.20` and `31.27` at scale `0.22`; smaller models are more vulnerable
 - zimon2025_GAN_YOLO (Tier C, no PDF): Evaluates YOLOv8 — specific numbers unknown [unverified-from-pdf]
 
 **Papers that indirectly inform its vulnerability**:
@@ -470,7 +472,7 @@ YOLO26n detail: `preds_dict["one2many"]["scores"]` (B, 80, 8400); person = chann
 
 **First-party results**: 90.0% suppression (direct), 36.4% (as v11n transfer target)
 
-**What is still unknown**: Exact comparison number from Gala et al. (paywalled); whether SPAP-2's 16.28% AP result uses the same evaluation protocol as the capstone; physical ASR for the capstone's specific patch.
+**What is still unknown**: How directly comparable Gala et al.'s mAP protocol is to the capstone's suppression metric; whether SPAP-2's 16.28% AP result uses the same evaluation protocol as the capstone; physical ASR for the capstone's specific patch.
 
 ---
 
@@ -498,7 +500,7 @@ YOLO26n detail: `preds_dict["one2many"]["scores"]` (B, 80, 8400); person = chann
 **Papers that indirectly inform its vulnerability**:
 - lovisotto2022 (Tier B, PDF): Dot-product attention dramatically increases vulnerability; YOLO26's attention mechanisms are the first architectural factor explaining poor optimization convergence
 - alam2023 (Tier B, PDF): Collaborative patches targeting attention maps achieve 0% AP on deformable transformers; establishes the principle that standard patches fail against attention architectures
-- liao2021 (Tier C, no PDF, [unverified-from-pdf]): Anchor-free output format mismatch causes poor transfer — explains v8→v26 failure from output-space perspective
+- liao2021 (Tier A, PDF): Anchor-free output mismatch reduces transfer across detector families and supports the repo's v8→v26 failure interpretation from the output-space side
 - wang2026_chosen_object (Tier C, no PDF, [unverified-from-pdf]): Hungarian matching attack for DETR-style end-to-end detectors — the architecturally correct loss design for YOLO26
 - bayer2024: Weak-source nano model effect predicts poor transfer from v8n to any target
 
@@ -508,9 +510,9 @@ YOLO26n detail: `preds_dict["one2many"]["scores"]` (B, 80, 8400); person = chann
 
 ---
 
-## Section 9: PDF Download Priority List
+## Section 9: Promotion / Retrieval Priority List
 
-Ranked by capstone importance. Includes only the 12 Tier C note-only papers.
+Ranked by capstone importance. Includes the 10 remaining Tier C unpromoted / unresolved papers after promoting Gala 2025 and Liao 2021 into local-PDF-backed notes.
 
 ### Priority 1 — Critical (obtain before finalizing results sections)
 
@@ -519,58 +521,48 @@ Ranked by capstone importance. Includes only the 12 Tier C note-only papers.
 - What claim needs verification: "ElevPatch achieves X% suppression on YOLO11" — the actual number.
 - Access: ILL request via CSUSM library, DOI 10.1007/978-981-96-9872-1_15
 
-**2. gala2025_yolo_adversarial_patches** — Gala et al. YOLO v5/v8/v9/v10 (Springer)
-- Why: Most directly relevant YOLOv8 benchmark paper in the verified bibliography. Per-model quantitative results are needed to situate the capstone's 90% v8n suppression claim vs. prior work on v8.
-- What claim needs verification: "Larger models are more robust" + exact AP/suppression rates per YOLO version.
-- Access: CSUSM institutional Springer access, https://link.springer.com/article/10.1007/s10207-025-01067-3
-
-**3. zimon2025_GAN_YOLO** — GAN YOLO v3/v5/v8/v11 (Springer)
+**2. zimon2025_GAN_YOLO** — GAN YOLO v3/v5/v8/v11 (Springer)
 - Why: Most directly comparable cross-YOLO study. If quantitative per-version results exist, these are the primary literature benchmarks for the capstone's multi-version comparison table.
 - What claim needs verification: Per-YOLO-version suppression rates; v8→v11 transfer if evaluated.
 - Access: CSUSM institutional Springer or ILL, https://link.springer.com/chapter/10.1007/978-3-032-14163-7_16
 
-**4. wang2026_chosen_object** — Chosen-Object Attack (IEEE CSUSM)
+**3. wang2026_chosen_object** — Chosen-Object Attack (IEEE CSUSM)
 - Why: Provides the architecturally correct loss design for YOLO26 (Hungarian matching). The capstone's YOLO26 optimization failure (final_det_loss 251.9) is directly addressed by this paper's loss formulation.
 - What claim needs verification: Hungarian matching loss formulation and quantitative results on DETR-style detectors.
 - Access: IEEE TIFS via CSUSM, https://ieeexplore.ieee.org/document/10879485/
 
 ### Priority 2 — High (obtain before finalizing methods and related work sections)
 
-**5. imran2025_tkpatch** — TK-Patch (IEEE CSUSM)
+**4. imran2025_tkpatch** — TK-Patch (IEEE CSUSM)
 - Why: Top-K loss is the closest existing approach to the capstone's simultaneous multi-YOLO attack; comparison in methods section is essential.
 - What claim needs verification: Exact ASR on YOLOv3/v5/v7; Top-K loss formulation.
 - Access: IEEE Xplore via CSUSM, DOI 10.1109/ICoDT269104.2025.11360694
 
-**6. liao2021_anchor_free** — Anchor-Free Transfer (IEEE CSUSM)
-- Why: Provides second architectural explanation for v8→v26 transfer failure (output format mismatch). Needed for results interpretation section.
-- What claim needs verification: The ~30% effectiveness claim; exact transfer rates from anchor-based to anchor-free.
-- Access: IEEE ICME 2021 via CSUSM, https://ieeexplore.ieee.org/document/9428098
-
-**7. ma2026_XAIAD** — XAIAD-YOLO (Elsevier)
+**5. ma2026_XAIAD** — XAIAD-YOLO (Elsevier)
 - Why: Most comprehensive defense paper for anchor-free YOLO; needed for defense comparison table.
 - What claim needs verification: Exact YOLO versions defended; AP clean vs. defended.
 - Access: CSUSM Elsevier, https://www.sciencedirect.com/article/pii/S0167739X25006508
 
-### Priority 3 — Medium (useful for completeness; open access available)
+### Priority 3 — Medium (local PDFs already present; promotion work remaining)
 
-**8. gu2025_SAR** — SAR Segment-Recover (MDPI open access)
+**6. gu2025_SAR** — SAR Segment-Recover (MDPI open access)
 - Why: Fills defense paradigm table; open access.
-- Access: https://www.mdpi.com/2313-433X/11/9/316 — download in browser
+- Access: local PDF already present at `docs/papers/gu2025_SAR_segment_recover_jimaging316.pdf`
 
-**9. tereshonok2025_anomaly** — Anomaly Localization (MDPI open access)
+**7. tereshonok2025_anomaly** — Anomaly Localization (MDPI open access)
 - Why: Fifth defense paradigm; open access.
-- Access: https://www.mdpi.com/2313-433X/11/1/26/pdf?version=1737095625 — download directly
+- Access: local PDF already present at `docs/papers/tereshonok2025_pedestrian_robustness_jimaging026.pdf`
 
-**10. lin2024_entropy** — Entropy-Boosted Patch (IEEE Access via CSUSM)
+**8. lin2024_entropy** — Entropy-Boosted Patch (IEEE Access via CSUSM)
 - Why: Third naturalism paradigm; YOLO versions are older (v2/v3/v4) so limited direct comparison value.
 - Access: IEEE Access via CSUSM
 
 ### Priority 4 — Low (nice to have; limited direct capstone impact)
 
-**11. bae2020_TOG** — TOG Targeted Objectness Gradient
+**9. bae2020_TOG** — TOG Targeted Objectness Gradient
 - Why: Citation verification needed before use; NMS-flooding contrast point.
 - Access: Unknown — verify citation first via Semantic Scholar
 
-**12. truong2024_AYO_GAN** — AYO-GAN (Springer ILL)
+**10. truong2024_AYO_GAN** — AYO-GAN (Springer ILL)
 - Why: Main comparison data (22.25% ASR) already captured in the note; ILL overhead not justified by incremental value.
 - Access: Springer ILL, DOI 10.1007/978-981-96-4285-4_40

@@ -14,10 +14,8 @@ Purpose: define the next papers that should become real repo notes, or the next 
 - Local PDF ready now: 9
 - Manual retrieval still needed: 1
 - Primary emphasis:
-  - `physical_robustness`: 6
+  - `physical_robustness`: 8
   - `cross_yolo_transfer`: 2
-  - `yolo26_architecture_mismatch`: 1
-  - `yolo11_coverage`: 1
 
 ## Read Order
 
@@ -57,19 +55,19 @@ Purpose: define the next papers that should become real repo notes, or the next 
 - Local PDF: not localized yet; MDPI direct PDF returned access-gated HTML during earlier fetch.
 - Retrieval status: manual browser fetch or alternate open-access mirror needed before a full note can be written.
 
-### 6. Transferable Adversarial Examples for Anchor Free Object Detection
+### 6. Segment and Recover: Defending Object Detectors Against Adversarial Patch Attacks
 
-- Repo question: `yolo26_architecture_mismatch`
-- Why now: this paper already has a blocker note in the repo, but the local PDF is now available and should be used to promote the note from blocked metadata to citation-grade evidence.
-- Expected note outcome: verified architecture note on why anchor-based attack losses transfer poorly into anchor-free detection regimes.
-- Local PDF: `docs/papers/transferable_anchor_free_2106.01618.pdf`
+- Repo question: `physical_robustness`
+- Why now: the repo now has the local PDF, but the note is still an access-era placeholder. This is the cleanest segment-and-recover defense in the local corpus.
+- Expected note outcome: promoted defense note for the fortify / recovery phase instead of continuing to treat SAR as a note-only concept.
+- Local PDF: `docs/papers/gu2025_SAR_segment_recover_jimaging316.pdf`
 
-### 7. Evaluating the Impact of Adversarial Patch Attacks on YOLO Models and the Implications for Edge AI Security
+### 7. Increasing Neural-Based Pedestrian Detectors' Robustness to Adversarial Patch Attacks Using Anomaly Localization
 
-- Repo question: `yolo11_coverage`
-- Why now: this is still the closest direct paper benchmark for modern Ultralytics YOLO generations, and the repo now has the local PDF needed to upgrade the existing note-only record.
-- Expected note outcome: citation-grade note on YOLOv5 / YOLOv8 / YOLOv9 / YOLOv10 patch behavior and model-size robustness tradeoffs.
-- Local PDF: `docs/papers/gala2025_adversarial_patch_yolo_edge_s10207.pdf`
+- Repo question: `physical_robustness`
+- Why now: the note exists, the local PDF exists, and it fills the anomaly-localization defense slot that is still underrepresented in the promoted literature layer.
+- Expected note outcome: promoted defense note for anomaly localization plus reconstruction as a distinct mitigation path.
+- Local PDF: `docs/papers/tereshonok2025_pedestrian_robustness_jimaging026.pdf`
 
 ### 8. Adversarial T-shirt! Evading Person Detectors in A Physical World
 
@@ -96,5 +94,5 @@ Purpose: define the next papers that should become real repo notes, or the next 
 
 - The first pass should focus on items 1 through 4 because they are new, local, and directly improve the current defense / transfer discussion.
 - Item 5 is the only manual-retrieval blocker left in the tranche; everything else can be advanced from repo-local materials now.
-- Items 6 through 10 are upgrade targets: they either unblock an existing note-only record or tighten a partially useful note into citation-grade evidence.
-- Do not spend the next pass on already-covered YOLOv10 / Co-DETR / RT-DETR / FCOS / NMS-free bridge papers; those architecture explanations are now present in `docs/notes/`.
+- Items 6 through 10 are upgrade targets: they either convert access-era placeholder notes into real PDF-backed defenses or tighten partial notes into citation-grade evidence.
+- Do not spend the next pass on already-covered YOLOv10 / Co-DETR / RT-DETR / FCOS / NMS-free bridge papers, or on the newly promoted Liao / Gala notes.

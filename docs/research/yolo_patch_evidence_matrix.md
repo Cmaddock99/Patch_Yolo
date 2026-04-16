@@ -1,7 +1,7 @@
 # YOLO Adversarial Patch Evidence Matrix
 
-Generated: 2026-04-14
-Source corpus: 48 local PDFs in `docs/papers/` with 46 effective canonical PDFs after duplicate handling, plus note-only blocker records
+Generated: 2026-04-15
+Source corpus: 56 local PDFs in `docs/papers/` with 54 effective canonical PDFs after duplicate handling, plus remaining blocker records
 
 Legend:
 - Digital / Physical: D = digital only, P = physical tested, D+P = both
@@ -26,11 +26,11 @@ This overlay supersedes older “stub” interpretations for the first-pass pape
 | `wei2024_CAP` | `page_cited` | `physical_robustness` | `method_to_borrow` |
 | `schack2024_real_world` | `page_cited` | `physical_robustness` | `physical_caveat` |
 | `cheng2024_depatch` | `page_cited` | `physical_robustness` | `method_to_borrow` |
+| `liao2021_anchor_free` | `page_cited` | `yolo26_architecture_mismatch` | `architecture_explanation` |
+| `gala2025_yolo` | `page_cited` | `yolo11_coverage` | `benchmark` |
 | `wang2026_chosen_object` | `blocked_access` | `yolo26_architecture_mismatch` | blocker |
-| `liao2021_anchor_free` | `blocked_access` | `yolo26_architecture_mismatch` | blocker |
 | `li2025_elevpatch` | `blocked_access` | `yolo11_coverage` | blocker |
 | `zimon2025_GAN_YOLO` | `blocked_access` | `cross_yolo_transfer` | blocker |
-| `gala2025_yolo` | `note_only_flagged` | `yolo11_coverage` | blocker |
 
 ---
 
@@ -96,16 +96,14 @@ This overlay supersedes older “stub” interpretations for the first-pass pape
 |---|---|---|---|---|---|---|---|---|---|---|
 | patchzero2022 | General (classifier + YOLO/detector) | PASCAL VOC detector (version unspecified) | Defense: pixel-wise patch detection and zeroing — no retraining needed | D | Y (across patch types and sizes) | Yes — primary defense contribution | Outperforms PatchGuard +26%, PatchCleanser +13% on MPGD/MAPGD; two-stage adversarial training handles adaptive (BPDA) attacks; 81.47% accuracy on ImageNet under attack (vs. 14.35% undefended) | Performance drops under stronger BPDA adaptive attacks (PZ-BPDA vs PZ-DO); false positive rate on highly textured natural regions not fully characterized | Yes (via ART codebase) | 3 |
 
-### Note-Only Papers: Tier C (12 papers — all claims unverified-from-pdf)
+### Tier C Unpromoted / Unverified Papers (10 papers — all claims unverified-from-pdf)
 
 | Paper (slug) | Detector Family | Exact YOLO Version(s) | Goal | D/P | Transfer Evaluated | Defense Relevance | Strongest Reported Outcome | Known Limitations | Code Available | Relevance to Repo |
 |---|---|---|---|---|---|---|---|---|---|---|
 | bae2020_TOG ⚠️ | YOLO, Faster-RCNN | YOLOv3 [unverified-from-pdf] | NMS-flooding attack via objectness maximization [unverified-from-pdf] | D [unverified-from-pdf] | N [unverified-from-pdf] | Indirect (NMS attack contrast to non-NMS YOLO26) | NMS flooded with ghost detections suppressing real ones [unverified-from-pdf] | Citation needs verification — paper title, authors, DOI all pending confirmation | Unknown | 3 |
-| gala2025_yolo | Ultralytics YOLO | YOLOv5, YOLOv8, YOLOv9, YOLOv10 [unverified-from-pdf] | Naturalistic patch evaluation on modern Ultralytics YOLO — edge AI security | D [unverified-from-pdf] | partial (cross-version implied) [unverified-from-pdf] | Indirect (model size / robustness tradeoff finding) | High evasion rates across all YOLO versions; larger models more robust [unverified-from-pdf] | Paywalled; YOLOv11/v26 not evaluated | Yes (GitHub) | 5 |
 | gu2025_SAR | YOLO family [unverified-from-pdf] | Unspecified [unverified-from-pdf] | Defense: segment adversarial patch region; recover clean image; then detect | D+P [unverified-from-pdf] | N [unverified-from-pdf] | Yes — segmentation-based defense | Architecturally distinct defense paradigm (segment + recover) [unverified-from-pdf] | MDPI bot-blocked; exact numbers unknown | Unknown | 3 |
 | imran2025_tkpatch | YOLO | YOLOv3, YOLOv5, YOLOv7 [unverified-from-pdf] | Universal Top-K multi-YOLO person evasion | D+P [unverified-from-pdf] | Y (3 models simultaneously) [unverified-from-pdf] | None | Single patch effective across YOLOv3/v5/v7 via Top-K loss [unverified-from-pdf] | v8/v11/v26 not tested; 0 citations; very new | Unknown | 4 |
 | li2025_elevpatch | YOLO11 | YOLO11 [unverified-from-pdf] | Person detection evasion — YOLO11 specific | Unknown [unverified-from-pdf] | N [unverified-from-pdf] | None | YOLO11 suppression rate UNKNOWN — primary literature benchmark | Paywalled; all details unknown | Unknown | 5 |
-| liao2021_anchor_free | Multi-architecture | YOLOv3 (anchor-based), CenterNet/FCOS (anchor-free) [unverified-from-pdf] | Transfer from anchor-based to anchor-free detectors | D [unverified-from-pdf] | Y — primary contribution [unverified-from-pdf] | Indirect (output format mismatch explains poor transfer) | Standard anchor-based attacks achieve ~30% effectiveness on anchor-free targets [unverified-from-pdf] | No YOLO8+; digital only; format-specific adaptation needed for YOLO26 | Unknown | 4 |
 | lin2024_entropy | YOLO | YOLOv2, YOLOv3, YOLOv4 [unverified-from-pdf] | Entropy-boosted naturalistic patches for person concealment | D [unverified-from-pdf] | N [unverified-from-pdf] | Indirect (naturalism via entropy = simpler than GAN) | Third naturalism paradigm (entropy loss); simpler than GAN/diffusion [unverified-from-pdf] | Only older YOLO versions; no v8/v11/v26 | Unknown | 3 |
 | ma2026_XAIAD | YOLO family (anchor-based + anchor-free) | Unspecified YOLO family including anchor-free [unverified-from-pdf] | Defense: test-time XAI-guided purification — no retraining | D [unverified-from-pdf] | Y (white-box + black-box evaluated) [unverified-from-pdf] | Yes — XAI purification defense | 66.08 FPS (1.56× faster than Grad-CAM++); significant robustness improvement [unverified-from-pdf] | Paywalled; exact YOLO versions unknown | Unknown (anonymous repo) | 4 |
 | tereshonok2025_anomaly | YOLO family [unverified-from-pdf] | Unspecified YOLO [unverified-from-pdf] | Defense: CNN anomaly localization + reconstruction before detection | D+P [unverified-from-pdf] | N [unverified-from-pdf] | Yes — anomaly reconstruction defense | Fifth distinct defense paradigm; open access available [unverified-from-pdf] | Exact numbers unknown; bot-blocked MDPI | Unknown | 3 |
@@ -117,14 +115,14 @@ This overlay supersedes older “stub” interpretations for the first-pass pape
 
 ## Updated Summary Statistics
 
-- First-pass normalized notes: 9 total (`8 page_cited`, `1 pdf_verified`)
-- First-pass blockers: 5 total (`4 blocked_access`, `1 note_only_flagged`)
+- First-pass normalized notes: 11 total (`10 page_cited`, `1 pdf_verified`)
+- First-pass blockers: 3 total (`3 blocked_access`)
 
-- Papers with direct YOLOv8 evaluation: 4 confirmed (huang2025_advreal, delacruz2026_physical, bagley2025_spap, li2025_uvattack) + 2 note-only [unverified-from-pdf] (gala2025, zimon2025)
+- Papers with direct YOLOv8 evaluation: 5 confirmed (huang2025_advreal, delacruz2026_physical, bagley2025_spap, li2025_uvattack, gala2025) + 1 note-only [unverified-from-pdf] (zimon2025)
 - Papers with direct YOLOv11 evaluation: 1 confirmed (huang2025_advreal) + 2 note-only [unverified-from-pdf] (li2025_elevpatch, zimon2025)
 - Papers with YOLO26 evaluation: 0 (literature) + 1 first-party (this repo — limited by optimization failure)
 - Papers with physical evaluation: 17 (confirmed from PDFs)
 - Papers with cross-version transfer evaluation: 12 (confirmed from PDFs)
-- Papers with defense contributions: 6 confirmed PDFs (ji2021, saha2020, lovisotto2022, wu2024_NAPGuard, na2025, winter2026) + 5 note-only [unverified-from-pdf] (gu2025, ma2026, tereshonok2025, patchzero2022 [now PDF-confirmed], zimon2025)
+- Papers with defense contributions: 7 confirmed PDFs (ji2021, saha2020, lovisotto2022, patchzero2022, wu2024_NAPGuard, na2025, winter2026) + 4 Tier C unverified records (gu2025, ma2026, tereshonok2025, zimon2025)
 - Papers with open-source code: 8 (brown2017, liu2019, thys2019, xu2020, huang2022_tsea, wei2024_CAP, wu2024_NAPGuard, huang2019_UPC) + gala2025 via GitHub [unverified-from-pdf]
-- Total papers in matrix: 30 original + 1 first-party + 3 new PDFs + 12 note-only = 46 entries
+- Total papers in matrix: 30 original + 1 first-party + 3 new PDFs + 2 promoted blocker papers + 10 remaining Tier C unverified records = 46 entries
