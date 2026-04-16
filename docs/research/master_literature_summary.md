@@ -11,12 +11,12 @@ This is the living synthesis document for the capstone. Every paper processed ge
 - For full method details, loss terms, and numbers: see the individual note files.
 - For source verification: see `verified_sources.md`.
 - For original PDFs: see `docs/papers/`.
-- Working-packet sync for this pass: 20 promoted notes (`19 page_cited`, `1 pdf_verified`) and 3 blockers explicitly bounded (`3 blocked_access`).
+- Working-packet sync for this pass: 24 promoted notes (`23 page_cited`, `1 pdf_verified`) and 3 blockers explicitly bounded (`3 blocked_access`).
 
 ## Working-Packet Sync
 
 - The first-pass notes for Bayer, AdvReal, T-SEA, DOEPatch, Lovisotto, Alam, CAP, Schack, and DePatch are no longer stub-level working notes.
-- Newly promoted local-PDF notes in this pass: Gala 2025, Liao 2021, Lin 2024 NutNet, Hu 2022 AdvTexture, Liang 2021 Catch You, and Nazeri 2024 DETR robustness.
+- Newly promoted local-PDF notes in this pass: Gala 2025, Liao 2021, Lin 2024 NutNet, Hu 2022 AdvTexture, Liang 2021 Catch You, Nazeri 2024 DETR robustness, Gu 2025 SAR, Tereshonok 2025 anomaly localization, Xu 2020 Adversarial T-shirt, and Ji 2021 Ad-YOLO.
 - The blocker notes for Chosen-Object, ElevPatch, and Zimon should not be treated as promoted benchmark evidence in repo-first mode.
 - Where this document still uses older labels such as `Fully processed` or `Stub`, defer to the note-level evidence state and the working packet audit.
 
@@ -52,17 +52,18 @@ This is the living synthesis document for the capstone. Every paper processed ge
 | Zimoň — GAN YOLO v3/v5/v8/v11 | 2025 | `notes/zimon2025_GAN_YOLO_robustness.md` | No PDF (Springer paywall) | `blocked_access` — near-scope predecessor, numbers unavailable |
 | Lin et al. — Entropy Patch | 2024 | `notes/lin2024_entropy_adversarial_patch.md` | No PDF (IEEE Access paywall) | Access-limited — quantitative details pending |
 | Truong et al. — AYO-GAN | 2024 | `notes/truong2024_AYO_GAN.md` | No PDF (Springer paywall) | Access-limited — quantitative details pending |
-| Gu & Jafarnejadsani — SAR | 2025 | `notes/gu2025_SAR_segment_recover.md` | `papers/gu2025_SAR_segment_recover_jimaging316.pdf` | Local PDF present — promotion pending |
+| Gu & Jafarnejadsani — SAR | 2025 | `notes/gu2025_SAR_segment_recover.md` | `papers/gu2025_SAR_segment_recover_jimaging316.pdf` | `page_cited` — detector-agnostic defense baseline |
+| Ilina et al. — Anomaly Localization | 2025 | `notes/tereshonok2025_anomaly_localization_defense.md` | `papers/tereshonok2025_pedestrian_robustness_jimaging026.pdf` | `page_cited` — clean-data-only defense baseline |
 | Bayer et al. — Network Transferability | 2024 | `notes/bayer2024_network_transferability.md` | `papers/bayer2024_network_transferability_2408.15833.pdf` | `page_cited` — transfer benchmark |
 | Huang et al. — T-SEA | 2022 | `notes/huang2022_tsea_transfer.md` | `papers/huang2022_tsea_transfer_2211.09773.pdf` | `page_cited` — transfer method |
 | Lovisotto et al. — Attention Patch Robustness | 2022 | `notes/lovisotto2022_attention_patch_robustness.md` | `papers/lovisotto2022_attention_patch_robustness_CVPR.pdf` | `page_cited` — attention mechanism |
 | Alam et al. — Attention Deficit | 2023 | `notes/alam2023_attention_deficit_deformable.md` | `papers/alam2023_attention_deficit_2311.12914.pdf` | `page_cited` — deformable-attention mechanism |
 | Wang et al. — Chosen-Object Attack | 2026 | `notes/wang2026_chosen_object_attack.md` | CSUSM IEEE access (no local PDF) | `blocked_access` — Hungarian-matching blocker |
 | Liao et al. — Anchor-Free Adversarial | 2021 | `notes/liao2021_anchor_free_adversarial.md` | `papers/transferable_anchor_free_2106.01618.pdf` | `page_cited` — anchor-free mismatch reference |
-| Xu et al. — Adversarial T-shirt | 2020 | `notes/xu2020_adversarial_tshirt.md` | `papers/xu2020_adversarial_tshirt_1910.11099.pdf` | Local PDF present — promotion pending |
+| Xu et al. — Adversarial T-shirt | 2020 | `notes/xu2020_adversarial_tshirt.md` | `papers/xu2020_adversarial_tshirt_1910.11099.pdf` | `page_cited` — primary physical benchmark |
 | Huang et al. — AdvReal | 2025 | `notes/huang2025_advreal_physical.md` | `papers/huang2025_advreal_physical_2505.16402.pdf` | `page_cited` — physical benchmark |
 | Li et al. — ElevPatch YOLO11 | 2025 | `notes/li2025_elevpatch_yolo11.md` | ILL needed | `blocked_access` — only YOLO11-specific paper |
-| Ji et al. — Adversarial YOLO defense | 2021 | `notes/ji2021_adversarial_yolo_defense.md` | `papers/ji2021_adversarial_yolo_defense_2103.08860.pdf` | Local PDF present — promotion pending |
+| Ji et al. — Adversarial YOLO defense | 2021 | `notes/ji2021_adversarial_yolo_defense.md` | `papers/ji2021_adversarial_yolo_defense_2103.08860.pdf` | `page_cited` — direct YOLO defense benchmark |
 | Wu et al. — Invisibility Cloak | 2020 | `notes/wu2020_invisibility_cloak.md` | `papers/wu2020_invisibility_cloak_1910.14667.pdf` | Stub — physical transfer study |
 | Zhou et al. — MVPatch | 2023 | `notes/zhou2023_mvpatch.md` | `papers/zhou2023_mvpatch_2312.17431.pdf` | Stub — transfer + stealth benchmark |
 
@@ -179,16 +180,16 @@ From Gala et al. (2025): **Larger models are more robust to adversarial patches 
 
 ---
 
-## Next Note Pass (after 2026-04-15 top-4 completion)
+## Next Note Pass (after 2026-04-15 local-queue completion)
 
 1. Improving Transferability of Physical Adversarial Attacks on Object Detectors Through Multi-Model Optimization — only remaining top-tranche retrieval blocker for direct transfer improvement.
-2. Gu & Jafarnejadsani / SAR (2025) — strongest fully local segment-and-recover defense still waiting on promotion.
-3. Tereshonok et al. / Anomaly Localization (2025) — local-PDF defense note needed to complete the anomaly-reconstruction lane.
-4. Xu et al. / Adversarial T-shirt (2020) — foundational physical benchmark still below citation-grade status in this repo.
-5. Ji et al. / Adversarial YOLO Defense (2021) — strongest direct YOLO defense benchmark still waiting on a promoted local-PDF note.
-6. AdvLogo (2024) — local PDF exists but no dedicated note yet; best next naturalistic / diffusion attack method.
-7. PatchZero (2022) — local defense PDF already present and worth tightening into detector-focused evidence.
-8. Wu et al. / Invisibility Cloak (2020) — older but still useful physical transfer anchor once the defense queue is upgraded.
+2. AdvLogo (2024) — local PDF exists but no dedicated note yet; best next naturalistic / diffusion attack method.
+3. PatchZero (2022) — local defense PDF already present and worth tightening into detector-focused evidence.
+4. Wu et al. / Invisibility Cloak (2020) — older but still useful physical transfer anchor.
+5. Zhou et al. / MVPatch (2023) — strongest remaining local multi-model transfer benchmark.
+6. Li et al. / UV-Attack (2025) — strongest local NeRF / UV-map physical benchmark still below promotion-grade status.
+7. Lu et al. / FRAN (2022) — frequency-domain defense and localization angle worth tightening.
+8. Diff-NAT (2026) — naturalistic diffusion baseline once AdvLogo is promoted.
 
 ---
 

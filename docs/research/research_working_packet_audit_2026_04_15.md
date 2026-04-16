@@ -1,7 +1,7 @@
 # Research Working Packet Audit
 
 Generated: 2026-04-15  
-Scope: current-state audit after promoting newly local-PDF-backed blocker notes and the first four local-PDF queue papers
+Scope: current-state audit after promoting newly local-PDF-backed blocker notes and the first eight local-PDF queue papers
 
 ## Corpus Inventory
 
@@ -11,7 +11,7 @@ Scope: current-state audit after promoting newly local-PDF-backed blocker notes 
 | Local PDFs in `docs/papers/` | 56 | Raw file count |
 | Known duplicate pairs | 2 | Guesmi 2024 and Zolfi 2021 |
 | Effective canonical local-PDF count | 54 | 56 local PDFs minus 2 duplicate copies |
-| Notes marked `page_cited` | 19 | Current citation-grade local note count |
+| Notes marked `page_cited` | 23 | Current citation-grade local note count |
 | Notes marked `pdf_verified` | 1 | Current non-page-cited but PDF-backed promoted note count |
 | Remaining `blocked_access` notes | 3 | Wang 2026, Li 2025 ElevPatch, Zimon 2025 |
 | Remaining `note_only_flagged` notes | 0 | Gala has been promoted in this pass |
@@ -28,6 +28,10 @@ These notes were previously treated as blocked or note-only in the working packe
 | `advtexture2022` | `docs/papers/advtexture_person_detectors_2203.03373.pdf` | `page_cited` | `physical_robustness` | High-value physical clothing benchmark for multi-angle person evasion |
 | `liang2021_catch_you` | `docs/papers/we_can_always_catch_you_2106.05261.pdf` | `page_cited` | `physical_robustness` | Strong YOLOv8-era defense paper with both fast and signature-independent detectors |
 | `nazeri2024_detr_robustness` | `docs/papers/detection_transformers_robustness_2412.18718.pdf` | `page_cited` | `yolo26_architecture_mismatch` | Useful DETR-family robustness and transfer reference for YOLO26-style interpretation |
+| `gu2025_SAR` | `docs/papers/gu2025_SAR_segment_recover_jimaging316.pdf` | `page_cited` | `physical_robustness` | Strongest local segment-and-inpaint defense with direct YOLO11 evaluation |
+| `tereshonok2025_anomaly` | `docs/papers/tereshonok2025_pedestrian_robustness_jimaging026.pdf` | `page_cited` | `physical_robustness` | Clean-data-only anomaly-localization defense for physical pedestrian patch attacks |
+| `xu2020_adversarial_tshirt` | `docs/papers/xu2020_adversarial_tshirt_1910.11099.pdf` | `page_cited` | `physical_robustness` | Foundational TPS-based physical wearable benchmark for person evasion |
+| `ji2021_adversarial_yolo_defense` | `docs/papers/ji2021_adversarial_yolo_defense_2103.08860.pdf` | `page_cited` | `physical_robustness` | Strongest direct YOLO-side patch-class defense baseline in the local corpus |
 
 ## Current Working-Packet Evidence Overlay
 
@@ -48,6 +52,10 @@ These notes were previously treated as blocked or note-only in the working packe
 | `advtexture2022` | `page_cited` | `physical_robustness` | `benchmark` |
 | `liang2021_catch_you` | `page_cited` | `physical_robustness` | `defense_baseline` |
 | `nazeri2024_detr_robustness` | `page_cited` | `yolo26_architecture_mismatch` | `architecture_explanation` |
+| `gu2025_SAR` | `page_cited` | `physical_robustness` | `defense_baseline` |
+| `tereshonok2025_anomaly` | `page_cited` | `physical_robustness` | `defense_baseline` |
+| `xu2020_adversarial_tshirt` | `page_cited` | `physical_robustness` | `benchmark` |
+| `ji2021_adversarial_yolo_defense` | `page_cited` | `physical_robustness` | `defense_baseline` |
 | `wang2026_chosen_object` | `blocked_access` | `yolo26_architecture_mismatch` | blocker |
 | `li2025_elevpatch` | `blocked_access` | `yolo11_coverage` | blocker |
 | `zimon2025_GAN_YOLO` | `blocked_access` | `cross_yolo_transfer` | blocker |
@@ -68,15 +76,14 @@ These notes already have local PDFs but are not yet promoted to `page_cited` or 
 
 | Priority band | Note | Local PDF | Why it is next |
 |---|---|---|---|
-| Highest | `xu2020_adversarial_tshirt.md` | `docs/papers/xu2020_adversarial_tshirt_1910.11099.pdf` | Primary physical benchmark still sitting at note level |
-| Highest | `ji2021_adversarial_yolo_defense.md` | `docs/papers/ji2021_adversarial_yolo_defense_2103.08860.pdf` | Strongest direct detector-side defense benchmark for YOLO |
-| Highest | `gu2025_SAR_segment_recover.md` | `docs/papers/gu2025_SAR_segment_recover_jimaging316.pdf` | Segmentation-and-recovery defense is now locally readable but the note is still access-era placeholder text |
-| Highest | `tereshonok2025_anomaly_localization_defense.md` | `docs/papers/tereshonok2025_pedestrian_robustness_jimaging026.pdf` | Anomaly-localization defense note still lacks a promoted PDF-backed synthesis |
+| Highest | `patchzero2022_detect_zero_defense.md` | `docs/papers/patchzero2022_detect_zero_defense_2207.01795.pdf` | Strong detector-agnostic defense note still needs promotion-grade synthesis |
+| Highest | `wu2020_invisibility_cloak.md` | `docs/papers/wu2020_invisibility_cloak_1910.14667.pdf` | Physical transfer benchmark still under-promoted |
+| Highest | `zhou2023_mvpatch.md` | `docs/papers/zhou2023_mvpatch_2312.17431.pdf` | Multi-model camouflage benchmark still under-promoted |
+| Highest | `li2025_uvattack_nerf_person.md` | `docs/papers/li2025_uvattack_nerf_person_2501.05783.pdf` | View-consistent physical attack method worth tightening |
 | Medium | `lu2022_fran_frequency_attention.md` | `docs/papers/lu2022_fran_frequency_attention_2205.04638.pdf` | Frequency-domain defense idea is useful but still only partial |
-| Medium | `wu2020_invisibility_cloak.md` | `docs/papers/wu2020_invisibility_cloak_1910.14667.pdf` | Physical transfer benchmark still under-promoted |
-| Medium | `zhou2023_mvpatch.md` | `docs/papers/zhou2023_mvpatch_2312.17431.pdf` | Multi-model camouflage benchmark still under-promoted |
-| Medium | `li2025_uvattack_nerf_person.md` | `docs/papers/li2025_uvattack_nerf_person_2501.05783.pdf` | View-consistent physical attack method worth tightening |
 | Medium | `diffnat2026_AAAI.md` | `docs/papers/diffnat2026_AAAI.pdf` | Useful naturalistic/diffusion reference but not yet promotion-grade |
+| Medium | `zhou2025_sequence_level_clothing.md` | `docs/papers/zhou2025_sequence_level_clothing_2505.15848.pdf` | Sequence-level wearable robustness note could sharpen the video/temporal lane |
+| Medium | `bagley2025_dynamically_optimized_clusters.md` | `docs/papers/bagley2025_dynamically_optimized_clusters_2511.18656.pdf` | Small-patch physical robustness result on modern YOLO remains under-integrated |
 
 ## Local PDFs Not Yet Wired Into A Strong Note Path
 

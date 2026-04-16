@@ -88,13 +88,13 @@ Scope: 30 unique PDFs in docs/papers/; additional note-only papers in docs/notes
 
 ### Theme 7: Segment-and-Recover Approaches
 
-**Papers:** gu2025_SAR_segment_recover (note-only, no PDF), patchzero2022_detect_zero_defense (note-only)
+**Papers:** gu2025_SAR_segment_recover, patchzero2022_detect_zero_defense
 
-**Description:** Detect patch region → mask it → inpaint with nearby pixels → re-run detector on recovered image. Two-stage pipeline. Mentioned in notes for gu2025 and patchzero2022 but PDFs not in corpus.
+**Description:** Detect patch region, suppress or mask it, repair the image region, then re-run the detector on the recovered image. SAR uses FastSAM-guided segmentation plus inpainting and evaluates directly on YOLOv11, DETR, and Faster R-CNN. PatchZero uses a detect-and-zero pipeline with adaptive evaluation across patch attacks.
 
-**Evidence strength:** Unverified-from-pdf (note-only papers)
+**Evidence strength:** Supported. SAR reports strong recovery against printable and adaptive patches while keeping false alarm rates near zero on clean data; PatchZero reports gains over PatchGuard and PatchCleanser under both standard and adaptive attacks.
 
-**Capstone applicability:** Medium. Documented in literature as a standard approach. Worth testing in fortify phase as a baseline defense.
+**Capstone applicability:** High. This is now the clearest literature-backed fortify baseline for the project, but it still needs direct evaluation on YOLOv8 and YOLO26.
 
 ---
 
@@ -152,9 +152,9 @@ Scope: 30 unique PDFs in docs/papers/; additional note-only papers in docs/notes
 
 ---
 
-### Gap 6: Fortification (Recovery After Attack) — No Papers Directly Address This for YOLO8+
+### Gap 6: Fortification (Recovery After Attack) — Sparse Direct Evidence for YOLO8+
 
-**What is missing:** The fortify phase (recover detection quality after an adversarial patch is in the scene) has sparse coverage. gu2025_SAR (note-only) and patchzero2022 (note-only) address this conceptually, but neither PDF is in the corpus and neither evaluates on v8/v11/v26.
+**What is missing:** The fortify phase (recover detection quality after an adversarial patch is in the scene) now has two usable literature anchors, gu2025_SAR and patchzero2022, but coverage is still sparse for modern Ultralytics YOLO. SAR evaluates YOLOv11 directly, while PatchZero is detector-agnostic and does not target the current v8/v11/v26 ladder. Neither paper evaluates YOLOv8 or YOLO26.
 
 **What the capstone should measure:** Test segment-and-recover pipeline on YOLOv8n: detect patch region, inpaint, re-run detector. Measure recovery rate.
 

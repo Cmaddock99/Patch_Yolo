@@ -13,21 +13,21 @@
 
 | Tier | Label | Count |
 |------|-------|-------|
-| A | PDF + deep note (page-cited) | 14 |
-| B | PDF + skim note | 25 |
-| C | Unpromoted / unverified note records | 10 |
+| A | PDF + deep note (page-cited) | 17 |
+| B | PDF + skim note | 24 |
+| C | Unpromoted / unverified note records | 8 |
 | D | Ranked candidates (not yet in repo) | 2 |
 | E | First-party experimental results | 1 (special entry) |
 | **Total** | | **52** |
 
-Notes: Tier B count is 25 (not 22 from previous synthesis) because this run added 3 newly-downloaded PDFs (huang2019, kolter2019, patchzero2022) and upgraded their notes. Gala 2025 and Liao 2021 were promoted from Tier C into Tier A in the previous sync, and the current sync adds Lin 2024 NutNet, Hu 2022 AdvTexture, Liang 2021 Catch You, and Nazeri 2024 DETR robustness into Tier A. Two PDFs are duplicates (zolfi2021_CVPR = canonical; guesmi2024_CVPR = canonical) per `research/data/ranked/pdf_duplicates.md`.
+Notes: Tier B count is 24 (not 22 from previous synthesis) because this run added 3 newly-downloaded PDFs (huang2019, kolter2019, patchzero2022) and upgraded their notes. Gala 2025 and Liao 2021 were promoted from Tier C into Tier A in the previous sync, and the current sync adds Lin 2024 NutNet, Hu 2022 AdvTexture, Liang 2021 Catch You, Nazeri 2024 DETR robustness, Gu 2025 SAR, Tereshonok 2025 anomaly localization, and Xu 2020 Adversarial T-shirt into Tier A. Two PDFs are duplicates (zolfi2021_CVPR = canonical; guesmi2024_CVPR = canonical) per `research/data/ranked/pdf_duplicates.md`.
 
 ### Coverage of Target Models
 
 | Model | Tier A (deep-read) | Tier B (skimmed) | Tier C (unpromoted) | Tier D (candidate) | First-party |
 |-------|-------------------|-----------------|-------------------|-------------------|-------------|
 | YOLOv8 | 4 (huang2025_advreal, bayer2024, gala2025, liang2021) | 4 | 2 (zimon2025, imran2025*) | 0 confirmed | Yes (90% suppression) |
-| YOLO11 | 1 (huang2025_advreal) | 1 (zhou2025) | 2 (li2025_elevpatch, zimon2025) | 0 confirmed | Yes (84.8% suppression) |
+| YOLO11 | 2 (huang2025_advreal, gu2025_SAR) | 1 (zhou2025) | 2 (li2025_elevpatch, zimon2025) | 0 confirmed | Yes (84.8% suppression) |
 | YOLO26 | 0 | 0 | 0 | 0 confirmed | Yes (11.6% suppression, difficult) |
 
 *imran2025 evaluates v3/v5/v7, not v8 directly.
@@ -70,11 +70,13 @@ Legend — Evidence confidence: **high** = PDF + page citations | **medium** = P
 | bayer2024_network_transferability | Network Transferability | 2024 | SPIE | A | Yes | Yes | YOLOv7–v10, 28 models | Transfer analysis | high | 5 | Open |
 | huang2025_advreal | AdvReal | 2025/2026 | Expert Sys. Appl. | A | Yes | Yes | YOLOv2–v12 | Physical person suppression | high | 5 | Open |
 | ji2021_adversarial_yolo_defense | Ad-YOLO | 2021 | arXiv | A | Yes | Yes | YOLOv2 | Defense: patch class | high | 4 | Open |
+| gu2025_SAR | Segment and Recover (SAR) | 2025 | J. Imaging/MDPI | A | Yes | Yes | YOLOv11, DETR, Faster-RCNN | Defense: segment-recover | high | 4 | Local PDF |
+| tereshonok2025_anomaly | Anomaly Localization Defense | 2025 | J. Imaging/MDPI | A | Yes | Yes | YOLOv3 | Defense: anomaly reconstruction | high | 3 | Local PDF |
 | liang2021_catch_you | We Can Always Catch You | 2021/2025 | IEEE TDSC | A | Yes | Yes | YOLOv2, YOLOv4, YOLOR, YOLOv8 | Defense: patch detection | high | 4 | Local PDF |
 | huang2022_tsea_transfer | T-SEA | 2022 | CVPR 2023 | A | Yes | Yes | YOLOv2–v5, multi | Cross-model transfer | high | 4 | Open |
 | advtexture2022 | AdvTexture | 2022 | CVPR | A | Yes | Yes | YOLOv2, YOLOv3, Faster-RCNN, Mask R-CNN | Multi-angle physical person evasion | high | 4 | Open |
 | wu2020_invisibility_cloak | Invisibility Cloak | 2020 | ECCV | B | Yes | Yes | YOLOv2+Faster-RCNN | Universal suppression, physical | medium | 4 | Open |
-| xu2020_adversarial_tshirt | Adversarial T-shirt | 2020 | ECCV | B | Yes | Yes | YOLOv2 | Person suppression, clothing | medium | 4 | Open |
+| xu2020_adversarial_tshirt | Adversarial T-shirt | 2020 | ECCV | A | Yes | Yes | YOLOv2, Faster-RCNN | Person suppression, clothing | high | 4 | Open |
 | zolfi2021_translucent_patch | Translucent Patch | 2021 | CVPR | B | Yes | Yes | YOLOv3 | Class-specific suppression | medium | 2 | Open |
 | hoory2020_dynamic_patch | Dynamic Adversarial Patch | 2020 | arXiv | B | Yes | Yes | YOLOv3 | Dynamic multi-angle | medium | 3 | Open |
 | hu2021_naturalistic_patch | Naturalistic Patch | 2021 | ICCV | B | Yes | Yes | YOLOv2, Faster-RCNN | Person suppression, GAN | medium | 3 | Open |
@@ -100,13 +102,11 @@ Legend — Evidence confidence: **high** = PDF + page citations | **medium** = P
 | **patchzero2022** | **PatchZero** | **2022/2023** | **WACV 2023** | **B** | **Yes** | **Yes (upgraded)** | General (PASCAL VOC) | Defense: detect-and-zero | **high** | 3 | Open |
 | bae2020_TOG | TOG: Targeted Objectness Gradient | ~2020 | Unknown ⚠️ | C | No | Yes | YOLOv3, Faster-RCNN | NMS-flooding attack | low [unverified-from-pdf] | 3 | Unknown — citation needs verification |
 | gala2025_yolo_adversarial_patches | YOLO Adversarial Patches (Springer) | 2025 | IJIS/Springer | A | Yes | Yes | YOLOv5/v8/v9/v10 | Naturalistic patches, edge AI | high | 5 | Local PDF |
-| gu2025_SAR | Segment and Recover (SAR) | 2025 | J. Imaging/MDPI | C | No | Yes | Unspecified YOLO | Defense: segment-recover | low [unverified-from-pdf] | 3 | Open (bot-blocked) |
 | imran2025_tkpatch | TK-Patch | 2025 | ICoDT2/IEEE | C | No | Yes | YOLOv3/v5/v7 | Multi-YOLO universal patch | low [unverified-from-pdf] | 4 | IEEE Xplore |
 | li2025_elevpatch | ElevPatch (YOLO11) | 2025 | ICIC/Springer | C | No | Yes | YOLO11 | Person evasion (YOLO11 specific) | low [unverified-from-pdf] | 5 | Springer ILL |
 | liao2021_anchor_free | Anchor-Free Adversarial Transfer | 2021 | IEEE ICME | A | Yes | Yes | YOLOv3, CenterNet/FCOS | Anchor-free transfer | high | 4 | Local PDF |
 | lin2024_entropy | Entropy-Boosted Patch | 2024 | IEEE Access | C | No | Yes | YOLOv2/v3/v4 | Entropy naturalism loss | low [unverified-from-pdf] | 3 | IEEE CSUSM |
 | ma2026_XAIAD | XAIAD-YOLO | 2026 | FGCS/Elsevier | C | No | Yes | YOLO family (anchor-free incl.) | Defense: XAI test-time | low [unverified-from-pdf] | 4 | Elsevier paywall |
-| tereshonok2025_anomaly | Anomaly Localization Defense | 2025 | J. Imaging/MDPI | C | No | Yes | YOLO family | Defense: anomaly reconstruction | low [unverified-from-pdf] | 3 | Open (bot-blocked) |
 | truong2024_AYO_GAN | AYO-GAN | 2024/2025 | SOICT/Springer | C | No | Yes | YOLO (v5 likely) | GAN perturbation YOLO | low [unverified-from-pdf] | 2 | Springer ILL |
 | wang2026_chosen_object | Chosen-Object Attack | 2026 | IEEE TIFS | C | No | Yes | DETR-style (YOLO26 analog) | Hungarian matching attack | low [unverified-from-pdf] | 4 | IEEE CSUSM |
 | zimon2025_GAN_YOLO | GAN YOLO Robustness | 2025 | Springer ISID | C | No | Yes | YOLOv3/v5/v8/v11 | Cross-YOLO GAN attack+defense | low [unverified-from-pdf] | 5 | Springer paywall |
@@ -162,7 +162,7 @@ Code-available self-ensemble approach achieving black-box average mAP 9.16% acro
 
 ### Recent Tier A Additions (2026-04-15 sync)
 
-Reference notes: `docs/notes/gala2025_yolo_adversarial_patches.md`, `docs/notes/liao2021_anchor_free_adversarial.md`, `docs/notes/lin2024_nutnet_defense.md`, `docs/notes/hu2022_advtexture_physical.md`, `docs/notes/liang2021_catch_you_defense.md`, `docs/notes/nazeri2024_detr_robustness.md`
+Reference notes: `docs/notes/gala2025_yolo_adversarial_patches.md`, `docs/notes/liao2021_anchor_free_adversarial.md`, `docs/notes/lin2024_nutnet_defense.md`, `docs/notes/hu2022_advtexture_physical.md`, `docs/notes/liang2021_catch_you_defense.md`, `docs/notes/nazeri2024_detr_robustness.md`, `docs/notes/gu2025_SAR_segment_recover.md`, `docs/notes/tereshonok2025_anomaly_localization_defense.md`, `docs/notes/xu2020_adversarial_tshirt.md`
 
 - `gala2025_yolo_adversarial_patches`: strongest direct modern Ultralytics benchmark in the local corpus before YOLO11/YOLO26.
 - `liao2021_anchor_free`: clearest local-PDF support for output-space mismatch when moving from anchor-based to anchor-free detectors.
@@ -170,6 +170,9 @@ Reference notes: `docs/notes/gala2025_yolo_adversarial_patches.md`, `docs/notes/
 - `advtexture2022`: high-value physical clothing benchmark showing why multi-angle texture visibility matters more than narrow digital patch strength.
 - `liang2021_catch_you`: defense benchmark with both signature-based and signature-independent modes, plus YOLOv8 evidence.
 - `nazeri2024_detr_robustness`: DETR-family robustness and transfer context that strengthens the YOLO26 architecture-mismatch interpretation.
+- `gu2025_SAR`: strongest local segment-and-inpaint defense and the main direct YOLO11-side defense paper now in the working packet.
+- `tereshonok2025_anomaly`: clean-data-only anomaly-localization defense for physical pedestrian patch attacks.
+- `xu2020_adversarial_tshirt`: foundational TPS-based physical wearable benchmark with still-useful multi-detector results.
 
 ---
 
@@ -180,7 +183,6 @@ Note: huang2019, kolter2019, and patchzero2022 have been upgraded from Tier B st
 | Slug | Key finding | Deep read needed? |
 |------|-------------|-------------------|
 | wu2020_invisibility_cloak | Physical wearable clothing; systematic multi-detector + multi-configuration black-box transfer study; most complete physical benchmark for pre-2021 era | Yes — if physical deployment discussion matters |
-| xu2020_adversarial_tshirt | 74% digital / 57% physical ASR on YOLOv2 T-shirt; TPS deformation model for clothing; standard physical benchmark | No — already cited for comparison |
 | zolfi2021_translucent_patch | Translucent film on camera lens suppresses stop signs with 42.27% physical fooling (close to digital 42.47%); unusual insider threat model | No — not directly relevant to person evasion |
 | hoory2020_dynamic_patch | Dynamic multi-placement patches for YOLOv3; poor transfer to Faster-RCNN; supports YOLO-family specificity of attacks | No |
 | hu2021_naturalistic_patch | GAN-constrained naturalistic patches achieve suppression while appearing realistic; BigGAN latent space; digital only | Yes — if naturalism comparison is needed |
@@ -556,13 +558,13 @@ Ranked by capstone importance. Includes the 10 remaining Tier C unpromoted / unr
 
 ### Priority 3 — Medium (local PDFs already present; promotion work remaining)
 
-**6. gu2025_SAR** — SAR Segment-Recover (MDPI open access)
-- Why: Fills defense paradigm table; open access.
-- Access: local PDF already present at `docs/papers/gu2025_SAR_segment_recover_jimaging316.pdf`
+**6. advlogo2024** — AdvLogo (local PDF)
+- Why: best next local naturalistic / diffusion patch method now that the defense queue has been promoted.
+- Access: local PDF already present at `docs/papers/advlogo_diffusion_patch_2409.07002.pdf`
 
-**7. tereshonok2025_anomaly** — Anomaly Localization (MDPI open access)
-- Why: Fifth defense paradigm; open access.
-- Access: local PDF already present at `docs/papers/tereshonok2025_pedestrian_robustness_jimaging026.pdf`
+**7. patchzero2022** — PatchZero (local PDF)
+- Why: detect-and-zero defense remains under-integrated in detector-specific terms.
+- Access: local PDF already present at `docs/papers/patchzero2022_detect_zero_defense_2207.01795.pdf`
 
 **8. lin2024_entropy** — Entropy-Boosted Patch (IEEE Access via CSUSM)
 - Why: Third naturalism paradigm; YOLO versions are older (v2/v3/v4) so limited direct comparison value.

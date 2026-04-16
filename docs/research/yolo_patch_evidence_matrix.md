@@ -26,7 +26,11 @@ This overlay supersedes older “stub” interpretations for the first-pass pape
 | `wei2024_CAP` | `page_cited` | `physical_robustness` | `method_to_borrow` |
 | `schack2024_real_world` | `page_cited` | `physical_robustness` | `physical_caveat` |
 | `cheng2024_depatch` | `page_cited` | `physical_robustness` | `method_to_borrow` |
+| `ji2021_adversarial_yolo_defense` | `page_cited` | `physical_robustness` | `defense_baseline` |
 | `lin2024_nutnet` | `page_cited` | `physical_robustness` | `defense_baseline` |
+| `gu2025_SAR` | `page_cited` | `physical_robustness` | `defense_baseline` |
+| `tereshonok2025_anomaly` | `page_cited` | `physical_robustness` | `defense_baseline` |
+| `xu2020_adversarial_tshirt` | `page_cited` | `physical_robustness` | `benchmark` |
 | `advtexture2022` | `page_cited` | `physical_robustness` | `benchmark` |
 | `liang2021_catch_you` | `page_cited` | `physical_robustness` | `defense_baseline` |
 | `liao2021_anchor_free` | `page_cited` | `yolo26_architecture_mismatch` | `architecture_explanation` |
@@ -61,6 +65,8 @@ This overlay supersedes older “stub” interpretations for the first-pass pape
 | bayer2024_network_transferability | Multi-YOLO | YOLOv7–v10, YOLO-NAS, RT-DETR (28 models) | Cross-architecture patch transfer analysis | D | Y — primary contribution (28-model matrix) | Indirect (identifies most/least vulnerable architectures) | YOLOv8n/s are weak source models; larger models transfer better | YOLOv11/v26 absent; digital only; no physical | No (Fraunhofer) | 5 |
 | cheng2024_depatch | YOLO | YOLOv2 (primary); YOLOv3, YOLOv5 (transfer) | Person suppression with physical robustness | D+P | partial (v2→v3, v2→v5) | Indirect | Digital AP 17.75% / physical clothing ASR 90.96% on YOLOv2 | YOLOv8/v11/v26 not evaluated | Not confirmed | 5 |
 | lin2024_nutnet | YOLO, SSD, Faster-RCNN, DETR | YOLOv2, YOLOv3, YOLOv4, SSD, Faster R-CNN, DETR | Real-time defense against hiding and appearing patch attacks | D+P | Y (cross-detector evaluation) | Yes — primary defense contribution | Physical YOLOv2 attack success drops from `83.0%`, `74.9%`, `96.3%`, and `98.7%` to `0.7%`, `0.3%`, `0.0%`, and `5.6%` respectively | No YOLOv8/v11/v26 evaluation; physical tests are only on YOLOv2 | Unclear | 4 |
+| gu2025_SAR | YOLO, DETR, Faster-RCNN | YOLOv11, DETR, Faster R-CNN | Detect-and-inpaint defense against diverse visible patch attacks | D+P | Y (cross-detector evaluation) | Yes — primary defense contribution | YOLOv11 reaches `0.72 / 0.76 / 0.70` certified recall under `20% / 30% / 40%` adaptive patches, while Faster R-CNN reaches `0.82 / 0.86 / 0.88` and clean FAR stays near zero | Limited to localized visible patches; translucent patches bypass the current method | Yes (paper links code) | 4 |
+| tereshonok2025_anomaly | YOLO | YOLOv3 | Clean-data-only anomaly-localization defense for pedestrian patches | D+P | N | Yes — primary defense contribution | Adversarial `mAP` rises from `46.79` to `80.97` and `ASR` drops to `8.40` on INRIA Person | Tested only on YOLOv3 pedestrian detection; parameter sensitivity and runtime are acknowledged limits | Unclear | 3 |
 | nazeri2024_detr_robustness | DETR | DETR-R50, DETR-R50-DC5, DETR-R101, DETR-R101-DC5 | Pixel-space robustness and transfer analysis for detection transformers | D | Y (within DETR family and to Faster R-CNN) | Indirect | DETR-R50 mAP falls from `0.420` clean to `0.084` under the paper's attack, with transfer to Faster R-CNN still achieving `43.5%` relative degradation | Not an adversarial-patch paper; no YOLO models tested directly | Unclear | 3 |
 | schack2024_real_world | YOLO | YOLOv3 (global), YOLOv5 (local) | Physical-digital gap analysis | P | N | Indirect (documents failure modes for defense planning) | Quantified digital-physical gap: hue change renders patch ineffective; size/rotation sensitivity | No new attack; evaluation only; older YOLO | No | 3 |
 | tan2024_DOEPatch | Multi-detector | YOLOv2/v3/v4, Faster-RCNN (ensemble) | Multi-model ensemble adversarial patch | D | Y (multi-detector ensemble training) | Indirect | Dynamically optimized ensemble outperforms single-model patches on all target detectors | Focuses on pre-YOLOv8 family; no physical | Unclear | 3 |
@@ -104,17 +110,15 @@ This overlay supersedes older “stub” interpretations for the first-pass pape
 |---|---|---|---|---|---|---|---|---|---|---|
 | patchzero2022 | General (classifier + YOLO/detector) | PASCAL VOC detector (version unspecified) | Defense: pixel-wise patch detection and zeroing — no retraining needed | D | Y (across patch types and sizes) | Yes — primary defense contribution | Outperforms PatchGuard +26%, PatchCleanser +13% on MPGD/MAPGD; two-stage adversarial training handles adaptive (BPDA) attacks; 81.47% accuracy on ImageNet under attack (vs. 14.35% undefended) | Performance drops under stronger BPDA adaptive attacks (PZ-BPDA vs PZ-DO); false positive rate on highly textured natural regions not fully characterized | Yes (via ART codebase) | 3 |
 
-### Tier C Unpromoted / Unverified Papers (10 papers — all claims unverified-from-pdf)
+### Tier C Unpromoted / Unverified Papers (8 papers — all claims unverified-from-pdf)
 
 | Paper (slug) | Detector Family | Exact YOLO Version(s) | Goal | D/P | Transfer Evaluated | Defense Relevance | Strongest Reported Outcome | Known Limitations | Code Available | Relevance to Repo |
 |---|---|---|---|---|---|---|---|---|---|---|
 | bae2020_TOG ⚠️ | YOLO, Faster-RCNN | YOLOv3 [unverified-from-pdf] | NMS-flooding attack via objectness maximization [unverified-from-pdf] | D [unverified-from-pdf] | N [unverified-from-pdf] | Indirect (NMS attack contrast to non-NMS YOLO26) | NMS flooded with ghost detections suppressing real ones [unverified-from-pdf] | Citation needs verification — paper title, authors, DOI all pending confirmation | Unknown | 3 |
-| gu2025_SAR | YOLO family [unverified-from-pdf] | Unspecified [unverified-from-pdf] | Defense: segment adversarial patch region; recover clean image; then detect | D+P [unverified-from-pdf] | N [unverified-from-pdf] | Yes — segmentation-based defense | Architecturally distinct defense paradigm (segment + recover) [unverified-from-pdf] | MDPI bot-blocked; exact numbers unknown | Unknown | 3 |
 | imran2025_tkpatch | YOLO | YOLOv3, YOLOv5, YOLOv7 [unverified-from-pdf] | Universal Top-K multi-YOLO person evasion | D+P [unverified-from-pdf] | Y (3 models simultaneously) [unverified-from-pdf] | None | Single patch effective across YOLOv3/v5/v7 via Top-K loss [unverified-from-pdf] | v8/v11/v26 not tested; 0 citations; very new | Unknown | 4 |
 | li2025_elevpatch | YOLO11 | YOLO11 [unverified-from-pdf] | Person detection evasion — YOLO11 specific | Unknown [unverified-from-pdf] | N [unverified-from-pdf] | None | YOLO11 suppression rate UNKNOWN — primary literature benchmark | Paywalled; all details unknown | Unknown | 5 |
 | lin2024_entropy | YOLO | YOLOv2, YOLOv3, YOLOv4 [unverified-from-pdf] | Entropy-boosted naturalistic patches for person concealment | D [unverified-from-pdf] | N [unverified-from-pdf] | Indirect (naturalism via entropy = simpler than GAN) | Third naturalism paradigm (entropy loss); simpler than GAN/diffusion [unverified-from-pdf] | Only older YOLO versions; no v8/v11/v26 | Unknown | 3 |
 | ma2026_XAIAD | YOLO family (anchor-based + anchor-free) | Unspecified YOLO family including anchor-free [unverified-from-pdf] | Defense: test-time XAI-guided purification — no retraining | D [unverified-from-pdf] | Y (white-box + black-box evaluated) [unverified-from-pdf] | Yes — XAI purification defense | 66.08 FPS (1.56× faster than Grad-CAM++); significant robustness improvement [unverified-from-pdf] | Paywalled; exact YOLO versions unknown | Unknown (anonymous repo) | 4 |
-| tereshonok2025_anomaly | YOLO family [unverified-from-pdf] | Unspecified YOLO [unverified-from-pdf] | Defense: CNN anomaly localization + reconstruction before detection | D+P [unverified-from-pdf] | N [unverified-from-pdf] | Yes — anomaly reconstruction defense | Fifth distinct defense paradigm; open access available [unverified-from-pdf] | Exact numbers unknown; bot-blocked MDPI | Unknown | 3 |
 | truong2024_AYO_GAN | YOLO | YOLOv5 (likely) [unverified-from-pdf] | GAN-generated full-image adversarial perturbation against YOLO | D [unverified-from-pdf] | N [unverified-from-pdf] | None | ASR 22.25%, SSIM 0.936 [partially verified from detailed metadata] | Digital only; full-image perturbation not comparable to localized patches; ASR much lower than patch-based methods | Unknown | 2 |
 | wang2026_chosen_object | DETR-style (YOLO26 analog) | DETR-family [unverified-from-pdf] | Hungarian matching attack for end-to-end detection transformers | D [unverified-from-pdf] | partial [unverified-from-pdf] | Indirect (correct loss design for YOLO26) | Hungarian-matching-aware attack succeeds where NMS-era attacks fail [unverified-from-pdf] | Requires IEEE CSUSM access; exact loss formulation and numbers unknown | Unknown | 4 |
 | zimon2025_GAN_YOLO | YOLO | YOLOv3, YOLOv5, YOLOv8, YOLOv11 [unverified-from-pdf] | Systematic cross-YOLO GAN-based patch attack and defense study | D [unverified-from-pdf] | Y (cross-version implied) [unverified-from-pdf] | Yes (defense also discussed) [unverified-from-pdf] | Systematic per-version evaluation across v3/v5/v8/v11 — benchmark numbers unknown [unverified-from-pdf] | Paywalled; exact numbers unknown; no YOLO26 | Unknown | 5 |
@@ -123,7 +127,7 @@ This overlay supersedes older “stub” interpretations for the first-pass pape
 
 ## Updated Summary Statistics
 
-- First-pass normalized notes: 20 total (`19 page_cited`, `1 pdf_verified`)
+- First-pass normalized notes: 24 total (`23 page_cited`, `1 pdf_verified`)
 - First-pass blockers: 3 total (`3 blocked_access`)
 
 - Papers with direct YOLOv8 evaluation: 5 confirmed (huang2025_advreal, delacruz2026_physical, bagley2025_spap, li2025_uvattack, gala2025) + 1 note-only [unverified-from-pdf] (zimon2025)
@@ -131,6 +135,6 @@ This overlay supersedes older “stub” interpretations for the first-pass pape
 - Papers with YOLO26 evaluation: 0 (literature) + 1 first-party (this repo — limited by optimization failure)
 - Papers with physical evaluation: 20 (confirmed from PDFs)
 - Papers with cross-version or cross-detector transfer evaluation: at least 14 (confirmed from PDFs)
-- Papers with defense contributions: 9 confirmed PDFs (ji2021, liang2021, lin2024, saha2020, lovisotto2022, patchzero2022, wu2024_NAPGuard, na2025, winter2026) + 4 Tier C unverified records (gu2025, ma2026, tereshonok2025, zimon2025)
+- Papers with defense contributions: 11 confirmed PDFs (ji2021, gu2025, tereshonok2025, liang2021, lin2024, saha2020, lovisotto2022, patchzero2022, wu2024_NAPGuard, na2025, winter2026) + 2 Tier C unverified defense records (ma2026, zimon2025)
 - Papers with open-source code: 8 (brown2017, liu2019, thys2019, xu2020, huang2022_tsea, wei2024_CAP, wu2024_NAPGuard, huang2019_UPC) + gala2025 via GitHub [unverified-from-pdf]
 - Total papers in matrix: 30 original + 1 first-party + 3 new PDFs + 2 promoted blocker papers + 4 top-pass promoted notes + 10 remaining Tier C unverified records = 50 entries
