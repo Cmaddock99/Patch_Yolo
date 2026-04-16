@@ -1,17 +1,17 @@
 # Research Working Packet Audit
 
 Generated: 2026-04-15  
-Scope: current-state audit after promoting newly local-PDF-backed blocker notes
+Scope: current-state audit after promoting newly local-PDF-backed blocker notes and the first four local-PDF queue papers
 
 ## Corpus Inventory
 
 | Item | Count | Notes |
 |---|---:|---|
-| Note files in `docs/notes/` | 51 | Includes page-cited notes, partial notes, and remaining blockers |
+| Note files in `docs/notes/` | 55 | Includes page-cited notes, partial notes, and remaining blockers |
 | Local PDFs in `docs/papers/` | 56 | Raw file count |
 | Known duplicate pairs | 2 | Guesmi 2024 and Zolfi 2021 |
 | Effective canonical local-PDF count | 54 | 56 local PDFs minus 2 duplicate copies |
-| Notes marked `page_cited` | 15 | Current citation-grade local note count |
+| Notes marked `page_cited` | 19 | Current citation-grade local note count |
 | Notes marked `pdf_verified` | 1 | Current non-page-cited but PDF-backed promoted note count |
 | Remaining `blocked_access` notes | 3 | Wang 2026, Li 2025 ElevPatch, Zimon 2025 |
 | Remaining `note_only_flagged` notes | 0 | Gala has been promoted in this pass |
@@ -24,6 +24,10 @@ These notes were previously treated as blocked or note-only in the working packe
 |---|---|---|---|---|
 | `liao2021_anchor_free` | `docs/papers/transferable_anchor_free_2106.01618.pdf` | `page_cited` | `yolo26_architecture_mismatch` | Verifies the anchor-free output-mismatch explanation with local PDF evidence |
 | `gala2025_yolo` | `docs/papers/gala2025_adversarial_patch_yolo_edge_s10207.pdf` | `page_cited` | `yolo11_coverage` | Provides the strongest direct modern Ultralytics YOLO benchmark in the local corpus |
+| `lin2024_nutnet` | `docs/papers/realtime_defense_diverse_patches_2406.10285.pdf` | `page_cited` | `physical_robustness` | Strongest repo-local online defense baseline spanning HA, AA, and physical evaluation |
+| `advtexture2022` | `docs/papers/advtexture_person_detectors_2203.03373.pdf` | `page_cited` | `physical_robustness` | High-value physical clothing benchmark for multi-angle person evasion |
+| `liang2021_catch_you` | `docs/papers/we_can_always_catch_you_2106.05261.pdf` | `page_cited` | `physical_robustness` | Strong YOLOv8-era defense paper with both fast and signature-independent detectors |
+| `nazeri2024_detr_robustness` | `docs/papers/detection_transformers_robustness_2412.18718.pdf` | `page_cited` | `yolo26_architecture_mismatch` | Useful DETR-family robustness and transfer reference for YOLO26-style interpretation |
 
 ## Current Working-Packet Evidence Overlay
 
@@ -40,6 +44,10 @@ These notes were previously treated as blocked or note-only in the working packe
 | `wei2024_CAP` | `page_cited` | `physical_robustness` | `method_to_borrow` |
 | `schack2024_real_world` | `page_cited` | `physical_robustness` | `physical_caveat` |
 | `cheng2024_depatch` | `page_cited` | `physical_robustness` | `method_to_borrow` |
+| `lin2024_nutnet` | `page_cited` | `physical_robustness` | `defense_baseline` |
+| `advtexture2022` | `page_cited` | `physical_robustness` | `benchmark` |
+| `liang2021_catch_you` | `page_cited` | `physical_robustness` | `defense_baseline` |
+| `nazeri2024_detr_robustness` | `page_cited` | `yolo26_architecture_mismatch` | `architecture_explanation` |
 | `wang2026_chosen_object` | `blocked_access` | `yolo26_architecture_mismatch` | blocker |
 | `li2025_elevpatch` | `blocked_access` | `yolo11_coverage` | blocker |
 | `zimon2025_GAN_YOLO` | `blocked_access` | `cross_yolo_transfer` | blocker |
@@ -80,7 +88,7 @@ These notes already have local PDFs but are not yet promoted to `page_cited` or 
 ## Working Conclusions
 
 - The repo no longer needs a broad ingest rerun to make immediate progress.
-- The highest-value next work is promotion and cleanup of local-PDF-backed defense and physical benchmark notes.
+- The highest-value next work is promotion and cleanup of the remaining local-PDF-backed defense and physical benchmark notes, not another broad ingest pass.
 - `YOLO11` is still thinly covered in literature terms even after promoting Gala: the repo now has better modern Ultralytics evidence, but still lacks a dedicated local-PDF YOLO11 attack benchmark.
-- `YOLO26` remains literature-thin and still depends on mechanism papers plus the repo's first-party results.
+- `YOLO26` remains literature-thin and still depends on mechanism papers plus the repo's first-party results, though the new DETR robustness note improves the architecture-context layer.
 - The current blocker set is now small enough that manual promotion work is clearly higher-return than discovery work.

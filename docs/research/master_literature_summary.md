@@ -11,11 +11,12 @@ This is the living synthesis document for the capstone. Every paper processed ge
 - For full method details, loss terms, and numbers: see the individual note files.
 - For source verification: see `verified_sources.md`.
 - For original PDFs: see `docs/papers/`.
-- Working-packet sync for this pass: 11 first-pass notes normalized (`10 page_cited`, `1 pdf_verified`) and 3 blockers explicitly bounded (`3 blocked_access`).
+- Working-packet sync for this pass: 20 promoted notes (`19 page_cited`, `1 pdf_verified`) and 3 blockers explicitly bounded (`3 blocked_access`).
 
 ## Working-Packet Sync
 
 - The first-pass notes for Bayer, AdvReal, T-SEA, DOEPatch, Lovisotto, Alam, CAP, Schack, and DePatch are no longer stub-level working notes.
+- Newly promoted local-PDF notes in this pass: Gala 2025, Liao 2021, Lin 2024 NutNet, Hu 2022 AdvTexture, Liang 2021 Catch You, and Nazeri 2024 DETR robustness.
 - The blocker notes for Chosen-Object, ElevPatch, and Zimon should not be treated as promoted benchmark evidence in repo-first mode.
 - Where this document still uses older labels such as `Fully processed` or `Stub`, defer to the note-level evidence state and the working packet audit.
 
@@ -32,11 +33,15 @@ This is the living synthesis document for the capstone. Every paper processed ge
 | Hoory et al. — Dynamic Adversarial Patch | 2020 | `notes/hoory2020_dynamic_patch.md` | `papers/hoory2020_dynamic_patch_2010.13070.pdf` | Fully processed |
 | Hu et al. — Naturalistic Physical Patch | 2021 | `notes/hu2021_naturalistic_patch.md` | `papers/hu2021_naturalistic_patch_ICCV.pdf` | Processed (abstract+method; full numbers in PDF) |
 | Zolfi et al. — Translucent Patch | 2021 | `notes/zolfi2021_translucent_patch.md` | `papers/zolfi2021_translucent_patch_2012.12528.pdf` | Fully processed |
+| Hu et al. — AdvTexture | 2022 | `notes/hu2022_advtexture_physical.md` | `papers/advtexture_person_detectors_2203.03373.pdf` | `page_cited` — multi-angle physical benchmark |
+| Liang et al. — Catch You Defense | 2021/2025 | `notes/liang2021_catch_you_defense.md` | `papers/we_can_always_catch_you_2106.05261.pdf` | `page_cited` — defense benchmark |
 | Schack et al. — Real-world Challenges | 2024 | `notes/schack2024_real_world_challenges.md` | `papers/schack2024_real_world_challenges_2410.19863.pdf` | Fully processed |
 | Gala et al. — YOLO Models IJIS 2025 | 2025 | `notes/gala2025_yolo_adversarial_patches.md` | `papers/gala2025_adversarial_patch_yolo_edge_s10207.pdf` | `page_cited` — modern Ultralytics benchmark |
 | Guesmi et al. — DAP | 2024 | `notes/guesmi2024_DAP_dynamic_adversarial_patch.md` | `papers/guesmi2024_DAP_CVPR.pdf` | Fully processed |
 | Wu et al. — NAPGuard | 2024 | `notes/wu2024_NAPGuard.md` | `papers/wu2024_NAPGuard_CVPR.pdf` | Processed (abstract+method) |
 | Tan et al. — DOEPatch | 2024 | `notes/tan2024_DOEPatch.md` | `papers/tan2024_DOEPatch_2312.16907.pdf` | Fully processed |
+| Lin et al. — NutNet | 2024 | `notes/lin2024_nutnet_defense.md` | `papers/realtime_defense_diverse_patches_2406.10285.pdf` | `page_cited` — real-time defense baseline |
+| Nazeri et al. — DETR Robustness | 2024 | `notes/nazeri2024_detr_robustness.md` | `papers/detection_transformers_robustness_2412.18718.pdf` | `page_cited` — DETR robustness / transfer context |
 | DelaCruz et al. — Surveillance Survey | 2026 | `notes/delacruz2026_physical_attacks_surveillance.md` | `papers/delacruz2026_physical_attacks_surveillance_2604.06865.pdf` | Processed (abstract; check PDF for full survey) |
 | Winter et al. — Benchmarking Robustness | 2026 | `notes/winter2026_benchmarking_robustness.md` | `papers/winter2026_benchmarking_robustness_2602.16494.pdf` | Processed ⚠️ non-patch only |
 | Na et al. — Unmanned Stores | 2025 | `notes/na2025_unmanned_stores.md` | `papers/na2025_unmanned_stores_2505.08835.pdf` | Fully processed |
@@ -47,17 +52,17 @@ This is the living synthesis document for the capstone. Every paper processed ge
 | Zimoň — GAN YOLO v3/v5/v8/v11 | 2025 | `notes/zimon2025_GAN_YOLO_robustness.md` | No PDF (Springer paywall) | `blocked_access` — near-scope predecessor, numbers unavailable |
 | Lin et al. — Entropy Patch | 2024 | `notes/lin2024_entropy_adversarial_patch.md` | No PDF (IEEE Access paywall) | Access-limited — quantitative details pending |
 | Truong et al. — AYO-GAN | 2024 | `notes/truong2024_AYO_GAN.md` | No PDF (Springer paywall) | Access-limited — quantitative details pending |
-| Gu & Jafarnejadsani — SAR | 2025 | `notes/gu2025_SAR_segment_recover.md` | No PDF (MDPI bot-blocked) | Access-limited — open access in browser |
+| Gu & Jafarnejadsani — SAR | 2025 | `notes/gu2025_SAR_segment_recover.md` | `papers/gu2025_SAR_segment_recover_jimaging316.pdf` | Local PDF present — promotion pending |
 | Bayer et al. — Network Transferability | 2024 | `notes/bayer2024_network_transferability.md` | `papers/bayer2024_network_transferability_2408.15833.pdf` | `page_cited` — transfer benchmark |
 | Huang et al. — T-SEA | 2022 | `notes/huang2022_tsea_transfer.md` | `papers/huang2022_tsea_transfer_2211.09773.pdf` | `page_cited` — transfer method |
 | Lovisotto et al. — Attention Patch Robustness | 2022 | `notes/lovisotto2022_attention_patch_robustness.md` | `papers/lovisotto2022_attention_patch_robustness_CVPR.pdf` | `page_cited` — attention mechanism |
 | Alam et al. — Attention Deficit | 2023 | `notes/alam2023_attention_deficit_deformable.md` | `papers/alam2023_attention_deficit_2311.12914.pdf` | `page_cited` — deformable-attention mechanism |
 | Wang et al. — Chosen-Object Attack | 2026 | `notes/wang2026_chosen_object_attack.md` | CSUSM IEEE access (no local PDF) | `blocked_access` — Hungarian-matching blocker |
 | Liao et al. — Anchor-Free Adversarial | 2021 | `notes/liao2021_anchor_free_adversarial.md` | `papers/transferable_anchor_free_2106.01618.pdf` | `page_cited` — anchor-free mismatch reference |
-| Xu et al. — Adversarial T-shirt | 2020 | `notes/xu2020_adversarial_tshirt.md` | `papers/xu2020_adversarial_tshirt_1910.11099.pdf` | Stub — primary physical benchmark |
+| Xu et al. — Adversarial T-shirt | 2020 | `notes/xu2020_adversarial_tshirt.md` | `papers/xu2020_adversarial_tshirt_1910.11099.pdf` | Local PDF present — promotion pending |
 | Huang et al. — AdvReal | 2025 | `notes/huang2025_advreal_physical.md` | `papers/huang2025_advreal_physical_2505.16402.pdf` | `page_cited` — physical benchmark |
 | Li et al. — ElevPatch YOLO11 | 2025 | `notes/li2025_elevpatch_yolo11.md` | ILL needed | `blocked_access` — only YOLO11-specific paper |
-| Ji et al. — Adversarial YOLO defense | 2021 | `notes/ji2021_adversarial_yolo_defense.md` | `papers/ji2021_adversarial_yolo_defense_2103.08860.pdf` | Stub — defense benchmark |
+| Ji et al. — Adversarial YOLO defense | 2021 | `notes/ji2021_adversarial_yolo_defense.md` | `papers/ji2021_adversarial_yolo_defense_2103.08860.pdf` | Local PDF present — promotion pending |
 | Wu et al. — Invisibility Cloak | 2020 | `notes/wu2020_invisibility_cloak.md` | `papers/wu2020_invisibility_cloak_1910.14667.pdf` | Stub — physical transfer study |
 | Zhou et al. — MVPatch | 2023 | `notes/zhou2023_mvpatch.md` | `papers/zhou2023_mvpatch_2312.17431.pdf` | Stub — transfer + stealth benchmark |
 
@@ -150,9 +155,9 @@ From Gala et al. (2025): **Larger models are more robust to adversarial patches 
 
 | Paper | Setting | Key result | Why it matters |
 |---|---|---|---|
-| This project (YOLOv8) | Digital person suppression | **85%** suppression | Already stronger than the classic Xu 2020 physical benchmark on YOLOv2 |
-| This project (YOLOv8 -> YOLOv11) | Cross-generation transfer | **39.4%** suppression | Confirms partial within-family transfer without retraining on YOLO11 |
-| This project (YOLOv8 -> YOLO26) | Cross-generation transfer | **16%** suppression | The core result Batch 4 now helps explain |
+| This project (YOLOv8) | Digital person suppression | **90.0%** suppression | Already stronger than the classic Xu 2020 physical benchmark on YOLOv2 |
+| This project (YOLOv8 -> YOLOv11) | Cross-generation transfer | **36.4%** suppression | Confirms partial within-family transfer without retraining on YOLO11 |
+| This project (YOLOv8 -> YOLO26) | Cross-generation transfer | **11.6%** suppression | The core result Batch 4 now helps explain |
 | DPatch (YOLO) | Untargeted detector attack | 65.7% mAP -> <1% mAP | Canonical detector-specific patch baseline |
 | Thys et al. (OBJ loss) | Person vanishing | 100% recall -> **26.46% recall** | Core objectness-loss benchmark for hiding persons |
 | Xu et al. (2020) | Physical T-shirt on YOLOv2 | **74% digital ASR; 57% physical ASR** | Foundational physical benchmark for person evasion |
@@ -164,7 +169,7 @@ From Gala et al. (2025): **Larger models are more robust to adversarial patches 
 
 ---
 
-## Open Research Gaps (as of 2026-04-11)
+## Open Research Gaps (as of 2026-04-15)
 
 1. **YOLO26 still lacks a dedicated adversarial-patch paper** — Batch 4 now covers attention, anchor-free outputs, and Hungarian matching separately, but not as one YOLO26-targeted study.
 2. **Cross-generation transfer (v8->v11->v26)** — no paper yet measures transfer across these three Ultralytics generations with one common dataset and metric stack.
@@ -174,16 +179,16 @@ From Gala et al. (2025): **Larger models are more robust to adversarial patches 
 
 ---
 
-## Batch 4 Priority Reading
+## Next Note Pass (after 2026-04-15 top-4 completion)
 
-1. Lovisotto et al. (2022) — attention vulnerability framing for YOLO26
-2. Alam et al. (2023) — deformable-attention patch failure / fix
-3. Liao et al. (2021) — anchor-free detector mismatch
-4. Bayer et al. (2024) — source-model-size explanation for transfer drop
-5. Huang et al. / T-SEA (2022) — direct transfer-improvement method
-6. Xu et al. (2020) — physical benchmark anchor point
-7. Li et al. / ElevPatch (2025) — only YOLO11-specific comparison
-8. Huang et al. / AdvReal (2025) — most recent physical benchmark
+1. Improving Transferability of Physical Adversarial Attacks on Object Detectors Through Multi-Model Optimization — only remaining top-tranche retrieval blocker for direct transfer improvement.
+2. Gu & Jafarnejadsani / SAR (2025) — strongest fully local segment-and-recover defense still waiting on promotion.
+3. Tereshonok et al. / Anomaly Localization (2025) — local-PDF defense note needed to complete the anomaly-reconstruction lane.
+4. Xu et al. / Adversarial T-shirt (2020) — foundational physical benchmark still below citation-grade status in this repo.
+5. Ji et al. / Adversarial YOLO Defense (2021) — strongest direct YOLO defense benchmark still waiting on a promoted local-PDF note.
+6. AdvLogo (2024) — local PDF exists but no dedicated note yet; best next naturalistic / diffusion attack method.
+7. PatchZero (2022) — local defense PDF already present and worth tightening into detector-focused evidence.
+8. Wu et al. / Invisibility Cloak (2020) — older but still useful physical transfer anchor once the defense queue is upgraded.
 
 ---
 
@@ -233,7 +238,7 @@ The most recent survey of physical attacks on surveillance systems. Four-dimensi
 
 ### ⚠️ Correction: Previously Flagged Papers Are Real
 
-The 6 papers flagged in a prior version of this document as "likely hallucinated" (Wei NeurIPS 2024, Zimoň 2025, Lin IEEE Access 2024, AYO-GAN, Ma Elsevier 2025, Gu & Jafarnejadsani 2025) are **confirmed real and now verified**. The earlier flag was a methodology error — arXiv was searched as if it were a comprehensive academic archive. It is not; Springer, IEEE Access, MDPI, and Elsevier regularly publish papers without arXiv preprints. All 6 have been confirmed at their publisher URLs, processed into note files, and added to `verified_sources.md`. See `docs/research/unverified_paper_claims.md` for the full correction record.
+The 6 papers flagged in a prior version of this document as "likely hallucinated" (Wei NeurIPS 2024, Zimoň 2025, Lin IEEE Access 2024, AYO-GAN, Ma Elsevier 2025, Gu & Jafarnejadsani 2025) are **confirmed real papers**, but not all are local-PDF-verified yet. The earlier flag was a methodology error — arXiv was searched as if it were a comprehensive academic archive. It is not; Springer, IEEE Access, MDPI, and Elsevier regularly publish papers without arXiv preprints. All 6 have been confirmed at their publisher URLs, processed into note files, and added to `verified_sources.md`; their note-level evidence states still depend on local PDF access and verification. See `docs/research/unverified_paper_claims.md` for the full correction record.
 
 **Rule going forward**: verify by DOI, publisher URL, or Google Scholar — not arXiv alone.
 
