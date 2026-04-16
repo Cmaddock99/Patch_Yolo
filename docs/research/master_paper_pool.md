@@ -13,20 +13,20 @@
 
 | Tier | Label | Count |
 |------|-------|-------|
-| A | PDF + deep note (page-cited) | 17 |
+| A | PDF + deep note (page-cited) | 18 |
 | B | PDF + skim note | 24 |
 | C | Unpromoted / unverified note records | 8 |
 | D | Ranked candidates (not yet in repo) | 2 |
 | E | First-party experimental results | 1 (special entry) |
-| **Total** | | **52** |
+| **Total** | | **53** |
 
-Notes: Tier B count is 24 (not 22 from previous synthesis) because this run added 3 newly-downloaded PDFs (huang2019, kolter2019, patchzero2022) and upgraded their notes. Gala 2025 and Liao 2021 were promoted from Tier C into Tier A in the previous sync, and the current sync adds Lin 2024 NutNet, Hu 2022 AdvTexture, Liang 2021 Catch You, Nazeri 2024 DETR robustness, Gu 2025 SAR, Tereshonok 2025 anomaly localization, and Xu 2020 Adversarial T-shirt into Tier A. Two PDFs are duplicates (zolfi2021_CVPR = canonical; guesmi2024_CVPR = canonical) per `research/data/ranked/pdf_duplicates.md`.
+Notes: Tier B count is 24 (not 22 from previous synthesis) because this run added 3 newly-downloaded PDFs (huang2019, kolter2019, patchzero2022) and upgraded their notes. Gala 2025 and Liao 2021 were promoted from Tier C into Tier A in the previous sync, and the current sync adds Lin 2024 NutNet, Hu 2022 AdvTexture, Liang 2021 Catch You, Nazeri 2024 DETR robustness, Dimitriu 2024 multi-model transferability, Gu 2025 SAR, Tereshonok 2025 anomaly localization, and Xu 2020 Adversarial T-shirt into Tier A. Two PDFs are duplicates (zolfi2021_CVPR = canonical; guesmi2024_CVPR = canonical) per `research/data/ranked/pdf_duplicates.md`.
 
 ### Coverage of Target Models
 
 | Model | Tier A (deep-read) | Tier B (skimmed) | Tier C (unpromoted) | Tier D (candidate) | First-party |
 |-------|-------------------|-----------------|-------------------|-------------------|-------------|
-| YOLOv8 | 4 (huang2025_advreal, bayer2024, gala2025, liang2021) | 4 | 2 (zimon2025, imran2025*) | 0 confirmed | Yes (90% suppression) |
+| YOLOv8 | 5 (huang2025_advreal, bayer2024, gala2025, liang2021, dimitriu2024) | 4 | 2 (zimon2025, imran2025*) | 0 confirmed | Yes (90% suppression) |
 | YOLO11 | 2 (huang2025_advreal, gu2025_SAR) | 1 (zhou2025) | 2 (li2025_elevpatch, zimon2025) | 0 confirmed | Yes (84.8% suppression) |
 | YOLO26 | 0 | 0 | 0 | 0 confirmed | Yes (11.6% suppression, difficult) |
 
@@ -68,6 +68,7 @@ Legend — Evidence confidence: **high** = PDF + page citations | **medium** = P
 | lin2024_nutnet | NutNet Real-Time Defense | 2024 | ACM CCS | A | Yes | Yes | YOLOv2-v4, SSD, Faster-RCNN, DETR | Defense: real-time patch suppression | high | 4 | Local PDF |
 | nazeri2024_detr_robustness | DETR Robustness | 2024 | arXiv | A | Yes | Yes | DETR-R50/R101/DC5 | Robustness + transfer context | high | 3 | Local PDF |
 | bayer2024_network_transferability | Network Transferability | 2024 | SPIE | A | Yes | Yes | YOLOv7–v10, 28 models | Transfer analysis | high | 5 | Open |
+| dimitriu2024_multi_model_transferability | Multi-Model Optimization | 2024 | Applied Sciences / MDPI | A | Yes | Yes | YOLOv8, YOLOv5, YOLOv3 + black-box detector suite | Transfer method to borrow | high | 5 | Local PDF |
 | huang2025_advreal | AdvReal | 2025/2026 | Expert Sys. Appl. | A | Yes | Yes | YOLOv2–v12 | Physical person suppression | high | 5 | Open |
 | ji2021_adversarial_yolo_defense | Ad-YOLO | 2021 | arXiv | A | Yes | Yes | YOLOv2 | Defense: patch class | high | 4 | Open |
 | gu2025_SAR | Segment and Recover (SAR) | 2025 | J. Imaging/MDPI | A | Yes | Yes | YOLOv11, DETR, Faster-RCNN | Defense: segment-recover | high | 4 | Local PDF |
@@ -160,9 +161,14 @@ Reference: `docs/notes/huang2022_tsea_transfer.md`
 
 Code-available self-ensemble approach achieving black-box average mAP 9.16% across 7 detectors from a single YOLOv5 source (vs. AdvPatch baseline 36.46%). ShakeDrop augmentation + patch cutout during training are the key techniques. This is the most directly actionable improvement for the capstone's transfer results — applying T-SEA's training techniques to the v8n→v11n/v26n transfer experiments would provide a direct comparison to the literature's best transfer method.
 
+### dimitriu2024_multi_model_transferability — Multi-Model Optimization (Dimitriu et al., Applied Sciences 2024)
+Reference: `docs/notes/dimitriu2024_multi_model_transferability.md`
+
+The clearest newly localized transfer-method paper in the repo. Extends TACO-style vehicle camouflage by averaging the attack loss across multiple source detectors and shows that mixed-generation surrogate training (`YOLOv8n + YOLOv5m + YOLOv3`) achieves the strongest overall transfer, with total mean `AP@0.5 = 0.0972` across one-stage, two-stage, and transformer detectors. For the capstone, this is the strongest direct literature support for moving from a single-source YOLOv8n patch to a mixed-surrogate transfer pipeline.
+
 ### Recent Tier A Additions (2026-04-15 sync)
 
-Reference notes: `docs/notes/gala2025_yolo_adversarial_patches.md`, `docs/notes/liao2021_anchor_free_adversarial.md`, `docs/notes/lin2024_nutnet_defense.md`, `docs/notes/hu2022_advtexture_physical.md`, `docs/notes/liang2021_catch_you_defense.md`, `docs/notes/nazeri2024_detr_robustness.md`, `docs/notes/gu2025_SAR_segment_recover.md`, `docs/notes/tereshonok2025_anomaly_localization_defense.md`, `docs/notes/xu2020_adversarial_tshirt.md`
+Reference notes: `docs/notes/gala2025_yolo_adversarial_patches.md`, `docs/notes/liao2021_anchor_free_adversarial.md`, `docs/notes/lin2024_nutnet_defense.md`, `docs/notes/hu2022_advtexture_physical.md`, `docs/notes/liang2021_catch_you_defense.md`, `docs/notes/nazeri2024_detr_robustness.md`, `docs/notes/dimitriu2024_multi_model_transferability.md`, `docs/notes/gu2025_SAR_segment_recover.md`, `docs/notes/tereshonok2025_anomaly_localization_defense.md`, `docs/notes/xu2020_adversarial_tshirt.md`
 
 - `gala2025_yolo_adversarial_patches`: strongest direct modern Ultralytics benchmark in the local corpus before YOLO11/YOLO26.
 - `liao2021_anchor_free`: clearest local-PDF support for output-space mismatch when moving from anchor-based to anchor-free detectors.
@@ -170,6 +176,7 @@ Reference notes: `docs/notes/gala2025_yolo_adversarial_patches.md`, `docs/notes/
 - `advtexture2022`: high-value physical clothing benchmark showing why multi-angle texture visibility matters more than narrow digital patch strength.
 - `liang2021_catch_you`: defense benchmark with both signature-based and signature-independent modes, plus YOLOv8 evidence.
 - `nazeri2024_detr_robustness`: DETR-family robustness and transfer context that strengthens the YOLO26 architecture-mismatch interpretation.
+- `dimitriu2024_multi_model_transferability`: strongest newly localized method paper for mixed-surrogate transfer improvement, and the cleanest literature support for training on more than one YOLO source family.
 - `gu2025_SAR`: strongest local segment-and-inpaint defense and the main direct YOLO11-side defense paper now in the working packet.
 - `tereshonok2025_anomaly`: clean-data-only anomaly-localization defense for physical pedestrian patch attacks.
 - `xu2020_adversarial_tshirt`: foundational TPS-based physical wearable benchmark with still-useful multi-detector results.

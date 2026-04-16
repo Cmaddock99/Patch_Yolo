@@ -20,6 +20,7 @@ This overlay supersedes older “stub” interpretations for the first-pass pape
 | `bayer2024_network_transferability` | `page_cited` | `cross_yolo_transfer` | `benchmark` |
 | `huang2025_advreal` | `page_cited` | `physical_robustness` | `benchmark` |
 | `huang2022_tsea_transfer` | `page_cited` | `cross_yolo_transfer` | `method_to_borrow` |
+| `dimitriu2024_multi_model_transferability` | `page_cited` | `cross_yolo_transfer` | `method_to_borrow` |
 | `tan2024_DOEPatch` | `pdf_verified` | `cross_yolo_transfer` | `method_to_borrow` |
 | `lovisotto2022_attention_patch` | `page_cited` | `yolo26_architecture_mismatch` | `architecture_explanation` |
 | `alam2023_attention_deficit` | `page_cited` | `yolo26_architecture_mismatch` | `architecture_explanation` |
@@ -63,6 +64,7 @@ This overlay supersedes older “stub” interpretations for the first-pass pape
 | guesmi2024_DAP | YOLO | YOLOv5 (primary) | Person suppression with naturalistic + physical robustness | D+P | partial (YOLOv5 → Faster-RCNN) | Indirect | Naturalistic dynamic patches with Creases Transform for physical robustness | YOLOv5 primary; YOLOv8/v11/v26 not directly evaluated | Yes (CVPR Open Access) | 4 |
 | alam2023_attention_deficit | Deformable ViT | None (Deformable DETR only) | Collaborative patches for deformable transformers | D | partial | Indirect | Multi-patch collaboration exploits attention across image regions | Not YOLO; attention-specific; deformable ViT only | Unclear | 2 |
 | bayer2024_network_transferability | Multi-YOLO | YOLOv7–v10, YOLO-NAS, RT-DETR (28 models) | Cross-architecture patch transfer analysis | D | Y — primary contribution (28-model matrix) | Indirect (identifies most/least vulnerable architectures) | YOLOv8n/s are weak source models; larger models transfer better | YOLOv11/v26 absent; digital only; no physical | No (Fraunhofer) | 5 |
+| dimitriu2024_multi_model_transferability | Multi-detector via mixed YOLO surrogates | YOLOv8, YOLOv5, YOLOv3 source models; YOLOv10, YOLOX, RetinaNet, Faster R-CNN, RT-DETR, DINO, DDQ targets | Multi-model texture optimization for transfer improvement | D | Y — primary contribution | Indirect (method to borrow for attack-side transfer) | `YOLOv{8n,5m,3}` reaches total mean `AP@0.5 = 0.0972`, with transformer mean `0.1421` and low-light mean `0.2636` | Truck camouflage only; photorealistic simulation rather than real printed deployment; no YOLO11/v26 evaluation | No public code stated | 5 |
 | cheng2024_depatch | YOLO | YOLOv2 (primary); YOLOv3, YOLOv5 (transfer) | Person suppression with physical robustness | D+P | partial (v2→v3, v2→v5) | Indirect | Digital AP 17.75% / physical clothing ASR 90.96% on YOLOv2 | YOLOv8/v11/v26 not evaluated | Not confirmed | 5 |
 | lin2024_nutnet | YOLO, SSD, Faster-RCNN, DETR | YOLOv2, YOLOv3, YOLOv4, SSD, Faster R-CNN, DETR | Real-time defense against hiding and appearing patch attacks | D+P | Y (cross-detector evaluation) | Yes — primary defense contribution | Physical YOLOv2 attack success drops from `83.0%`, `74.9%`, `96.3%`, and `98.7%` to `0.7%`, `0.3%`, `0.0%`, and `5.6%` respectively | No YOLOv8/v11/v26 evaluation; physical tests are only on YOLOv2 | Unclear | 4 |
 | gu2025_SAR | YOLO, DETR, Faster-RCNN | YOLOv11, DETR, Faster R-CNN | Detect-and-inpaint defense against diverse visible patch attacks | D+P | Y (cross-detector evaluation) | Yes — primary defense contribution | YOLOv11 reaches `0.72 / 0.76 / 0.70` certified recall under `20% / 30% / 40%` adaptive patches, while Faster R-CNN reaches `0.82 / 0.86 / 0.88` and clean FAR stays near zero | Limited to localized visible patches; translucent patches bypass the current method | Yes (paper links code) | 4 |
@@ -127,14 +129,14 @@ This overlay supersedes older “stub” interpretations for the first-pass pape
 
 ## Updated Summary Statistics
 
-- First-pass normalized notes: 24 total (`23 page_cited`, `1 pdf_verified`)
+- First-pass normalized notes: 25 total (`24 page_cited`, `1 pdf_verified`)
 - First-pass blockers: 3 total (`3 blocked_access`)
 
-- Papers with direct YOLOv8 evaluation: 5 confirmed (huang2025_advreal, delacruz2026_physical, bagley2025_spap, li2025_uvattack, gala2025) + 1 note-only [unverified-from-pdf] (zimon2025)
+- Papers with direct YOLOv8 evaluation: 7 confirmed (bayer2024, dimitriu2024, huang2025_advreal, delacruz2026_physical, bagley2025_spap, li2025_uvattack, gala2025) + 1 note-only [unverified-from-pdf] (zimon2025)
 - Papers with direct YOLOv11 evaluation: 1 confirmed (huang2025_advreal) + 2 note-only [unverified-from-pdf] (li2025_elevpatch, zimon2025)
 - Papers with YOLO26 evaluation: 0 (literature) + 1 first-party (this repo — limited by optimization failure)
 - Papers with physical evaluation: 20 (confirmed from PDFs)
-- Papers with cross-version or cross-detector transfer evaluation: at least 14 (confirmed from PDFs)
+- Papers with cross-version or cross-detector transfer evaluation: at least 15 (confirmed from PDFs)
 - Papers with defense contributions: 11 confirmed PDFs (ji2021, gu2025, tereshonok2025, liang2021, lin2024, saha2020, lovisotto2022, patchzero2022, wu2024_NAPGuard, na2025, winter2026) + 2 Tier C unverified defense records (ma2026, zimon2025)
 - Papers with open-source code: 8 (brown2017, liu2019, thys2019, xu2020, huang2022_tsea, wei2024_CAP, wu2024_NAPGuard, huang2019_UPC) + gala2025 via GitHub [unverified-from-pdf]
-- Total papers in matrix: 30 original + 1 first-party + 3 new PDFs + 2 promoted blocker papers + 4 top-pass promoted notes + 10 remaining Tier C unverified records = 50 entries
+- Total papers in matrix: 30 original + 1 first-party + 3 new PDFs + 2 promoted blocker papers + 4 top-pass promoted notes + 1 Dimitriu transfer paper + 10 remaining Tier C unverified records = 51 entries

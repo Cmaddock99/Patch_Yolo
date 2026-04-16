@@ -1,17 +1,17 @@
 # Research Working Packet Audit
 
 Generated: 2026-04-15  
-Scope: current-state audit after promoting newly local-PDF-backed blocker notes and the first eight local-PDF queue papers
+Scope: current-state audit after promoting newly local-PDF-backed blocker notes, the first eight local-PDF queue papers, and the multi-model transfer paper
 
 ## Corpus Inventory
 
 | Item | Count | Notes |
 |---|---:|---|
-| Note files in `docs/notes/` | 55 | Includes page-cited notes, partial notes, and remaining blockers |
-| Local PDFs in `docs/papers/` | 56 | Raw file count |
+| Note files in `docs/notes/` | 56 | Includes page-cited notes, partial notes, and remaining blockers |
+| Local PDFs in `docs/papers/` | 57 | Raw file count |
 | Known duplicate pairs | 2 | Guesmi 2024 and Zolfi 2021 |
-| Effective canonical local-PDF count | 54 | 56 local PDFs minus 2 duplicate copies |
-| Notes marked `page_cited` | 23 | Current citation-grade local note count |
+| Effective canonical local-PDF count | 55 | 57 local PDFs minus 2 duplicate copies |
+| Notes marked `page_cited` | 24 | Current citation-grade local note count |
 | Notes marked `pdf_verified` | 1 | Current non-page-cited but PDF-backed promoted note count |
 | Remaining `blocked_access` notes | 3 | Wang 2026, Li 2025 ElevPatch, Zimon 2025 |
 | Remaining `note_only_flagged` notes | 0 | Gala has been promoted in this pass |
@@ -28,6 +28,7 @@ These notes were previously treated as blocked or note-only in the working packe
 | `advtexture2022` | `docs/papers/advtexture_person_detectors_2203.03373.pdf` | `page_cited` | `physical_robustness` | High-value physical clothing benchmark for multi-angle person evasion |
 | `liang2021_catch_you` | `docs/papers/we_can_always_catch_you_2106.05261.pdf` | `page_cited` | `physical_robustness` | Strong YOLOv8-era defense paper with both fast and signature-independent detectors |
 | `nazeri2024_detr_robustness` | `docs/papers/detection_transformers_robustness_2412.18718.pdf` | `page_cited` | `yolo26_architecture_mismatch` | Useful DETR-family robustness and transfer reference for YOLO26-style interpretation |
+| `dimitriu2024_multi_model_transferability` | `docs/papers/dimitriu2024_multi_model_transferability_app142311423.pdf` | `page_cited` | `cross_yolo_transfer` | Strongest newly localized method paper for mixed-surrogate transfer improvement |
 | `gu2025_SAR` | `docs/papers/gu2025_SAR_segment_recover_jimaging316.pdf` | `page_cited` | `physical_robustness` | Strongest local segment-and-inpaint defense with direct YOLO11 evaluation |
 | `tereshonok2025_anomaly` | `docs/papers/tereshonok2025_pedestrian_robustness_jimaging026.pdf` | `page_cited` | `physical_robustness` | Clean-data-only anomaly-localization defense for physical pedestrian patch attacks |
 | `xu2020_adversarial_tshirt` | `docs/papers/xu2020_adversarial_tshirt_1910.11099.pdf` | `page_cited` | `physical_robustness` | Foundational TPS-based physical wearable benchmark for person evasion |
@@ -40,6 +41,7 @@ These notes were previously treated as blocked or note-only in the working packe
 | `bayer2024_network_transferability` | `page_cited` | `cross_yolo_transfer` | `benchmark` |
 | `huang2025_advreal` | `page_cited` | `physical_robustness` | `benchmark` |
 | `huang2022_tsea_transfer` | `page_cited` | `cross_yolo_transfer` | `method_to_borrow` |
+| `dimitriu2024_multi_model_transferability` | `page_cited` | `cross_yolo_transfer` | `method_to_borrow` |
 | `tan2024_DOEPatch` | `pdf_verified` | `cross_yolo_transfer` | `method_to_borrow` |
 | `lovisotto2022_attention_patch` | `page_cited` | `yolo26_architecture_mismatch` | `architecture_explanation` |
 | `alam2023_attention_deficit` | `page_cited` | `yolo26_architecture_mismatch` | `architecture_explanation` |
