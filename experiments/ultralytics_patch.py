@@ -55,8 +55,11 @@ Usage
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
+import subprocess
 from typing import Sequence
 
 import cv2
@@ -71,6 +74,9 @@ from ultralytics import YOLO
 # In YOLO26 scores (B, 80, 8400): pure class scores, person = channel 0.
 PERSON_CLASS_ID = 0
 PERSON_CHANNEL = 4  # for v8/v11 (B, 84, 8400) layout
+PLACEMENT_LARGEST_PERSON_TORSO = "largest_person_torso"
+PLACEMENT_OFF_OBJECT_FIXED = "off_object_fixed"
+PLACEMENT_REGIMES = (PLACEMENT_LARGEST_PERSON_TORSO, PLACEMENT_OFF_OBJECT_FIXED)
 
 
 # ---------------------------------------------------------------------------
@@ -231,6 +237,188 @@ def compute_torso_placement(
     top = int(np.clip(cy - patch_height // 2, 0, image_height - patch_height))
     left = int(np.clip(cx - patch_width // 2, 0, image_width - patch_width))
     return top, left
+
+
+def compute_off_object_placement(
+    image_height: int,
+    patch_height: int,
+    image_width: int | None = None,
+    patch_width: int | None = None,
+    margin_ratio: float = 0.05,
+) -> tuple[int, int]:
+    """Return a deterministic upper-left off-object placement with a fixed margin."""
+    image_width = image_height if image_width is None else image_width
+    patch_width = patch_height if patch_width is None else patch_width
+    margin_top = int(round(image_height * margin_ratio))
+    margin_left = int(round(image_width * margin_ratio))
+    top = int(np.clip(margin_top, 0, max(image_height - patch_height, 0)))
+    left = int(np.clip(margin_left, 0, max(image_width - patch_width, 0)))
+    return top, left
+
+
+def compute_patch_placement(
+    boxes: list,
+    image_height: int,
+    patch_height: int,
+    *,
+    placement_regime: str,
+    image_width: int | None = None,
+    patch_width: int | None = None,
+) -> tuple[int, int]:
+    """Resolve the placement regime into a concrete `(top, left)` patch position."""
+    if placement_regime == PLACEMENT_OFF_OBJECT_FIXED:
+        return compute_off_object_placement(
+            image_height,
+            patch_height,
+            image_width=image_width,
+            patch_width=patch_width,
+        )
+    if placement_regime != PLACEMENT_LARGEST_PERSON_TORSO:
+        raise ValueError(
+            f"Unsupported placement_regime '{placement_regime}'. "
+            f"Expected one of {PLACEMENT_REGIMES}."
+        )
+    return compute_torso_placement(
+        boxes,
+        image_height,
+        patch_height,
+        image_width=image_width,
+        patch_width=patch_width,
+    )
+
+
+def current_repo_commit(cwd: Path | None = None) -> str | None:
+    """Best-effort git commit resolution for artifact provenance."""
+    try:
+        proc = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(cwd or Path.cwd()),
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    commit = proc.stdout.strip()
+    return commit or None
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def apply_self_ensemble(
+    patch: torch.Tensor,
+    *,
+    mode: str,
+    prob: float,
+) -> torch.Tensor:
+    """Apply a lightweight ShakeDrop-style amplitude perturbation to the patch."""
+    if mode == "none" or prob <= 0.0:
+        return patch
+    if mode != "shakedrop":
+        raise ValueError(f"Unsupported self-ensemble mode: {mode}")
+
+    gate = float(np.random.random())
+    if gate > prob:
+        return patch
+    scale = float(np.random.uniform(0.0, 1.0))
+    anchor = patch.new_full((1, 1, 1), 0.5)
+    return anchor + (patch - anchor) * scale
+
+
+def apply_cloth_eot(
+    patch: torch.Tensor,
+    *,
+    mode: str,
+    max_offset_ratio: float = 0.08,
+) -> torch.Tensor:
+    """Apply a differentiable cloth-style deformation using a TPS-like control grid."""
+    if mode == "none":
+        return patch
+    if mode != "tps":
+        raise ValueError(f"Unsupported cloth EoT mode: {mode}")
+
+    device = patch.device
+    dtype = patch.dtype
+    control = torch.randn((1, 2, 3, 3), device=device, dtype=dtype) * max_offset_ratio
+    displacement = torch.nn.functional.interpolate(
+        control,
+        size=(patch.shape[1], patch.shape[2]),
+        mode="bicubic",
+        align_corners=True,
+    )
+    base_y = torch.linspace(-1.0, 1.0, patch.shape[1], device=device, dtype=dtype)
+    base_x = torch.linspace(-1.0, 1.0, patch.shape[2], device=device, dtype=dtype)
+    yy, xx = torch.meshgrid(base_y, base_x, indexing="ij")
+    base_grid = torch.stack((xx, yy), dim=-1).unsqueeze(0)
+    warped_grid = (base_grid + displacement.permute(0, 2, 3, 1)).clamp(-1.0, 1.0)
+    warped = torch.nn.functional.grid_sample(
+        patch.unsqueeze(0),
+        warped_grid,
+        mode="bilinear",
+        padding_mode="zeros",
+        align_corners=True,
+    )
+    return warped.squeeze(0)
+
+
+def adaptive_joint_weights(
+    *,
+    base_weights: Sequence[float],
+    current_losses: Sequence[float],
+    ema_state: Sequence[float] | None,
+    ema_decay: float,
+    temperature: float,
+    min_weight: float,
+) -> tuple[list[float], list[float]]:
+    """
+    Compute DOEPatch-style hardest-model emphasis from recent loss history.
+
+    `base_weights` act as a prior. `current_losses` are raw per-model detection
+    losses before weighting. The adaptive term uses loss / EMA(loss) so models
+    are compared against their own recent difficulty rather than absolute scale.
+    """
+    if len(base_weights) != len(current_losses):
+        raise ValueError("base_weights and current_losses must have the same length")
+
+    n = len(base_weights)
+    if n == 1:
+        return [1.0], [float(current_losses[0])]
+
+    if temperature <= 0.0:
+        raise ValueError("temperature must be > 0")
+    if not 0.0 <= ema_decay < 1.0:
+        raise ValueError("ema_decay must be in [0, 1)")
+    if not 0.0 <= min_weight < (1.0 / n):
+        raise ValueError(
+            f"min_weight must be in [0, {1.0 / n:.4f}) for {n} joint models"
+        )
+
+    current = [float(v) for v in current_losses]
+    if ema_state is None:
+        return list(base_weights), current
+
+    new_ema: list[float] = []
+    logits: list[float] = []
+    for base_weight, loss_value, prev_ema in zip(base_weights, current, ema_state):
+        prev = max(float(prev_ema), 1e-6)
+        difficulty = loss_value / prev
+        new_ema.append(ema_decay * prev + (1.0 - ema_decay) * loss_value)
+        logits.append(np.log(max(float(base_weight), 1e-6)) + difficulty / temperature)
+
+    logits_np = np.asarray(logits, dtype=np.float64)
+    logits_np -= float(logits_np.max())
+    weights = np.exp(logits_np)
+    weights /= float(weights.sum())
+    if min_weight > 0.0:
+        weights = min_weight + weights * (1.0 - min_weight * n)
+        weights /= float(weights.sum())
+    return weights.tolist(), new_ema
 
 
 # ---------------------------------------------------------------------------
@@ -460,6 +648,63 @@ def detection_loss(
         return topk_scores.mean()
 
 
+def v26_hybrid_loss_weights(epoch: int, total_epochs: int) -> tuple[float, float]:
+    """Linearly anneal from one2many-heavy to one2one-heavy supervision."""
+    if total_epochs <= 1:
+        return 0.3, 0.7
+    progress = float(epoch - 1) / float(total_epochs - 1)
+    one2many_weight = 0.7 + (0.3 - 0.7) * progress
+    one2one_weight = 1.0 - one2many_weight
+    return one2many_weight, one2one_weight
+
+
+def model_detection_loss(
+    *,
+    inner_model: torch.nn.Module,
+    image_bchw: torch.Tensor,
+    model_name: str,
+    args: argparse.Namespace,
+    epoch: int,
+    total_epochs: int,
+) -> torch.Tensor:
+    """Resolve the correct detection loss for the active model/runtime flags."""
+    is_v26 = "26" in model_name
+    if is_v26 and args.v26_loss_mode == "hybrid":
+        one2many_scores = predict_with_grad(
+            inner_model,
+            image_bchw,
+            loss_source="one2many",
+            model_name=model_name,
+        )
+        one2one_scores = predict_with_grad(
+            inner_model,
+            image_bchw,
+            loss_source="one2one",
+            model_name=model_name,
+        )
+        one2many_weight, one2one_weight = v26_hybrid_loss_weights(epoch, total_epochs)
+        return (
+            detection_loss(one2many_scores, topk=args.topk, is_v26=True, loss_mode="topk")
+            * one2many_weight
+            + detection_loss(one2one_scores, topk=args.topk, is_v26=True, loss_mode="topk")
+            * one2one_weight
+        )
+
+    preds = predict_with_grad(
+        inner_model,
+        image_bchw,
+        loss_source=args.loss_source,
+        model_name=model_name,
+    )
+    return detection_loss(
+        preds,
+        topk=args.topk,
+        is_v26=is_v26,
+        loss_mode=("topk" if (not is_v26 and args.v26_loss_mode == "hybrid") else args.v26_loss_mode),
+        logsumexp_temp=args.logsumexp_temp,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Detection helpers (no-grad, for evaluation)
 # ---------------------------------------------------------------------------
@@ -511,6 +756,69 @@ def load_and_resize_images(
     return arrays, paths
 
 
+def resolved_loss_source_label(*, is_v26: bool, loss_source: str) -> str:
+    if is_v26:
+        resolved = loss_source if loss_source != "auto" else "one2one"
+        return f"{resolved}_scores"
+    return "channel4"
+
+
+def save_patch_outputs(
+    *,
+    run_dir: Path,
+    patch_tensor: torch.Tensor,
+    summary: dict[str, object],
+    args: argparse.Namespace,
+    repo_commit: str | None,
+) -> tuple[Path, Path]:
+    """Write `patch.png` and `patch_artifact.json` beside it."""
+    patch_dir = run_dir / "patches"
+    patch_dir.mkdir(parents=True, exist_ok=True)
+    patch_png = patch_dir / "patch.png"
+    patch_hwc = (
+        patch_tensor.detach()
+        .clamp(0, 1)
+        .cpu()
+        .permute(1, 2, 0)
+        .numpy()
+        * 255
+    ).astype(np.uint8)
+    Image.fromarray(patch_hwc).save(patch_png)
+
+    artifact_payload = {
+        "artifact_sha256": sha256_file(patch_png),
+        "artifact_path": str(patch_png.resolve()),
+        "run_name": summary.get("run_name"),
+        "model": summary.get("model"),
+        "joint_models": summary.get("joint_models"),
+        "joint_weights": summary.get("joint_weights"),
+        "joint_weight_mode": summary.get("joint_weight_mode"),
+        "joint_weight_last_epoch": summary.get("joint_weight_last_epoch"),
+        "manifest_path": summary.get("manifest_path"),
+        "training_images": summary.get("training_images"),
+        "patch_size": summary.get("patch_size"),
+        "detection_suppression_pct": summary.get("detection_suppression_pct"),
+        "loss_source": summary.get("loss_source"),
+        "placement_regime": getattr(args, "placement_regime", None),
+        "block_erase_prob": getattr(args, "block_erase_prob", 0.0),
+        "cutout_prob": getattr(args, "cutout_prob", 0.0),
+        "cutout_size": getattr(args, "cutout_size", None),
+        "self_ensemble_mode": getattr(args, "self_ensemble_mode", "none"),
+        "self_ensemble_prob": getattr(args, "self_ensemble_prob", 0.0),
+        "rot_max": getattr(args, "rot_max", 0.0),
+        "cloth_eot": getattr(args, "cloth_eot", "none"),
+        "co_weight_ema": getattr(args, "co_weight_ema", None),
+        "co_weight_temperature": getattr(args, "co_weight_temperature", None),
+        "co_weight_floor": getattr(args, "co_weight_floor", None),
+        "nps_weight": getattr(args, "nps_weight", 0.0),
+        "repo_commit": repo_commit,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    artifact_path = patch_dir / "patch_artifact.json"
+    artifact_path.write_text(json.dumps(artifact_payload, indent=2), encoding="utf-8")
+    return patch_png, artifact_path
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -536,6 +844,12 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     p.add_argument("--batch-size", default=4, type=int)
     p.add_argument("--jitter", default=10, type=int,
                    help="EoT patch position jitter in pixels (each axis)")
+    p.add_argument("--placement-regime", default=PLACEMENT_LARGEST_PERSON_TORSO,
+                   choices=list(PLACEMENT_REGIMES),
+                   help="Patch placement regime used for training and eval. "
+                        "largest_person_torso pastes on the largest detected torso; "
+                        "off_object_fixed pastes at a deterministic upper-left location "
+                        "with a 5%% image-margin pad.")
     p.add_argument("--display", default=5, type=int,
                    help="Number of sample images to save")
     p.add_argument("--eval-only", action="store_true",
@@ -567,10 +881,20 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
                         "Recommended: 0.3")
     p.add_argument("--cutout-size", type=int, default=20,
                    help="T-SEA cutout: side length of zeroed region in pixels (default: 20)")
+    p.add_argument("--self-ensemble-mode", default="none", choices=["none", "shakedrop"],
+                   help="Approximate ShakeDrop-style patch regularization. "
+                        "shakedrop randomly scales the patch residual around a neutral "
+                        "0.5 anchor to reduce source-model overfitting.")
+    p.add_argument("--self-ensemble-prob", type=float, default=0.0,
+                   help="Probability of applying self-ensemble regularization to the patch "
+                        "each forward pass (default: 0.0). Recommended: 0.3.")
     p.add_argument("--rot-max", type=float, default=0.0,
                    help="EoT rotation (Schack 2024): max rotation angle in degrees. "
                         "Rotation >20° is the primary physical degradation mode. "
                         "Recommended: 15.0")
+    p.add_argument("--cloth-eot", default="none", choices=["none", "tps"],
+                   help="Differentiable cloth deformation model. "
+                        "tps applies a TPS-style control-grid warp before patch placement.")
     p.add_argument("--nps-weight", type=float, default=0.0,
                    help="Non-Printability Score loss weight (Thys 2019 / DePatch). "
                         "Penalizes non-printable colors. Recommended: 0.01")
@@ -584,16 +908,30 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
                    help="Loss weight for the corresponding --co-model (repeatable). "
                         "Primary model receives (1 - sum(co_weights)); sum must be < 1.0. "
                         "E.g. --co-weight 0.20 --co-weight 0.55 gives primary 0.25.")
+    p.add_argument("--co-weight-mode", default="static", choices=["static", "adaptive"],
+                   help="Joint-model loss weighting mode. static uses the literal "
+                        "--co-weight shares. adaptive keeps those shares as a prior and "
+                        "reallocates weight toward the currently harder models using a "
+                        "loss/EMA(loss) difficulty ratio.")
+    p.add_argument("--co-weight-ema", type=float, default=0.9,
+                   help="EMA decay used by --co-weight-mode adaptive (default: 0.9).")
+    p.add_argument("--co-weight-temperature", type=float, default=0.5,
+                   help="Softmax temperature for adaptive joint weighting "
+                        "(default: 0.5; lower = more aggressive hardest-model focus).")
+    p.add_argument("--co-weight-floor", type=float, default=0.05,
+                   help="Minimum retained weight per model in adaptive mode "
+                        "(default: 0.05). Prevents any surrogate from collapsing to zero.")
 
     # ---- v26n-specific attack improvements (literature-backed) ---------------
-    p.add_argument("--v26-loss-mode", default="topk", choices=["topk", "logsumexp"],
+    p.add_argument("--v26-loss-mode", default="topk", choices=["topk", "logsumexp", "hybrid"],
                    dest="v26_loss_mode",
                    help="Detection loss formulation for YOLO26 (and also applies to v8/v11 "
                         "when set). topk=existing top-k mean (default). "
                         "logsumexp=temperature-scaled soft-max over ALL anchors — "
                         "approximates max score, motivated by YOLOv10 §3.1 one2one "
                         "selection: the best-matching anchor is what matters, not the "
-                        "top-k average. Recommended for v26 runs: logsumexp.")
+                        "top-k average. hybrid=linearly scheduled one2many/one2one "
+                        "supervision for YOLO26 only.")
     p.add_argument("--logsumexp-temp", type=float, default=20.0,
                    dest="logsumexp_temp",
                    help="Temperature for logsumexp loss mode (default: 20.0). "
@@ -644,8 +982,12 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     device = get_device()
     is_v26 = "26" in args.model
+    repo_commit = current_repo_commit(Path(__file__).resolve().parents[1])
     print(f"Device: {device}")
     print(f"Model:  {args.model}  (end2end={'yes' if is_v26 else 'no'})")
+
+    if args.v26_loss_mode == "hybrid" and not is_v26 and not any("26" in name for name in (args.co_models or [])):
+        raise ValueError("--v26-loss-mode hybrid requires the primary or a co-model to be YOLO26.")
 
     # Normalize co-model / co-weight lists and validate.
     co_models: list[str] = args.co_models or []
@@ -661,6 +1003,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"(primary model needs a positive share of the gradient budget)."
         )
     primary_weight = 1.0 - sum(co_weights) if co_models else 1.0
+    joint_model_names = [args.model] + co_models
+    base_joint_weights = [primary_weight] + co_weights if co_models else [1.0]
+    if args.co_weight_mode == "adaptive" and len(joint_model_names) == 1:
+        print("  Note: --co-weight-mode adaptive requested without co-models; falling back to static.")
+        args.co_weight_mode = "static"
+    if args.co_weight_mode == "adaptive" and args.co_weight_floor * len(joint_model_names) >= 1.0:
+        raise ValueError(
+            f"--co-weight-floor {args.co_weight_floor:.4f} is too large for "
+            f"{len(joint_model_names)} joint models; floor * n must stay < 1.0."
+        )
 
     # Output directory — eval-only runs get a distinct name so they don't
     # overwrite training results for the same model.
@@ -733,7 +1085,6 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     # Load co-models for joint multi-model training (optional, repeatable).
     co_inners: list[torch.nn.Module] = []
-    co_is_v26s: list[bool] = []
     if co_models and not args.eval_only:
         _dummy = np.zeros((args.image_size, args.image_size, 3), dtype=np.uint8)
         for co_model_name in co_models:
@@ -750,20 +1101,49 @@ def main(argv: Sequence[str] | None = None) -> int:
             if is_v26_co_i:
                 restore_v26_one2many_head(co_inner_i)
             co_inners.append(co_inner_i)
-            co_is_v26s.append(is_v26_co_i)
             print(f"  Co-model ready: {co_model_name}")
 
     train_images = images_nchw[training_indices]
     train_paths = [image_paths[i] for i in training_indices]
 
-    # all_placements[i] is a list of (top, left) tuples — one per detected person in image i.
-    # Index [0] is always the largest person (compute_torso_placement picks the largest box
-    # when given the full box list, so per-person entries use single-box sublists).
-    # Without --multi-placement only index [0] is used, preserving existing behaviour.
-    all_placements = [
-        [compute_torso_placement([box], args.image_size, args.patch_size) for box in boxes]
-        for boxes in training_boxes
-    ]
+    # all_placements[i] is a list of (top, left) tuples. For torso placement, the
+    # first entry uses the largest person and the remaining entries are per-person
+    # candidates for --multi-placement. Off-object placement is deterministic and
+    # therefore yields a single candidate per image.
+    all_placements: list[list[tuple[int, int]]] = []
+    for boxes in training_boxes:
+        if args.placement_regime == PLACEMENT_OFF_OBJECT_FIXED:
+            all_placements.append(
+                [
+                    compute_patch_placement(
+                        boxes,
+                        args.image_size,
+                        args.patch_size,
+                        placement_regime=args.placement_regime,
+                    )
+                ]
+            )
+            continue
+        largest = compute_patch_placement(
+            boxes,
+            args.image_size,
+            args.patch_size,
+            placement_regime=args.placement_regime,
+        )
+        per_person = [
+            compute_patch_placement(
+                [box],
+                args.image_size,
+                args.patch_size,
+                placement_regime=args.placement_regime,
+            )
+            for box in boxes
+        ]
+        deduped = [largest]
+        for placement in per_person:
+            if placement not in deduped:
+                deduped.append(placement)
+        all_placements.append(deduped)
 
     # Save clean detection samples
     for idx in range(min(args.display, len(train_images))):
@@ -800,9 +1180,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     det_history:  list[float] = []   # per-epoch avg detection loss (kept in checkpoint)
     tv_history:   list[float] = []   # per-epoch avg TV loss
     nps_history:  list[float] = []   # per-epoch avg NPS loss
+    joint_weight_history: list[dict[str, object]] = []
     last_preds_shape: list[int] | None = None
     start_epoch = 1
     resumed_from_epoch = 0
+    adaptive_weight_ema: list[float] | None = None
 
     # Checkpoint location: Drive-backed dir if provided, else run output dir.
     if args.checkpoint_dir:
@@ -824,6 +1206,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 patch.copy_(ckpt["patch"])
             optimizer.load_state_dict(ckpt["optimizer"])
             det_history = ckpt.get("loss_history", [])   # backward-compat key name
+            joint_weight_history = ckpt.get("joint_weight_history", [])
+            adaptive_weight_ema = ckpt.get("adaptive_weight_ema")
             resumed_from_epoch = ckpt["epoch"]
             start_epoch = resumed_from_epoch + 1
             if args.load_patch and args.load_patch.exists():
@@ -846,6 +1230,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             epoch_loss_det = 0.0
             epoch_loss_tv  = 0.0
             epoch_loss_nps = 0.0
+            epoch_weight_sums = np.zeros(len(joint_model_names), dtype=np.float64)
 
             for idx in batch_idx:
                 img = train_images_dev[idx]
@@ -868,38 +1253,74 @@ def main(argv: Sequence[str] | None = None) -> int:
                 # Gradient flows back through all non-zeroed regions.
                 patch_aug = block_erase(patch_c, args.block_erase_prob)   # DePatch
                 patch_aug = patch_cutout(patch_aug, args.cutout_prob, args.cutout_size)  # T-SEA
+                patch_aug = apply_self_ensemble(
+                    patch_aug,
+                    mode=args.self_ensemble_mode,
+                    prob=args.self_ensemble_prob,
+                )
                 patch_aug = rotate_patch_eot(patch_aug, args.rot_max)      # EoT rotation
+                patch_aug = apply_cloth_eot(patch_aug, mode=args.cloth_eot)
 
                 patched_img = apply_patch(img, patch_aug, t_jit, l_jit)
 
-                preds = predict_with_grad(
-                    inner, patched_img.unsqueeze(0),
-                    loss_source=args.loss_source,
-                    model_name=args.model,
-                )
                 if last_preds_shape is None:
-                    last_preds_shape = list(preds.shape)
+                    if is_v26 and args.v26_loss_mode == "hybrid":
+                        sample_preds = predict_with_grad(
+                            inner,
+                            patched_img.unsqueeze(0),
+                            loss_source="one2one",
+                            model_name=args.model,
+                        )
+                    else:
+                        sample_preds = predict_with_grad(
+                            inner,
+                            patched_img.unsqueeze(0),
+                            loss_source=args.loss_source,
+                            model_name=args.model,
+                        )
+                    last_preds_shape = list(sample_preds.shape)
 
-                loss_det = detection_loss(
-                    preds, topk=args.topk, is_v26=is_v26,
-                    loss_mode=args.v26_loss_mode,
-                    logsumexp_temp=args.logsumexp_temp,
-                ) * primary_weight
+                primary_loss_raw = model_detection_loss(
+                    inner_model=inner,
+                    image_bchw=patched_img.unsqueeze(0),
+                    model_name=args.model,
+                    args=args,
+                    epoch=epoch,
+                    total_epochs=args.epochs,
+                )
+                model_losses = [primary_loss_raw]
 
                 # Joint multi-model loss: sum co-model contributions.
-                for co_inner_i, co_model_i, co_weight_i, is_v26_co_i in zip(
-                    co_inners, co_models, co_weights, co_is_v26s
-                ):
-                    co_preds = predict_with_grad(
-                        co_inner_i, patched_img.unsqueeze(0),
-                        loss_source=args.loss_source,
+                for co_inner_i, co_model_i in zip(co_inners, co_models):
+                    model_losses.append(
+                        model_detection_loss(
+                        inner_model=co_inner_i,
+                        image_bchw=patched_img.unsqueeze(0),
                         model_name=co_model_i,
+                        args=args,
+                        epoch=epoch,
+                        total_epochs=args.epochs,
+                        )
                     )
-                    loss_det = loss_det + detection_loss(
-                        co_preds, topk=args.topk, is_v26=is_v26_co_i,
-                        loss_mode=args.v26_loss_mode,
-                        logsumexp_temp=args.logsumexp_temp,
-                    ) * co_weight_i
+
+                if args.co_weight_mode == "adaptive" and len(model_losses) > 1:
+                    step_weights, adaptive_weight_ema = adaptive_joint_weights(
+                        base_weights=base_joint_weights,
+                        current_losses=[loss.detach().item() for loss in model_losses],
+                        ema_state=adaptive_weight_ema,
+                        ema_decay=args.co_weight_ema,
+                        temperature=args.co_weight_temperature,
+                        min_weight=args.co_weight_floor,
+                    )
+                else:
+                    step_weights = list(base_joint_weights)
+                    if adaptive_weight_ema is None:
+                        adaptive_weight_ema = [loss.detach().item() for loss in model_losses]
+
+                epoch_weight_sums += np.asarray(step_weights, dtype=np.float64)
+                loss_det = sum(
+                    loss_i * weight_i for loss_i, weight_i in zip(model_losses, step_weights)
+                )
 
                 # NPS loss uses the unaugmented patch_c (physical constraint on the
                 # stored patch, not the augmented version used in the forward pass).
@@ -926,11 +1347,32 @@ def main(argv: Sequence[str] | None = None) -> int:
             det_history.append(avg_det)
             tv_history.append(avg_tv)
             nps_history.append(avg_nps)
+            if len(joint_model_names) > 1:
+                joint_weight_history.append(
+                    {
+                        "epoch": epoch,
+                        "weights": {
+                            name: round(float(weight), 4)
+                            for name, weight in zip(
+                                joint_model_names,
+                                epoch_weight_sums / max(n, 1),
+                            )
+                        },
+                    }
+                )
 
             if epoch % 50 == 0 or epoch == 1:
+                joint_weight_msg = ""
+                if len(joint_model_names) > 1:
+                    latest_weights = joint_weight_history[-1]["weights"]
+                    joint_weight_msg = (
+                        "  joint="
+                        + ", ".join(f"{name}:{weight:.2f}" for name, weight in latest_weights.items())
+                    )
                 tqdm.write(
                     f"  Epoch {epoch:4d}/{args.epochs} — "
                     f"det: {avg_det:.4f}  tv: {avg_tv:.5f}  nps: {avg_nps:.5f}"
+                    f"{joint_weight_msg}"
                 )
 
             if args.checkpoint_interval > 0 and epoch % args.checkpoint_interval == 0:
@@ -939,6 +1381,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "patch": patch.detach().clamp(0, 1).cpu(),
                     "optimizer": optimizer.state_dict(),
                     "loss_history": det_history,   # keep backward-compat key name
+                    "joint_weight_history": joint_weight_history,
+                    "adaptive_weight_ema": adaptive_weight_ema,
                 }, checkpoint_path)
 
         # Only write patch.png if training actually ran this session.
@@ -955,6 +1399,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         (run_dir / "loss_history.json").write_text(
             json.dumps({"det": det_history, "tv": tv_history, "nps": nps_history})
         )
+        if joint_weight_history:
+            (run_dir / "joint_weight_history.json").write_text(
+                json.dumps(joint_weight_history, indent=2)
+            )
 
     # -----------------------------------------------------------------------
     # Evaluation
@@ -968,7 +1416,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     for idx in range(len(train_images)):
         img = train_images_dev[idx]
-        top, left = all_placements[idx][0]  # eval always uses largest-person placement
+        top, left = all_placements[idx][0]
         patched_img = apply_patch(img, patch_eval, top, left)
         hwc_uint8 = (patched_img.cpu().permute(1, 2, 0).numpy() * 255).clip(0, 255).astype(np.uint8)
         patched_dets = run_predict(yolo, hwc_uint8, args.conf_threshold)
@@ -990,12 +1438,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     # -----------------------------------------------------------------------
     # Summary
     # -----------------------------------------------------------------------
-    # Resolve loss_source label for results.json.
-    if is_v26:
-        _resolved_src = args.loss_source if args.loss_source != "auto" else "one2one"
-        loss_source_label = f"{_resolved_src}_scores"
-    else:
-        loss_source_label = "channel4"
+    loss_source_label = resolved_loss_source_label(
+        is_v26=is_v26,
+        loss_source=args.loss_source,
+    )
 
     summary = {
         # Identity
@@ -1003,6 +1449,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "model": args.model,
         "joint_models": [args.model] + co_models if co_models else None,
         "joint_weights": [round(primary_weight, 4)] + [round(w, 4) for w in co_weights] if co_models else None,
+        "joint_weight_mode": args.co_weight_mode,
+        "joint_weight_history_file": "joint_weight_history.json" if joint_weight_history else None,
+        "joint_weight_last_epoch": joint_weight_history[-1]["weights"] if joint_weight_history else None,
         # Training provenance
         "epochs": args.epochs,
         "resumed_from_epoch": resumed_from_epoch,
@@ -1023,6 +1472,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "loss_source": loss_source_label,
         "score_tensor_shape": last_preds_shape,
         "head_end2end": is_v26,
+        "placement_regime": args.placement_regime,
         # Hyperparameters
         "lr": args.lr,
         "tv_weight": args.tv_weight,
@@ -1030,7 +1480,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         "block_erase_prob": args.block_erase_prob,
         "cutout_prob": args.cutout_prob,
         "cutout_size": args.cutout_size,
+        "self_ensemble_mode": args.self_ensemble_mode,
+        "self_ensemble_prob": args.self_ensemble_prob,
         "rot_max": args.rot_max,
+        "cloth_eot": args.cloth_eot,
+        "co_weight_ema": args.co_weight_ema,
+        "co_weight_temperature": args.co_weight_temperature,
+        "co_weight_floor": args.co_weight_floor,
         "grad_clip": args.grad_clip,
         "checkpoint_interval": args.checkpoint_interval,
         "checkpoint_path": str(checkpoint_path),
@@ -1038,6 +1494,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         "device": device,
     }
     (run_dir / "results.json").write_text(json.dumps(summary, indent=2))
+    patch_png_path, patch_artifact_path = save_patch_outputs(
+        run_dir=run_dir,
+        patch_tensor=patch_eval,
+        summary=summary,
+        args=args,
+        repo_commit=repo_commit,
+    )
 
     print(f"\n{'='*52}")
     print(f"  Model              : {args.model}")
@@ -1048,6 +1511,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"  Person dets BEFORE : {total_clean}  (mean conf {mean_conf_clean:.3f})")
     print(f"  Person dets AFTER  : {total_patched}  (mean conf {mean_conf_patched:.3f})")
     print(f"  Detection suppression: {suppression_pct:.1f}%")
+    print(f"  Patch artifact     : {patch_png_path}")
+    print(f"  Artifact sidecar   : {patch_artifact_path}")
     print(f"  Output dir         : {run_dir}/")
     print(f"{'='*52}")
     return 0

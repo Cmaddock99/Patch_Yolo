@@ -1,0 +1,125 @@
+{
+  "attack_repo": ".",
+  "bundle_output_root": "outputs/colab_runs",
+  "bundle_name_prefix": "colab_runs",
+  "checkpoint_root": "/content/drive/MyDrive/adv_patch_checkpoints",
+  "drive_export_root": "/content/drive/MyDrive/adv_patch_handoff",
+  "attack_defaults": {
+    "manifest": "data/manifests/common_all_models.txt",
+    "output_dir": "outputs",
+    "patch_size": 100,
+    "epochs": 1000,
+    "lr": 0.01,
+    "tv_weight": 0.05,
+    "topk": 10,
+    "image_size": 640,
+    "conf_threshold": 0.5,
+    "batch_size": 4,
+    "seed": 42,
+    "placement_regime": "largest_person_torso",
+    "checkpoint_interval": 100
+  },
+  "jobs": [
+    {
+      "job_id": "v8m_source_transfer_v1",
+      "description": "Larger-source transfer probe before any more nano-only tuning.",
+      "train": {
+        "model": "yolov8m",
+        "run_name": "v8m_source_transfer_v1"
+      },
+      "eval_targets": [
+        { "model": "yolov8m" },
+        { "model": "yolo11n" },
+        { "model": "yolo26n" }
+      ]
+    },
+    {
+      "job_id": "v8n_transfer_baseline_v1",
+      "description": "Baseline v8n transfer reference for the self-ensemble ablation.",
+      "train": {
+        "model": "yolov8n",
+        "run_name": "v8n_transfer_baseline_v1"
+      },
+      "eval_targets": [
+        { "model": "yolov8n" },
+        { "model": "yolo11n" },
+        { "model": "yolo26n" }
+      ]
+    },
+    {
+      "job_id": "v8n_transfer_cutout_only_v1",
+      "description": "T-SEA cutout-only ablation cell.",
+      "train": {
+        "model": "yolov8n",
+        "run_name": "v8n_transfer_cutout_only_v1",
+        "cutout_prob": 0.3,
+        "cutout_size": 20
+      },
+      "eval_targets": [
+        { "model": "yolov8n" },
+        { "model": "yolo11n" },
+        { "model": "yolo26n" }
+      ]
+    },
+    {
+      "job_id": "v8n_transfer_self_ensemble_only_v1",
+      "description": "ShakeDrop-style self-ensemble-only ablation cell.",
+      "train": {
+        "model": "yolov8n",
+        "run_name": "v8n_transfer_self_ensemble_only_v1",
+        "self_ensemble_mode": "shakedrop",
+        "self_ensemble_prob": 0.3
+      },
+      "eval_targets": [
+        { "model": "yolov8n" },
+        { "model": "yolo11n" },
+        { "model": "yolo26n" }
+      ]
+    },
+    {
+      "job_id": "v8n_transfer_cutout_self_ensemble_v1",
+      "description": "Combined cutout + self-ensemble ablation cell.",
+      "train": {
+        "model": "yolov8n",
+        "run_name": "v8n_transfer_cutout_self_ensemble_v1",
+        "cutout_prob": 0.3,
+        "cutout_size": 20,
+        "self_ensemble_mode": "shakedrop",
+        "self_ensemble_prob": 0.3
+      },
+      "eval_targets": [
+        { "model": "yolov8n" },
+        { "model": "yolo11n" },
+        { "model": "yolo26n" }
+      ]
+    },
+    {
+      "job_id": "yolo26n_hybrid_loss_v1",
+      "description": "YOLO26 hybrid one2many/one2one training pass before cloth-EoT.",
+      "train": {
+        "model": "yolo26n",
+        "run_name": "yolo26n_hybrid_loss_v1",
+        "v26_loss_mode": "hybrid"
+      },
+      "eval_targets": [
+        { "model": "yolo26n" },
+        { "model": "yolo11n" }
+      ]
+    },
+    {
+      "job_id": "yolo26n_hybrid_loss_tps_v1",
+      "enabled": false,
+      "description": "Optional cloth-EoT follow-on after the base hybrid-loss run lands.",
+      "train": {
+        "model": "yolo26n",
+        "run_name": "yolo26n_hybrid_loss_tps_v1",
+        "v26_loss_mode": "hybrid",
+        "cloth_eot": "tps"
+      },
+      "eval_targets": [
+        { "model": "yolo26n" },
+        { "model": "yolo11n" }
+      ]
+    }
+  ]
+}

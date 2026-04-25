@@ -1,0 +1,289 @@
+{
+  "repo_roots": {
+    "attack_repo": ".",
+    "ybt_repo": "../YOLO-Bad-Triangle"
+  },
+  "bootstrap": {
+    "attack_python": "python3",
+    "ybt_python": "python3.11"
+  },
+  "attack_defaults": {
+    "manifest": "data/manifests/common_all_models.txt",
+    "output_dir": "outputs",
+    "patch_size": 100,
+    "epochs": 1000,
+    "lr": 0.01,
+    "tv_weight": 0.05,
+    "topk": 10,
+    "image_size": 640,
+    "conf_threshold": 0.5,
+    "batch_size": 4,
+    "seed": 42,
+    "placement_regime": "largest_person_torso",
+    "checkpoint_interval": 100
+  },
+  "local_defaults": {
+    "run_failure_grid": true,
+    "run_patch_matrix": true,
+    "prepare_physical_queue": true,
+    "run_physical_dry_run": false,
+    "failure_grid_output_dir": "outputs/failure_grid",
+    "failure_grid_manifest": "data/manifests/common_all_models.txt",
+    "physical_output_dir": "outputs/physical_benchmark",
+    "ybt_profile": "yolo11n_patch_eval_v1",
+    "ybt_source_dir": "coco/val2017_subset500/images",
+    "ybt_output_root": "outputs/patch_matrix/nuc_handoff",
+    "ybt_max_images": 64,
+    "ybt_seed": 42,
+    "ybt_placement_modes": [
+      "largest_person_torso",
+      "off_object_fixed"
+    ],
+    "ybt_defenses": [
+      "none",
+      "bit_depth",
+      "jpeg_preprocess",
+      "median_preprocess",
+      "c_dog",
+      "oracle_patch_recover"
+    ],
+    "ybt_defense_params": {
+      "c_dog": {
+        "checkpoint_path": "dpc_unet_final_golden.pt"
+      },
+      "oracle_patch_recover": {
+        "dilate_px": 8,
+        "inpaint_radius": 7,
+        "inpaint_method": "telea"
+      }
+    }
+  },
+  "colab": {
+    "bundle_output_root": "outputs/nuc_handoff",
+    "bundle_name_prefix": "nuc_handoff",
+    "checkpoint_root": "/content/drive/MyDrive/adv_patch_checkpoints",
+    "drive_export_root": "/content/drive/MyDrive/adv_patch_handoff",
+    "jobs": [
+      {
+        "job_id": "v8m_source_transfer_v1",
+        "description": "Larger-source transfer probe before any more nano-only tuning.",
+        "train": {
+          "model": "yolov8m",
+          "run_name": "v8m_source_transfer_v1"
+        },
+        "eval_targets": [
+          {
+            "model": "yolov8m"
+          },
+          {
+            "model": "yolo11n"
+          },
+          {
+            "model": "yolo26n"
+          }
+        ],
+        "local_eval": {
+          "failure_grid_models": [
+            "yolov8m"
+          ],
+          "enable_patch_matrix": true,
+          "enable_physical": true
+        }
+      },
+      {
+        "job_id": "v8n_transfer_baseline_v1",
+        "description": "Baseline v8n transfer reference for the self-ensemble ablation.",
+        "train": {
+          "model": "yolov8n",
+          "run_name": "v8n_transfer_baseline_v1"
+        },
+        "eval_targets": [
+          {
+            "model": "yolov8n"
+          },
+          {
+            "model": "yolo11n"
+          },
+          {
+            "model": "yolo26n"
+          }
+        ],
+        "local_eval": {
+          "failure_grid_models": [
+            "yolov8n"
+          ],
+          "enable_patch_matrix": true,
+          "enable_physical": true
+        }
+      },
+      {
+        "job_id": "v8n_transfer_cutout_only_v1",
+        "description": "T-SEA cutout-only ablation cell.",
+        "train": {
+          "model": "yolov8n",
+          "run_name": "v8n_transfer_cutout_only_v1",
+          "cutout_prob": 0.3,
+          "cutout_size": 20
+        },
+        "eval_targets": [
+          {
+            "model": "yolov8n"
+          },
+          {
+            "model": "yolo11n"
+          },
+          {
+            "model": "yolo26n"
+          }
+        ],
+        "local_eval": {
+          "failure_grid_models": [
+            "yolov8n"
+          ],
+          "enable_patch_matrix": true,
+          "enable_physical": true
+        }
+      },
+      {
+        "job_id": "v8n_transfer_self_ensemble_only_v1",
+        "description": "ShakeDrop-style self-ensemble-only ablation cell.",
+        "train": {
+          "model": "yolov8n",
+          "run_name": "v8n_transfer_self_ensemble_only_v1",
+          "self_ensemble_mode": "shakedrop",
+          "self_ensemble_prob": 0.3
+        },
+        "eval_targets": [
+          {
+            "model": "yolov8n"
+          },
+          {
+            "model": "yolo11n"
+          },
+          {
+            "model": "yolo26n"
+          }
+        ],
+        "local_eval": {
+          "failure_grid_models": [
+            "yolov8n"
+          ],
+          "enable_patch_matrix": true,
+          "enable_physical": true
+        }
+      },
+      {
+        "job_id": "v8n_transfer_cutout_self_ensemble_v1",
+        "description": "Combined cutout + self-ensemble ablation cell.",
+        "train": {
+          "model": "yolov8n",
+          "run_name": "v8n_transfer_cutout_self_ensemble_v1",
+          "cutout_prob": 0.3,
+          "cutout_size": 20,
+          "self_ensemble_mode": "shakedrop",
+          "self_ensemble_prob": 0.3
+        },
+        "eval_targets": [
+          {
+            "model": "yolov8n"
+          },
+          {
+            "model": "yolo11n"
+          },
+          {
+            "model": "yolo26n"
+          }
+        ],
+        "local_eval": {
+          "failure_grid_models": [
+            "yolov8n"
+          ],
+          "enable_patch_matrix": true,
+          "enable_physical": true
+        }
+      },
+      {
+        "job_id": "yolo26n_hybrid_loss_v1",
+        "description": "YOLO26 hybrid one2many/one2one training pass before cloth-EoT.",
+        "train": {
+          "model": "yolo26n",
+          "run_name": "yolo26n_hybrid_loss_v1",
+          "v26_loss_mode": "hybrid"
+        },
+        "eval_targets": [
+          {
+            "model": "yolo26n"
+          },
+          {
+            "model": "yolo11n"
+          }
+        ],
+        "local_eval": {
+          "failure_grid_models": [
+            "yolo26n"
+          ],
+          "enable_patch_matrix": true,
+          "enable_physical": true
+        }
+      },
+      {
+        "job_id": "yolo26n_hybrid_loss_tps_v1",
+        "enabled": false,
+        "description": "Optional cloth-EoT follow-on after the base hybrid-loss run lands.",
+        "train": {
+          "model": "yolo26n",
+          "run_name": "yolo26n_hybrid_loss_tps_v1",
+          "v26_loss_mode": "hybrid",
+          "cloth_eot": "tps"
+        },
+        "eval_targets": [
+          {
+            "model": "yolo26n"
+          },
+          {
+            "model": "yolo11n"
+          }
+        ],
+        "local_eval": {
+          "failure_grid_models": [
+            "yolo26n"
+          ],
+          "enable_patch_matrix": true,
+          "enable_physical": true
+        }
+      }
+    ]
+  },
+  "existing_artifacts": [
+    {
+      "artifact_id": "yolov8n_patch_v2",
+      "patch_path": "outputs/yolov8n_patch_v2/patches/patch.png",
+      "source_model": "yolov8n",
+      "failure_grid_models": [
+        "yolov8n"
+      ],
+      "enable_patch_matrix": true,
+      "enable_physical": true
+    },
+    {
+      "artifact_id": "yolo11n_patch_v2",
+      "patch_path": "outputs/yolo11n_patch_v2/patches/patch.png",
+      "source_model": "yolo11n",
+      "failure_grid_models": [
+        "yolo11n"
+      ],
+      "enable_patch_matrix": true,
+      "enable_physical": true
+    },
+    {
+      "artifact_id": "yolo26n_patch_v2",
+      "patch_path": "outputs/yolo26n_patch_v2/patches/patch.png",
+      "source_model": "yolo26n",
+      "failure_grid_models": [
+        "yolo26n"
+      ],
+      "enable_patch_matrix": true,
+      "enable_physical": true
+    }
+  ]
+}

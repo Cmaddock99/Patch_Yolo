@@ -28,7 +28,7 @@ YOLO26n's low suppression despite full loss convergence (`final_det_loss: 0.108`
 | Patch Source → Eval Model | Suppression |
 |---|---|
 | v8n → v11n | 33.3% |
-| v11n → v8n | 50.0% |
+| v11n → v8n | 55.0% |
 | v26n → v8n | 45.0% |
 | v26n → v11n | 24.2% |
 | v8n → v26n | 14.0% |
@@ -38,7 +38,7 @@ YOLO26n's low suppression despite full loss convergence (`final_det_loss: 0.108`
 
 | Joint Patch → Eval Model | Suppression |
 |---|---|
-| v8n + v11n → v8n | 85.0% |
+| v8n + v11n → v8n | 90.0% |
 | v8n + v11n → v11n | 66.7% |
 | v8n + v26n → v26n | 18.6% |
 
@@ -47,7 +47,7 @@ YOLO26n's low suppression despite full loss convergence (`final_det_loss: 0.108`
 | Direction | Suppression |
 |---|---|
 | v26n warmstart → v26n | 14.0% |
-| v26n warmstart → v8n | 90.0% |
+| v26n warmstart → v8n | 95.0% |
 | v26n warmstart → v11n | 36.4% |
 
 Warm-starting confirmed that the v26n barrier is initialization-independent — the optimizer finds the same local minimum regardless of where it starts.
@@ -135,8 +135,22 @@ The training script (`experiments/ultralytics_patch.py`) supports:
 - **Source-only training**: single model gradient descent on the patch
 - **Warm-start**: initialize patch from an existing PNG (`--load-patch`)
 - **Joint training**: optimize one patch against two models simultaneously (`--co-model`)
-- **Robustness augmentations**: DePatch block erasing, T-SEA cutout, EoT rotation, NPS loss, TV loss
+- **Placement regimes**: torso-centered or deterministic off-object placement (`--placement-regime`)
+- **Robustness augmentations**: DePatch block erasing, T-SEA cutout, ShakeDrop-style self-ensemble, rigid rotation EoT, TPS-style cloth EoT, NPS loss, TV loss
+- **Artifact contracts**: writes `patch.png`, `patch_artifact.json`, and `results.json` for downstream imported-patch evaluation
 - **Drive checkpointing**: saves to Google Drive every 100 epochs for safe Colab reconnect
+
+For the planned queued runs, use the dedicated Colab bundle path instead of hand-editing notebook parameters:
+
+```bash
+./scripts/start_colab_runs.sh
+```
+
+That emits a Colab-ready tarball, job specs, queue wrappers, and a quickstart under `outputs/colab_runs/`.
+
+Runbook:
+
+[docs/operations/colab_runs.md](docs/operations/colab_runs.md)
 
 Outputs from this repo should be treated as external research artifacts and
 manual inputs to the broader project, not as canonical run outputs.
@@ -147,7 +161,7 @@ manual inputs to the broader project, not as canonical run outputs.
 
 **Why YOLO26n is hard:** YOLO26n uses end-to-end Hungarian matching (`head_end2end: true`). During training, gradients flow through the `one2many` auxiliary head. During inference, detections come from the `one2one` head. These heads are architecturally separate — minimizing `one2many` scores does not suppress `one2one` detections. This explains why `final_det_loss` converges lower than v8n/v11n yet suppression is far weaker.
 
-**Transfer asymmetry:** v11n → v8n transfers better (50%) than v8n → v11n (33.3%), suggesting v11n's adversarial features are a superset. v26n patches transfer well to v8n/v11n despite low self-suppression.
+**Transfer asymmetry:** v11n → v8n transfers better (55%) than v8n → v11n (33.3%), suggesting v11n's adversarial features are a superset. v26n patches transfer well to v8n/v11n despite low self-suppression.
 
 **Joint patches:** Joint training with equal gradient weight produces patches that generalize better, at a modest cost to per-model peak suppression.
 
@@ -178,6 +192,37 @@ docs/research/           # Literature review, verified sources, study roadmap
 
 ---
 
+## Evaluation Utilities
+
+```bash
+python experiments/failure_grid.py \
+  --patch outputs/yolov8n_patch_v2/patches/patch.png \
+  --model yolov8n
+
+python experiments/physical_benchmark.py \
+  --patch outputs/yolov8n_patch_v2/patches/patch.png \
+  --artifact-name yolov8n_patch_v2 \
+  --model yolov8n
+```
+
+`experiments/defense_eval.py` is kept as the legacy preprocessing baseline. New defense development should land in `YOLO-Bad-Triangle`.
+
+## NUC Handoff
+
+Use the NUC launcher when you want the two-repo cycle staged from one command:
+
+```bash
+./scripts/start_nuc_handoff.sh
+```
+
+That command bootstraps both repos, generates a timestamped handoff bundle under `outputs/nuc_handoff/`, packages a Colab-ready bundle from the exact local repo state, and runs any local-ready failure-grid / imported-patch evaluation steps for artifacts already present.
+
+The permanent runbook is here:
+
+[docs/operations/nuc_handoff.md](docs/operations/nuc_handoff.md)
+
+---
+
 ## Setup
 
 ```bash
@@ -187,3 +232,11 @@ python scripts/verify_setup.py
 ```
 
 Python 3.12. Dependencies: `ultralytics`, `torch`, `torchvision`, `opencv-python`, `pillow`, `numpy`, `tqdm`.
+
+## Tests
+
+Use the repo venv explicitly so the research dependencies are available:
+
+```bash
+./.venv/bin/pytest -q tests/research_tests tests/test_patch_experiments.py
+```

@@ -2,12 +2,15 @@
 """
 experiments/defense_eval.py
 -----------------------------
-Evaluate preprocessing-based defenses against adversarial patches.
+Legacy preprocessing-baseline evaluation for adversarial patches.
 
 Tests three defense families applied at inference time:
   - JPEG re-encoding: quality {95, 85, 75, 50}
   - Gaussian blur:    sigma {1.0, 2.0, 3.0}
   - Random crop-resize: retained area {95%, 90%, 85%} × 10 seeds
+
+This script is intentionally frozen as the lightweight local baseline.
+New defense families should land in `YOLO-Bad-Triangle`.
 
 For each patch × defense × setting computes:
   - frame_detection_rate_clean (undefended clean baseline)
@@ -52,6 +55,9 @@ from PIL import Image
 from ultralytics import YOLO
 
 PERSON_CLASS_ID = 0
+PLACEMENT_LARGEST_PERSON_TORSO = "largest_person_torso"
+PLACEMENT_OFF_OBJECT_FIXED = "off_object_fixed"
+PLACEMENT_REGIMES = (PLACEMENT_LARGEST_PERSON_TORSO, PLACEMENT_OFF_OBJECT_FIXED)
 
 # ---------------------------------------------------------------------------
 # Defense implementations
@@ -138,17 +144,72 @@ def apply_patch_hwc(img_hwc: np.ndarray, patch_hwc: np.ndarray,
     return result
 
 
-def compute_torso_top_left(boxes: list[dict], image_size: int, patch_size: int) -> tuple[int, int]:
+def compute_torso_top_left(
+    boxes: list[dict],
+    image_height: int,
+    patch_height: int,
+    image_width: int | None = None,
+    patch_width: int | None = None,
+) -> tuple[int, int]:
+    image_width = image_height if image_width is None else image_width
+    patch_width = patch_height if patch_width is None else patch_width
     if not boxes:
-        mid = image_size // 2 - patch_size // 2
-        return mid, mid
+        top = image_height // 2 - patch_height // 2
+        left = image_width // 2 - patch_width // 2
+        return top, left
     biggest = max(boxes, key=lambda b: (b["xyxy"][2] - b["xyxy"][0]) * (b["xyxy"][3] - b["xyxy"][1]))
     x1, y1, x2, y2 = biggest["xyxy"]
     cx = int((x1 + x2) / 2)
     cy = int(y1 + 0.35 * (y2 - y1))
-    top  = int(np.clip(cy - patch_size // 2, 0, image_size - patch_size))
-    left = int(np.clip(cx - patch_size // 2, 0, image_size - patch_size))
+    top = int(np.clip(cy - patch_height // 2, 0, image_height - patch_height))
+    left = int(np.clip(cx - patch_width // 2, 0, image_width - patch_width))
     return top, left
+
+
+def compute_off_object_top_left(
+    image_height: int,
+    patch_height: int,
+    image_width: int | None = None,
+    patch_width: int | None = None,
+    margin_ratio: float = 0.05,
+) -> tuple[int, int]:
+    image_width = image_height if image_width is None else image_width
+    patch_width = patch_height if patch_width is None else patch_width
+    margin_top = int(round(image_height * margin_ratio))
+    margin_left = int(round(image_width * margin_ratio))
+    top = int(np.clip(margin_top, 0, max(image_height - patch_height, 0)))
+    left = int(np.clip(margin_left, 0, max(image_width - patch_width, 0)))
+    return top, left
+
+
+def compute_patch_top_left(
+    boxes: list[dict],
+    image_height: int,
+    patch_height: int,
+    *,
+    placement_regime: str,
+    image_width: int | None = None,
+    patch_width: int | None = None,
+) -> tuple[int, int]:
+    if placement_regime == PLACEMENT_OFF_OBJECT_FIXED:
+        return compute_off_object_top_left(
+            image_height,
+            patch_height,
+            image_width=image_width,
+            patch_width=patch_width,
+        )
+    if placement_regime != PLACEMENT_LARGEST_PERSON_TORSO:
+        raise ValueError(
+            f"Unsupported placement_regime '{placement_regime}'. "
+            f"Expected one of {PLACEMENT_REGIMES}."
+        )
+    return compute_torso_top_left(
+        boxes,
+        image_height,
+        patch_height,
+        image_width=image_width,
+        patch_width=patch_width,
+    )
 
 
 def evaluate_patch_on_images(
@@ -156,6 +217,7 @@ def evaluate_patch_on_images(
     images: list[np.ndarray],
     patch_hwc: np.ndarray,
     conf: float,
+    placement_regime: str,
     defense_fn=None,
 ) -> dict:
     """
@@ -174,7 +236,7 @@ def evaluate_patch_on_images(
     frames_clean_with_person = 0
     frames_clean_defended_with_person = 0
     frames_patched_with_person = 0
-    patch_size = patch_hwc.shape[0]
+    patch_h, patch_w = patch_hwc.shape[:2]
 
     for img_hwc in images:
         # Undefended clean — used for torso placement and suppression denominator
@@ -190,7 +252,14 @@ def evaluate_patch_on_images(
             if defended_clean_dets:
                 frames_clean_defended_with_person += 1
 
-        top, left = compute_torso_top_left(clean_dets, img_hwc.shape[0], patch_size)
+        top, left = compute_patch_top_left(
+            clean_dets,
+            img_hwc.shape[0],
+            patch_h,
+            placement_regime=placement_regime,
+            image_width=img_hwc.shape[1],
+            patch_width=patch_w,
+        )
         patched = apply_patch_hwc(img_hwc, patch_hwc, top, left)
 
         # Apply defense to patched image if provided
@@ -281,6 +350,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     p.add_argument("--defenses", nargs="+", default=["jpeg", "blur", "crop_resize"],
                    choices=["jpeg", "blur", "crop_resize"],
                    help="Defense families to evaluate (default: all)")
+    p.add_argument("--placement-regime", default=PLACEMENT_LARGEST_PERSON_TORSO,
+                   choices=list(PLACEMENT_REGIMES),
+                   help="Patch placement regime used for defended evaluation. "
+                        "largest_person_torso pastes on the largest detected torso; "
+                        "off_object_fixed pastes at a deterministic upper-left location.")
     return p.parse_args(argv)
 
 
@@ -327,7 +401,14 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         # Undefended baseline: clean + patched without any defense
         print("  Computing undefended baseline ...")
-        baseline = evaluate_patch_on_images(yolo, images, patch_hwc, args.conf, defense_fn=None)
+        baseline = evaluate_patch_on_images(
+            yolo,
+            images,
+            patch_hwc,
+            args.conf,
+            placement_regime=args.placement_regime,
+            defense_fn=None,
+        )
         supp_undefended = baseline["detection_suppression_pct"]
         clean_rate_undefended = baseline["frame_detection_rate_clean"]
         print(f"  Undefended suppression: {supp_undefended:.1f}%  "
@@ -342,7 +423,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 print(f"  Defense: {defense_name}  {setting_str} ...", end=" ", flush=True)
 
                 defended = evaluate_patch_on_images(
-                    yolo, images, patch_hwc, args.conf, defense_fn=fn
+                    yolo,
+                    images,
+                    patch_hwc,
+                    args.conf,
+                    placement_regime=args.placement_regime,
+                    defense_fn=fn,
                 )
                 supp_defended = defended["detection_suppression_pct"]
                 clean_rate_defended = defended["frame_detection_rate_clean_defended"]
@@ -363,6 +449,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "clean_rate_undefended": clean_rate_undefended,
                     "clean_rate_defended": clean_rate_defended,
                     "n_images": baseline["n_images"],
+                    "placement_regime": args.placement_regime,
                     "passes_gate": passed,
                 }
                 all_results.append(row)
@@ -384,7 +471,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"# Defense Evaluation Report\n\n"
         f"Model: `{args.model}` | "
         f"Manifest: `{args.manifest}` | "
-        f"Images: {len(images)}\n\n"
+        f"Images: {len(images)} | "
+        f"Placement: `{args.placement_regime}`\n\n"
         f"Pass criteria: attack_reduction > {PASS_MIN_ATTACK_REDUCTION_PP} pp  AND  "
         f"clean_cost < {PASS_CLEAN_COST_THRESHOLD_PP} pp\n"
     )

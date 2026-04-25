@@ -176,6 +176,121 @@ def compute_stats(per_frame: list[list[dict]]) -> dict:
     }
 
 
+def summarize_sector_rows(rows: list[dict]) -> dict:
+    """Aggregate physical-benchmark rows into sector summaries."""
+    if not rows:
+        return {
+            "suppression_mean": 0.0,
+            "suppression_std": 0.0,
+            "suppression_min": 0.0,
+            "suppression_max": 0.0,
+            "by_distance": {},
+            "by_yaw": {},
+            "by_lighting": {},
+            "best_sector": None,
+            "worst_sector": None,
+        }
+
+    def _axis_summary(axis: str) -> dict[str, dict[str, float | int]]:
+        values = sorted({row[axis] for row in rows})
+        summary: dict[str, dict[str, float | int]] = {}
+        for value in values:
+            matches = [row["suppression_vs_clean"] for row in rows if row[axis] == value]
+            summary[str(value)] = {
+                "mean_suppression": round(float(np.mean(matches)), 2),
+                "min_suppression": round(float(np.min(matches)), 2),
+                "max_suppression": round(float(np.max(matches)), 2),
+                "samples": len(matches),
+            }
+        return summary
+
+    sector_candidates: list[dict] = []
+    by_distance = _axis_summary("distance_m")
+    by_yaw = _axis_summary("yaw_deg")
+    by_lighting = _axis_summary("lighting")
+    for axis_name, axis_summary in (
+        ("distance", by_distance),
+        ("yaw", by_yaw),
+        ("lighting", by_lighting),
+    ):
+        for value, payload in axis_summary.items():
+            sector_candidates.append(
+                {
+                    "axis": axis_name,
+                    "value": value,
+                    "mean_suppression": payload["mean_suppression"],
+                    "samples": payload["samples"],
+                }
+            )
+
+    supp_vals = [row["suppression_vs_clean"] for row in rows]
+    best_sector = max(sector_candidates, key=lambda item: float(item["mean_suppression"]))
+    worst_sector = min(sector_candidates, key=lambda item: float(item["mean_suppression"]))
+    return {
+        "suppression_mean": round(float(np.mean(supp_vals)), 2),
+        "suppression_std": round(float(np.std(supp_vals)), 2),
+        "suppression_min": round(float(np.min(supp_vals)), 2),
+        "suppression_max": round(float(np.max(supp_vals)), 2),
+        "by_distance": by_distance,
+        "by_yaw": by_yaw,
+        "by_lighting": by_lighting,
+        "best_sector": best_sector,
+        "worst_sector": worst_sector,
+    }
+
+
+def _format_sector_table(title: str, axis_summary: dict[str, dict[str, float | int]]) -> str:
+    lines = [
+        f"### {title}",
+        "",
+        "| value | mean_suppression | min_suppression | max_suppression | samples |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    for value, payload in axis_summary.items():
+        lines.append(
+            f"| `{value}` | {float(payload['mean_suppression']):.2f}% | "
+            f"{float(payload['min_suppression']):.2f}% | "
+            f"{float(payload['max_suppression']):.2f}% | {int(payload['samples'])} |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def format_markdown_report(summary: dict) -> str:
+    best = summary.get("best_sector")
+    worst = summary.get("worst_sector")
+    lines = [
+        f"# Physical Benchmark Report — {summary['artifact']}",
+        "",
+        f"- Model: `{summary['model']}`",
+        f"- Patch: `{summary['patch_path']}`",
+        f"- Dry run: `{summary['dry_run']}`",
+        f"- Conditions completed: `{summary['conditions_completed']}` / `{summary['conditions_targeted']}`",
+        f"- Mean suppression: `{float(summary['suppression_mean']):.2f}%`",
+        f"- Suppression std: `{float(summary['suppression_std']):.2f}`",
+        f"- Suppression range: `{float(summary['suppression_min']):.2f}%` to `{float(summary['suppression_max']):.2f}%`",
+    ]
+    if isinstance(best, dict):
+        lines.append(
+            f"- Best sector: `{best['axis']}={best['value']}` "
+            f"at `{float(best['mean_suppression']):.2f}%` mean suppression"
+        )
+    if isinstance(worst, dict):
+        lines.append(
+            f"- Worst sector: `{worst['axis']}={worst['value']}` "
+            f"at `{float(worst['mean_suppression']):.2f}%` mean suppression"
+        )
+    lines.extend(
+        [
+            "",
+            _format_sector_table("By Distance", summary["by_distance"]),
+            _format_sector_table("By Yaw", summary["by_yaw"]),
+            _format_sector_table("By Lighting", summary["by_lighting"]),
+        ]
+    )
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def prompt_continue(msg: str) -> bool:
     """Wait for user to press Enter. Returns False if user types 'skip'."""
     resp = input(f"\n  {msg} [Enter to continue, 'skip' to skip, 'quit' to stop]: ").strip().lower()
@@ -234,6 +349,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     csv_path  = out_dir / f"benchmark_{args.artifact_name}.csv"
     json_path = out_dir / f"summary_{args.artifact_name}.json"
+    md_path = out_dir / f"summary_{args.artifact_name}.md"
 
     print(f"\n{'='*60}")
     print(f"  Physical Benchmark")
@@ -382,7 +498,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     # Write JSON summary
     if all_rows:
-        supp_vals = [r["suppression_vs_clean"] for r in all_rows]
+        sector_summary = summarize_sector_rows(all_rows)
         summary = {
             "artifact": args.artifact_name,
             "model": args.model,
@@ -390,30 +506,26 @@ def main(argv: Sequence[str] | None = None) -> int:
             "dry_run": args.dry_run,
             "conditions_targeted": total,
             "conditions_completed": len(all_rows),
-            "suppression_mean": round(float(np.mean(supp_vals)), 2),
-            "suppression_std":  round(float(np.std(supp_vals)), 2),
-            "suppression_min":  round(float(np.min(supp_vals)), 2),
-            "suppression_max":  round(float(np.max(supp_vals)), 2),
-            "by_distance": {
-                str(d): {
-                    "mean_suppression": round(
-                        float(np.mean([r["suppression_vs_clean"] for r in all_rows if r["distance_m"] == d])), 2
-                    )
-                }
-                for d in set(r["distance_m"] for r in all_rows)
-            },
-            "by_lighting": {
-                l: {
-                    "mean_suppression": round(
-                        float(np.mean([r["suppression_vs_clean"] for r in all_rows if r["lighting"] == l])), 2
-                    )
-                }
-                for l in set(r["lighting"] for r in all_rows)
-            },
+            **sector_summary,
         }
         json_path.write_text(json.dumps(summary, indent=2))
+        md_path.write_text(format_markdown_report(summary))
         print(f"\nJSON summary → {json_path}")
-        print(f"Mean suppression across {len(all_rows)} conditions: {summary['suppression_mean']:.1f}%")
+        print(f"Markdown report → {md_path}")
+        worst = summary["worst_sector"]
+        best = summary["best_sector"]
+        if isinstance(worst, dict):
+            print(
+                "Worst sector: "
+                f"{worst['axis']}={worst['value']} "
+                f"→ {float(worst['mean_suppression']):.1f}% mean suppression"
+            )
+        if isinstance(best, dict):
+            print(
+                "Best sector:  "
+                f"{best['axis']}={best['value']} "
+                f"→ {float(best['mean_suppression']):.1f}% mean suppression"
+            )
 
     print(f"CSV log → {csv_path}")
     print(f"Stills  → {stills_dir}/")

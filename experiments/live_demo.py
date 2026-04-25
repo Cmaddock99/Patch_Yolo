@@ -45,7 +45,13 @@ from ultralytics import YOLO
 EXPERIMENTS_DIR = str(Path(__file__).parent)
 if EXPERIMENTS_DIR not in sys.path:
     sys.path.insert(0, EXPERIMENTS_DIR)
-from ultralytics_patch import apply_patch, compute_torso_placement, run_predict
+from ultralytics_patch import (
+    PLACEMENT_LARGEST_PERSON_TORSO,
+    PLACEMENT_REGIMES,
+    apply_patch,
+    compute_patch_placement,
+    run_predict,
+)
 
 # ---------------------------------------------------------------------------
 # Drawing helpers
@@ -134,12 +140,13 @@ def run_digital(args: argparse.Namespace, yolo: YOLO, patch_t: torch.Tensor) -> 
         # --- Build patched frame ---
         img_t = torch.from_numpy(frame_rgb).permute(2, 0, 1).float() / 255.0
         ph_s, pw_s = patch_scaled.shape[1], patch_scaled.shape[2]
-        # Reuse the training/eval torso-placement heuristic so the demo stays
+        # Reuse the training/eval placement heuristic so the demo stays
         # aligned with how the patch is applied elsewhere in the repo.
-        top, left = compute_torso_placement(
+        top, left = compute_patch_placement(
             clean_boxes,
             h,
             ph_s,
+            placement_regime=args.placement_regime,
             image_width=w,
             patch_width=pw_s,
         )
@@ -248,6 +255,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
                    help="Webcam index (default: 0)")
     p.add_argument("--patch-scale", type=int, default=4,
                    help="Upscale factor for digital overlay patch (default: 4 → 400×400px)")
+    p.add_argument("--placement-regime", default=PLACEMENT_LARGEST_PERSON_TORSO,
+                   choices=list(PLACEMENT_REGIMES),
+                   help="Digital demo patch placement regime. largest_person_torso matches "
+                        "the default training path; off_object_fixed shows detector "
+                        "suppression without target overlap.")
     p.add_argument("--export-print", type=int, metavar="DPI", default=0,
                    help="Export print-ready PNG at given DPI and exit (e.g. 300)")
     return p.parse_args(argv)

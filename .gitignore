@@ -13,6 +13,13 @@ research/data/raw/
 research/data/normalized/
 research/data/drafts/
 
+outputs/colab_runs/
+outputs/colab_job_summaries/
+outputs/nuc_handoff/
+outputs/failure_grid/
+outputs/physical_benchmark/
+tmp/
+
 *.pt
 *.onnx
 *.engine
