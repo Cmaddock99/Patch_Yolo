@@ -414,6 +414,42 @@ def collect_job_status(
     }
 
 
+def collect_runtime_state(
+    *,
+    config: dict[str, Any],
+    artifact_entries: list[dict[str, Any]],
+    job_specs: list[dict[str, Any]],
+    attack_repo_root: Path,
+    ybt_repo_root: Path,
+    local_defaults: dict[str, Any],
+    enabled_job_ids: set[str],
+) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
+    artifact_statuses = [
+        collect_artifact_status(
+            artifact,
+            attack_repo_root=attack_repo_root,
+            ybt_repo_root=ybt_repo_root,
+            local_defaults=local_defaults,
+        )
+        for artifact in artifact_entries
+    ]
+    artifact_status_by_id = {str(status["artifact_id"]): status for status in artifact_statuses}
+    job_statuses = [
+        collect_job_status(
+            spec,
+            attack_repo_root=attack_repo_root,
+            artifact_status_by_id=artifact_status_by_id,
+        )
+        for spec in job_specs
+    ]
+    sequential_status = build_sequential_status(
+        config=config,
+        job_statuses=job_statuses,
+        enabled_job_ids=enabled_job_ids,
+    )
+    return artifact_statuses, artifact_status_by_id, job_statuses, sequential_status
+
+
 def build_transfer_candidate(
     *,
     job_id: str,
@@ -1172,27 +1208,13 @@ def main(argv: list[str] | None = None) -> int:
         job_spec_path.write_text(json.dumps(spec, indent=2), encoding="utf-8")
 
     artifact_entries = derive_artifact_entries(config=config, attack_repo_root=attack_repo_root, job_specs=job_specs)
-    artifact_statuses = [
-        collect_artifact_status(
-            artifact,
-            attack_repo_root=attack_repo_root,
-            ybt_repo_root=ybt_repo_root,
-            local_defaults=local_defaults,
-        )
-        for artifact in artifact_entries
-    ]
-    artifact_status_by_id = {str(status["artifact_id"]): status for status in artifact_statuses}
-    job_statuses = [
-        collect_job_status(
-            spec,
-            attack_repo_root=attack_repo_root,
-            artifact_status_by_id=artifact_status_by_id,
-        )
-        for spec in job_specs
-    ]
-    sequential_status = build_sequential_status(
+    artifact_statuses, artifact_status_by_id, job_statuses, sequential_status = collect_runtime_state(
         config=config,
-        job_statuses=job_statuses,
+        artifact_entries=artifact_entries,
+        job_specs=job_specs,
+        attack_repo_root=attack_repo_root,
+        ybt_repo_root=ybt_repo_root,
+        local_defaults=local_defaults,
         enabled_job_ids=enabled_job_ids,
     )
 
@@ -1242,6 +1264,35 @@ def main(argv: list[str] | None = None) -> int:
                 ]
             )
 
+    local_ready_script = bundle_dir / "run_local_ready.sh"
+    write_shell_script(
+        local_ready_script,
+        local_ready_commands or [["echo", "No local-ready commands generated."]],
+        cwd_comment="Commands use absolute paths and can be run from any working directory.",
+    )
+
+    if args.run_local_ready:
+        for command in local_ready_commands:
+            cwd = attack_repo_root if str(attack_repo_root) in command[1] else ybt_repo_root
+            command_results.append(
+                run_command(
+                    label=f"local-ready:{Path(command[1]).name}",
+                    cwd=cwd,
+                    command=command,
+                    dry_run=bool(args.dry_run),
+                )
+            )
+
+    artifact_statuses, artifact_status_by_id, job_statuses, sequential_status = collect_runtime_state(
+        config=config,
+        artifact_entries=artifact_entries,
+        job_specs=job_specs,
+        attack_repo_root=attack_repo_root,
+        ybt_repo_root=ybt_repo_root,
+        local_defaults=local_defaults,
+        enabled_job_ids=enabled_job_ids,
+    )
+
     physical_queue_commands: list[list[str]] = []
     promoted = dict(sequential_status.get("promoted_artifacts") or {})
     promoted_job_ids = [
@@ -1269,12 +1320,6 @@ def main(argv: list[str] | None = None) -> int:
             ]
         )
 
-    local_ready_script = bundle_dir / "run_local_ready.sh"
-    write_shell_script(
-        local_ready_script,
-        local_ready_commands or [["echo", "No local-ready commands generated."]],
-        cwd_comment="Commands use absolute paths and can be run from any working directory.",
-    )
     physical_queue_script = bundle_dir / "run_physical_queue.sh"
     write_shell_script(
         physical_queue_script,
@@ -1317,18 +1362,6 @@ def main(argv: list[str] | None = None) -> int:
             resolve_path(attack_repo_root, "configs/nuc_handoff.json"),
         ],
     )
-
-    if args.run_local_ready:
-        for command in local_ready_commands:
-            cwd = attack_repo_root if str(attack_repo_root) in command[1] else ybt_repo_root
-            command_results.append(
-                run_command(
-                    label=f"local-ready:{Path(command[1]).name}",
-                    cwd=cwd,
-                    command=command,
-                    dry_run=bool(args.dry_run),
-                )
-            )
 
     manifest = {
         "generated_at_utc": utc_iso(),
