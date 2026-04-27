@@ -217,6 +217,15 @@ Use the NUC launcher when you want the two-repo cycle staged from one command:
 
 That command bootstraps both repos, generates a timestamped handoff bundle under `outputs/nuc_handoff/`, packages a Colab-ready bundle from the exact local repo state, and runs any local-ready failure-grid / imported-patch evaluation steps for artifacts already present.
 
+The generated handoff bundle now includes `handoff/run_<job>.sh` Colab wrappers, `sequential_status.json`, and a spec sheet that reports:
+
+- the next recommended Colab job
+- Gate A / B / C status
+- which artifacts are digitally complete
+- which artifacts, if any, are ready for physical benchmarking
+
+The intended loop is one job at a time: run the recommended Colab wrapper, copy the returned run directory plus `outputs/colab_job_summaries/<job>.json` back into this repo, then rerun `./scripts/start_nuc_handoff.sh`.
+
 The permanent runbook is here:
 
 [docs/operations/nuc_handoff.md](docs/operations/nuc_handoff.md)

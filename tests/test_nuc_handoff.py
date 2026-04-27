@@ -94,6 +94,10 @@ class NucHandoffHelpersTest(unittest.TestCase):
             patch_path.write_bytes(b"png")
             sidecar = patch_path.with_name("patch_artifact.json")
             sidecar.write_text(json.dumps({"model": "yolov8n"}), encoding="utf-8")
+            (patch_path.parent.parent / "results.json").write_text(
+                json.dumps({"detection_suppression_pct": 90.0}),
+                encoding="utf-8",
+            )
 
             failure_dir = root / "outputs" / "failure_grid" / "demo_patch_on_yolov8n"
             failure_dir.mkdir(parents=True, exist_ok=True)
@@ -102,6 +106,10 @@ class NucHandoffHelpersTest(unittest.TestCase):
             physical_dir = root / "outputs" / "physical_benchmark"
             physical_dir.mkdir(parents=True, exist_ok=True)
             (physical_dir / "summary_demo_patch.json").write_text("{}", encoding="utf-8")
+
+            matrix_dir = root / "ybt" / "outputs" / "patch_matrix" / "nuc" / "patchmatrix__demo_patch__largest_person_torso__none"
+            matrix_dir.mkdir(parents=True, exist_ok=True)
+            (matrix_dir / "run_summary.json").write_text("{}", encoding="utf-8")
 
             status = run_nuc_handoff.collect_artifact_status(
                 {
@@ -115,17 +123,212 @@ class NucHandoffHelpersTest(unittest.TestCase):
                     "from_job": False,
                 },
                 attack_repo_root=root,
+                ybt_repo_root=root / "ybt",
                 local_defaults={
                     "failure_grid_output_dir": "outputs/failure_grid",
                     "physical_output_dir": "outputs/physical_benchmark",
+                    "ybt_output_root": "outputs/patch_matrix/nuc",
+                    "ybt_placement_modes": ["largest_person_torso"],
+                    "ybt_defenses": ["none"],
                 },
             )
 
             self.assertTrue(status["patch_exists"])
+            self.assertTrue(status["results_exists"])
             self.assertTrue(status["sidecar_exists"])
             self.assertTrue(status["failure_reports_complete"])
+            self.assertTrue(status["patch_matrix_complete"])
+            self.assertTrue(status["digital_gate_ready"])
             self.assertTrue(status["physical_summary_exists"])
             self.assertTrue(status["promotion_gate_ready"])
+
+    def test_collect_artifact_status_requires_patch_matrix_for_digital_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ybt_root = root / "ybt"
+            patch_path = root / "outputs" / "demo_patch" / "patches" / "patch.png"
+            patch_path.parent.mkdir(parents=True, exist_ok=True)
+            patch_path.write_bytes(b"png")
+            patch_path.with_name("patch_artifact.json").write_text(json.dumps({"model": "yolov8n"}), encoding="utf-8")
+            (patch_path.parent.parent / "results.json").write_text(json.dumps({"detection_suppression_pct": 50.0}), encoding="utf-8")
+
+            failure_dir = root / "outputs" / "failure_grid" / "demo_patch_on_yolov8n"
+            failure_dir.mkdir(parents=True, exist_ok=True)
+            (failure_dir / "failure_grid_results.json").write_text("{}", encoding="utf-8")
+
+            status = run_nuc_handoff.collect_artifact_status(
+                {
+                    "artifact_id": "demo_patch",
+                    "artifact_name": "demo_patch",
+                    "patch_path": str(patch_path),
+                    "source_model": "yolov8n",
+                    "failure_grid_models": ["yolov8n"],
+                    "enable_patch_matrix": True,
+                    "enable_physical": True,
+                    "from_job": True,
+                },
+                attack_repo_root=root,
+                ybt_repo_root=ybt_root,
+                local_defaults={
+                    "failure_grid_output_dir": "outputs/failure_grid",
+                    "physical_output_dir": "outputs/physical_benchmark",
+                    "ybt_output_root": "outputs/patch_matrix/nuc",
+                    "ybt_placement_modes": ["largest_person_torso"],
+                    "ybt_defenses": ["none"],
+                },
+            )
+
+            self.assertFalse(status["patch_matrix_complete"])
+            self.assertFalse(status["digital_gate_ready"])
+            self.assertFalse(status["promotion_gate_ready"])
+
+    def test_build_sequential_status_selects_next_job_and_winners(self) -> None:
+        config = {
+            "sequential_plan": {
+                "queue_order": [
+                    "v8m_source_transfer_v1",
+                    "v8n_transfer_baseline_v1",
+                    "v8n_transfer_cutout_only_v1",
+                    "v8n_transfer_self_ensemble_only_v1",
+                    "v8n_transfer_cutout_self_ensemble_v1",
+                    "yolo26n_hybrid_loss_v1",
+                    "yolo26n_hybrid_loss_tps_v1",
+                ],
+                "baselines": {
+                    "v8_transfer": {
+                        "yolo11n": 33.3,
+                        "yolo26n": 14.0,
+                    }
+                },
+                "gates": {
+                    "gate_a": {
+                        "job_id": "v8m_source_transfer_v1",
+                        "deltas": {
+                            "yolo11n": 5.0,
+                            "yolo26n": 3.0,
+                        },
+                    },
+                    "gate_b": {
+                        "job_ids": [
+                            "v8n_transfer_baseline_v1",
+                            "v8n_transfer_cutout_only_v1",
+                            "v8n_transfer_self_ensemble_only_v1",
+                            "v8n_transfer_cutout_self_ensemble_v1",
+                        ],
+                        "deltas": {
+                            "yolo11n": 5.0,
+                            "yolo26n": 3.0,
+                        },
+                    },
+                    "gate_c": {
+                        "job_id": "yolo26n_hybrid_loss_v1",
+                        "follow_on_job_id": "yolo26n_hybrid_loss_tps_v1",
+                        "min_direct_suppression": 25.0,
+                    },
+                },
+            }
+        }
+        job_statuses = [
+            {
+                "job_id": "v8m_source_transfer_v1",
+                "artifact_name": "v8m_source_transfer_v1",
+                "transfer_metrics": {"yolo11n": 40.0, "yolo26n": 18.0},
+                "train_suppression_pct": 91.0,
+                "colab_return_complete": True,
+                "digital_gate_ready": True,
+                "sidecar_exists": True,
+                "train_results_exists": True,
+                "failure_reports_complete": True,
+                "patch_matrix_complete": True,
+                "physical_summary_exists": False,
+            },
+            {
+                "job_id": "v8n_transfer_baseline_v1",
+                "artifact_name": "v8n_transfer_baseline_v1",
+                "transfer_metrics": {"yolo11n": 33.3, "yolo26n": 14.0},
+                "train_suppression_pct": 90.0,
+                "colab_return_complete": True,
+                "digital_gate_ready": True,
+                "sidecar_exists": True,
+                "train_results_exists": True,
+                "failure_reports_complete": True,
+                "patch_matrix_complete": True,
+                "physical_summary_exists": False,
+            },
+            {
+                "job_id": "v8n_transfer_cutout_only_v1",
+                "artifact_name": "v8n_transfer_cutout_only_v1",
+                "transfer_metrics": {"yolo11n": 35.0, "yolo26n": 14.5},
+                "train_suppression_pct": 89.0,
+                "colab_return_complete": True,
+                "digital_gate_ready": True,
+                "sidecar_exists": True,
+                "train_results_exists": True,
+                "failure_reports_complete": True,
+                "patch_matrix_complete": True,
+                "physical_summary_exists": False,
+            },
+            {
+                "job_id": "v8n_transfer_self_ensemble_only_v1",
+                "artifact_name": "v8n_transfer_self_ensemble_only_v1",
+                "transfer_metrics": {"yolo11n": 39.0, "yolo26n": 17.5},
+                "train_suppression_pct": 88.0,
+                "colab_return_complete": True,
+                "digital_gate_ready": True,
+                "sidecar_exists": True,
+                "train_results_exists": True,
+                "failure_reports_complete": True,
+                "patch_matrix_complete": True,
+                "physical_summary_exists": False,
+            },
+            {
+                "job_id": "v8n_transfer_cutout_self_ensemble_v1",
+                "artifact_name": "v8n_transfer_cutout_self_ensemble_v1",
+                "transfer_metrics": {"yolo11n": 36.0, "yolo26n": 16.0},
+                "train_suppression_pct": 87.0,
+                "colab_return_complete": True,
+                "digital_gate_ready": True,
+                "sidecar_exists": True,
+                "train_results_exists": True,
+                "failure_reports_complete": True,
+                "patch_matrix_complete": True,
+                "physical_summary_exists": False,
+            },
+            {
+                "job_id": "yolo26n_hybrid_loss_v1",
+                "artifact_name": "yolo26n_hybrid_loss_v1",
+                "transfer_metrics": {"yolo11n": 28.0},
+                "train_suppression_pct": 27.0,
+                "colab_return_complete": True,
+                "digital_gate_ready": True,
+                "sidecar_exists": True,
+                "train_results_exists": True,
+                "failure_reports_complete": True,
+                "patch_matrix_complete": True,
+                "physical_summary_exists": False,
+            },
+        ]
+
+        status = run_nuc_handoff.build_sequential_status(
+            config=config,
+            job_statuses=job_statuses,
+            enabled_job_ids={
+                "v8m_source_transfer_v1",
+                "v8n_transfer_baseline_v1",
+                "v8n_transfer_cutout_only_v1",
+                "v8n_transfer_self_ensemble_only_v1",
+                "v8n_transfer_cutout_self_ensemble_v1",
+                "yolo26n_hybrid_loss_v1",
+            },
+        )
+
+        self.assertEqual(status["gate_statuses"]["gate_a"]["state"], "pass")
+        self.assertEqual(status["gate_statuses"]["gate_b"]["state"], "pass")
+        self.assertEqual(status["gate_statuses"]["gate_b"]["winner_job_id"], "v8n_transfer_self_ensemble_only_v1")
+        self.assertEqual(status["gate_statuses"]["gate_c"]["state"], "ready_to_enable_follow_on")
+        self.assertEqual(status["promoted_artifacts"]["transfer_winner"]["job_id"], "v8m_source_transfer_v1")
+        self.assertEqual(status["promoted_artifacts"]["yolo26_winner"]["job_id"], "yolo26n_hybrid_loss_v1")
+        self.assertEqual(status["next_step"]["kind"], "config_edit")
 
 
 if __name__ == "__main__":

@@ -254,6 +254,49 @@
       }
     ]
   },
+  "sequential_plan": {
+    "queue_order": [
+      "v8m_source_transfer_v1",
+      "v8n_transfer_baseline_v1",
+      "v8n_transfer_cutout_only_v1",
+      "v8n_transfer_self_ensemble_only_v1",
+      "v8n_transfer_cutout_self_ensemble_v1",
+      "yolo26n_hybrid_loss_v1",
+      "yolo26n_hybrid_loss_tps_v1"
+    ],
+    "baselines": {
+      "v8_transfer": {
+        "yolo11n": 33.3,
+        "yolo26n": 14.0
+      }
+    },
+    "gates": {
+      "gate_a": {
+        "job_id": "v8m_source_transfer_v1",
+        "deltas": {
+          "yolo11n": 5.0,
+          "yolo26n": 3.0
+        }
+      },
+      "gate_b": {
+        "job_ids": [
+          "v8n_transfer_baseline_v1",
+          "v8n_transfer_cutout_only_v1",
+          "v8n_transfer_self_ensemble_only_v1",
+          "v8n_transfer_cutout_self_ensemble_v1"
+        ],
+        "deltas": {
+          "yolo11n": 5.0,
+          "yolo26n": 3.0
+        }
+      },
+      "gate_c": {
+        "job_id": "yolo26n_hybrid_loss_v1",
+        "follow_on_job_id": "yolo26n_hybrid_loss_tps_v1",
+        "min_direct_suppression": 25.0
+      }
+    }
+  },
   "existing_artifacts": [
     {
       "artifact_id": "yolov8n_patch_v2",

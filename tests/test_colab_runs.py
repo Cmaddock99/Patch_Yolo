@@ -42,6 +42,32 @@ class ColabQueueHelpersTest(unittest.TestCase):
         self.assertIn("yolo11n", rendered)
         self.assertIn("yolo26n", rendered)
 
+    def test_build_patch_job_specs_preserves_local_eval(self) -> None:
+        config = {
+            "attack_defaults": {
+                "output_dir": "outputs",
+            },
+            "jobs": [
+                {
+                    "job_id": "demo_job",
+                    "train": {
+                        "model": "yolov8n",
+                        "run_name": "demo_job",
+                    },
+                    "local_eval": {
+                        "failure_grid_models": ["yolov8n", "yolo11n"],
+                        "enable_patch_matrix": False,
+                    },
+                }
+            ],
+        }
+
+        specs = colab_queue.build_patch_job_specs(config, REPO_ROOT)
+
+        self.assertEqual(len(specs), 1)
+        self.assertEqual(specs[0]["local_eval"]["failure_grid_models"], ["yolov8n", "yolo11n"])
+        self.assertFalse(specs[0]["local_eval"]["enable_patch_matrix"])
+
 
 class ColabJobRunnerTest(unittest.TestCase):
     def test_build_train_command_can_force_resume(self) -> None:

@@ -90,6 +90,7 @@ def build_patch_job_specs(config: dict[str, Any], attack_repo_root: Path) -> lis
                 "description": str(raw_job.get("description") or "").strip(),
                 "train": train,
                 "eval_targets": list(raw_job.get("eval_targets") or []),
+                "local_eval": dict(raw_job.get("local_eval") or {}),
                 "drive_export_root": drive_export_root,
                 "expected_run_dir": str(run_dir),
                 "expected_patch_path": str(patch_path),

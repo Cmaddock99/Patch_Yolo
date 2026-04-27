@@ -2,6 +2,8 @@
 
 The planned GPU-heavy runs now have a dedicated Colab path that does not depend on the NUC launcher.
 
+For the canonical staged experiment loop, prefer `./scripts/start_nuc_handoff.sh`. The standalone Colab queue is still useful for ad hoc or source-only bundle generation, but it does not compute gate status or promoted-winner selection.
+
 ## Main Entry Point
 
 Build the queue bundle with:

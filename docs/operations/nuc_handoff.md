@@ -60,11 +60,15 @@ outputs/nuc_handoff/nuc_handoff_<timestamp>/
 Important files inside:
 
 - `nuc_spec_sheet.md`: operator-facing spec and artifact status table
+- `sequential_status.json`: machine-readable gate state, winners, and next-step recommendation
 - `handoff_manifest.json`: machine-readable summary
-- `colab_jobs/*.json`: one job spec per Colab run
+- `handoff/colab_jobs/*.json`: one job spec per Colab run
+- `handoff/run_<job>.sh`: one Colab wrapper per job
+- `handoff/resume_<job>.sh`: resume wrapper per job
+- `handoff/run_all_jobs.sh`: full enabled queue wrapper
 - `adversarial_patch_colab_bundle.tar.gz`: upload this to Colab
 - `run_local_ready.sh`: rerun local-ready digital tasks
-- `run_physical_queue.sh`: manual physical benchmark queue
+- `run_physical_queue.sh`: manual physical benchmark queue for promoted digital winners only
 
 ## Current Colab Queue
 
@@ -79,6 +83,30 @@ The default config stages:
 
 `yolo26n_hybrid_loss_tps_v1` is present but disabled by default until the base hybrid run earns promotion.
 
+## Sequential Control
+
+`./scripts/start_nuc_handoff.sh` is now the canonical coordinator for the staged run order.
+
+What it decides automatically:
+
+- the next recommended Colab job
+- whether Gate A / B / C has passed yet
+- which artifacts are digitally complete
+- which artifacts, if any, are eligible for physical benchmarking
+
+Read those decisions from:
+
+- `nuc_spec_sheet.md`
+- `sequential_status.json`
+
+The intended operator loop is:
+
+1. Run `./scripts/start_nuc_handoff.sh`
+2. In Colab, run only the recommended `handoff/run_<job>.sh`
+3. Copy the returned run directory and `outputs/colab_job_summaries/<job>.json` back into this repo
+4. Rerun `./scripts/start_nuc_handoff.sh`
+5. Only run `run_physical_queue.sh` when the spec sheet names promoted digital winners
+
 ## Return Contract
 
 After a Colab job finishes, copy the produced run directory back into this repo's `outputs/` tree on the NUC. Then rerun:
@@ -87,15 +115,17 @@ After a Colab job finishes, copy the produced run directory back into this repo'
 ./scripts/start_nuc_handoff.sh
 ```
 
-The launcher detects the returned artifact, checks for `patch_artifact.json`, runs the configured local digital evaluations, and refreshes the spec sheet.
+The launcher detects the returned artifact, checks for `results.json` plus `patch_artifact.json`, runs any still-missing local digital evaluations, refreshes the spec sheet, and updates the gate state.
 
 ## Promotion Gate
 
 A patch artifact is only considered ready for promotion when all of these exist:
 
 - `patch.png`
+- `results.json`
 - `patch_artifact.json`
 - digital failure-grid output
+- imported-patch matrix output in `YOLO-Bad-Triangle`
 - physical benchmark sector summary
 
-That gate is reflected in the generated `nuc_spec_sheet.md`.
+Physical benchmarking is staged only for the promoted digital winners from the transfer lane and the YOLO26 lane. That gate is reflected in the generated `nuc_spec_sheet.md`.
