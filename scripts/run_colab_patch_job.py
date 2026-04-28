@@ -116,7 +116,10 @@ def expected_run_dir(job_payload: dict[str, Any]) -> Path:
 def expected_patch_path(job_payload: dict[str, Any]) -> Path:
     raw = str(job_payload.get("expected_patch_path") or "").strip()
     if raw:
-        return resolve_repo_path(raw)
+        candidate = resolve_repo_path(raw)
+        if candidate.is_absolute() and not candidate.is_relative_to(REPO_ROOT):
+            return expected_run_dir(job_payload) / "patches" / "patch.png"
+        return candidate
     return expected_run_dir(job_payload) / "patches" / "patch.png"
 
 

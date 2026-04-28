@@ -82,7 +82,7 @@ def build_patch_job_specs(config: dict[str, Any], attack_repo_root: Path) -> lis
             or colab_cfg.get("drive_export_root")
             or config.get("drive_export_root")
         )
-        run_dir = resolve_path(attack_repo_root, str(train["output_dir"])) / str(train["run_name"])
+        run_dir = Path(str(train["output_dir"])) / str(train["run_name"])
         patch_path = run_dir / "patches" / "patch.png"
         specs.append(
             {

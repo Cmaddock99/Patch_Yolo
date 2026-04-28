@@ -68,6 +68,27 @@ class ColabQueueHelpersTest(unittest.TestCase):
         self.assertEqual(specs[0]["local_eval"]["failure_grid_models"], ["yolov8n", "yolo11n"])
         self.assertFalse(specs[0]["local_eval"]["enable_patch_matrix"])
 
+    def test_build_patch_job_specs_keeps_bundle_paths_portable(self) -> None:
+        config = {
+            "attack_defaults": {
+                "output_dir": "outputs",
+            },
+            "jobs": [
+                {
+                    "job_id": "demo_job",
+                    "train": {
+                        "model": "yolov8n",
+                        "run_name": "demo_job",
+                    },
+                }
+            ],
+        }
+
+        specs = colab_queue.build_patch_job_specs(config, REPO_ROOT)
+
+        self.assertEqual(specs[0]["expected_run_dir"], "outputs/demo_job")
+        self.assertEqual(specs[0]["expected_patch_path"], "outputs/demo_job/patches/patch.png")
+
 
 class ColabJobRunnerTest(unittest.TestCase):
     def test_build_train_command_can_force_resume(self) -> None:
@@ -106,6 +127,20 @@ class ColabJobRunnerTest(unittest.TestCase):
         self.assertEqual(payload["output_dir"], "outputs")
         self.assertEqual(payload["run_name"], "demo_job__transfer__yolo11n")
         self.assertEqual(payload["load_patch"], "/tmp/patch.png")
+
+    def test_expected_patch_path_falls_back_from_foreign_absolute_root(self) -> None:
+        job_payload = {
+            "job_id": "demo_job",
+            "train": {
+                "output_dir": "outputs",
+                "run_name": "demo_job",
+            },
+            "expected_patch_path": "/home/lurch/Adversarial_Patch/outputs/demo_job/patches/patch.png",
+        }
+
+        path = run_colab_patch_job.expected_patch_path(job_payload)
+
+        self.assertEqual(path, REPO_ROOT / "outputs" / "demo_job" / "patches" / "patch.png")
 
 
 if __name__ == "__main__":
