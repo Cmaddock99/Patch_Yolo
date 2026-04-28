@@ -10,8 +10,10 @@ Attack mechanism
 Call the inner DetectionModel directly (bypasses Ultralytics predict()'s
 no_grad wrapper) to get differentiable raw predictions.
 
-For YOLOv8 / YOLO11: inner_model returns (B, 84, 8400) — channels 0-3 are box
-  coordinates, channels 4-83 are class scores. Person = channel 4.
+For YOLOv8 / YOLO11: older runtimes return (B, 84, 8400) — channels 0-3 are box
+  coordinates, channels 4-83 are class scores. Person = channel 4. Newer
+  train-mode runtimes may instead return {"boxes", "scores", "feats"}, where
+  "scores" has shape (B, 80, A) and person = channel 0.
 
 For YOLO26 (end2end=True): inner_model returns (y, preds_dict). y=(B,300,6)
   is post-processed and has no useful gradients. By default (--loss-source auto),
@@ -70,8 +72,9 @@ from tqdm import tqdm
 from ultralytics import YOLO
 
 # COCO: class 0 = person.
-# In YOLOv8/v11 (B, 84, 8400): channels 0-3 are box coords, channel 4 = person.
-# In YOLO26 scores (B, 80, 8400): pure class scores, person = channel 0.
+# In YOLOv8/v11 legacy raw output (B, 84, 8400): channels 0-3 are box coords,
+# channel 4 = person. In newer train-mode score dicts and YOLO26 scores
+# (B, 80, A): pure class scores, person = channel 0.
 PERSON_CLASS_ID = 0
 PERSON_CHANNEL = 4  # for v8/v11 (B, 84, 8400) layout
 PLACEMENT_LARGEST_PERSON_TORSO = "largest_person_torso"
@@ -545,7 +548,9 @@ def predict_with_grad(
     """
     Run the inner DetectionModel with gradients enabled.
 
-    v8/v11 : returns (B, 84, 8400) — person class at channel 4.
+    v8/v11 : older runtimes return (B, 84, 8400) — person class at channel 4.
+             newer train-mode runtimes may return a dict with a differentiable
+             "scores" tensor of shape (B, 80, A) — person class at channel 0.
     v26     : default (auto/one2one) delegates to compute_v26_one2one_scores(),
               returning (B, 80, total_anchors) with grad_fn intact.
               With --loss-source one2many: extracts preds_dict["one2many"]["scores"]
@@ -580,7 +585,17 @@ def predict_with_grad(
             inner_model.eval()
 
     if not is_v26:
-        # v8/v11: out is a tuple; out[0] is (B, 84, 8400)
+        # Recent Ultralytics train-mode forwards return a dict with class scores
+        # split from box distributions. Older forwards return a tuple whose
+        # first item is the legacy (B, 84, A) tensor.
+        if isinstance(out, dict):
+            scores = out.get("scores")
+            if not isinstance(scores, torch.Tensor):
+                raise RuntimeError(
+                    "[v8/v11] Expected train-mode output dict to contain a "
+                    f"'scores' tensor, got keys={list(out.keys())}"
+                )
+            return scores
         return out[0] if isinstance(out, (tuple, list)) else out
 
     # v26 one2many ablation path — requires restore_v26_one2many_head()
@@ -626,7 +641,8 @@ def detection_loss(
     Minimize the person class score across anchor points.
     Applies sigmoid to guarantee loss stays in [0, 1].
 
-    preds for v8/v11: (B, 84, 8400) — person score at channel 4
+    preds for v8/v11 legacy raw output: (B, 84, 8400) — person score at channel 4
+    preds for v8/v11 train-mode score dicts: (B, 80, A) — person score at channel 0
     preds for v26:    (B, 80, total_anchors) — person score at channel 0
 
     loss_mode="topk"      : mean of top-k scores (existing behaviour).
@@ -637,7 +653,7 @@ def detection_loss(
                             best-matching anchor — topk may miss it if it falls outside
                             the top-k window; logsumexp always finds and suppresses it.
     """
-    person_ch = PERSON_CLASS_ID if is_v26 else PERSON_CHANNEL
+    person_ch = PERSON_CLASS_ID if (is_v26 or preds.shape[1] == 80) else PERSON_CHANNEL
     person_scores = preds[:, person_ch, :].sigmoid()  # (B, A)
 
     if loss_mode == "logsumexp":

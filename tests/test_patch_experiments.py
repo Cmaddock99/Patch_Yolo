@@ -13,11 +13,39 @@ from experiments.physical_benchmark import summarize_sector_rows
 from experiments.ultralytics_patch import (
     PLACEMENT_OFF_OBJECT_FIXED,
     compute_patch_placement,
+    detection_loss,
+    predict_with_grad,
     save_patch_outputs,
 )
 
 
 class PatchExperimentHelpersTest(unittest.TestCase):
+    def test_predict_with_grad_handles_train_mode_score_dict(self) -> None:
+        class DictScoreModel(torch.nn.Module):
+            def forward(self, image_bchw: torch.Tensor) -> dict[str, object]:
+                batch = image_bchw.shape[0]
+                anchor_logits = image_bchw[:, :1, 0, 0].view(batch, 1, 1).expand(batch, 80, 5)
+                return {
+                    "boxes": torch.zeros(batch, 64, 5, device=image_bchw.device),
+                    "scores": anchor_logits,
+                    "feats": [],
+                }
+
+        image = torch.ones((1, 3, 8, 8), dtype=torch.float32, requires_grad=True)
+        scores = predict_with_grad(DictScoreModel(), image, model_name="yolov8m")
+
+        self.assertEqual(tuple(scores.shape), (1, 80, 5))
+        self.assertTrue(scores.requires_grad)
+
+    def test_detection_loss_uses_person_channel_zero_for_score_only_tensor(self) -> None:
+        preds = torch.zeros((1, 80, 3), dtype=torch.float32)
+        preds[:, 0, :] = 0.0
+        preds[:, 4, :] = 10.0
+
+        loss = detection_loss(preds, topk=3, is_v26=False)
+
+        self.assertAlmostEqual(loss.item(), 0.5, places=5)
+
     def test_compute_patch_placement_supports_off_object_fixed(self) -> None:
         top, left = compute_patch_placement(
             [],
