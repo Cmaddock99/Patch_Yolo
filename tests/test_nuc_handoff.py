@@ -331,6 +331,61 @@ class NucHandoffHelpersTest(unittest.TestCase):
         self.assertEqual(status["promoted_artifacts"]["yolo26_winner"]["job_id"], "yolo26n_hybrid_loss_v1")
         self.assertEqual(status["next_step"]["kind"], "config_edit")
 
+    def test_build_evidence_ledger_marks_gate_and_winner(self) -> None:
+        sequential_status = {
+            "job_statuses": [
+                {
+                    "job_id": "v8m_source_transfer_v1",
+                    "artifact_name": "v8m_source_transfer_v1",
+                    "source_model": "yolov8m",
+                    "train_suppression_pct": 91.0,
+                    "transfer_metrics": {"yolo11n": 40.0, "yolo26n": 18.0},
+                    "colab_return_complete": True,
+                    "failure_reports_complete": True,
+                    "patch_matrix_complete": True,
+                    "physical_summary_exists": False,
+                    "digital_gate_ready": True,
+                    "promotion_gate_ready": False,
+                }
+            ],
+            "gate_statuses": {
+                "gate_a": {
+                    "job_id": "v8m_source_transfer_v1",
+                    "state": "pass",
+                    "summary": "ok",
+                },
+                "gate_b": {},
+                "gate_c": {},
+            },
+            "promoted_artifacts": {
+                "transfer_winner": {"job_id": "v8m_source_transfer_v1"},
+                "yolo26_winner": None,
+            },
+            "next_step": {"summary": "next"},
+        }
+        artifact_statuses = [
+            {
+                "artifact_name": "yolov8n_patch_v2",
+                "source_model": "yolov8n",
+                "from_job": False,
+                "results_payload": {"detection_suppression_pct": 90.0},
+                "sidecar_exists": False,
+                "failure_reports_complete": True,
+                "patch_matrix_complete": True,
+                "physical_summary_exists": False,
+                "promotion_gate_ready": False,
+            }
+        ]
+
+        ledger = run_nuc_handoff.build_evidence_ledger(
+            artifact_statuses=artifact_statuses,
+            sequential_status=sequential_status,
+        )
+
+        self.assertEqual(ledger["queue_rows"][0]["gate_state"], "gate_a:pass")
+        self.assertEqual(ledger["queue_rows"][0]["winner_label"], "transfer_winner")
+        self.assertEqual(ledger["legacy_rows"][0]["artifact_name"], "yolov8n_patch_v2")
+
     def test_main_refreshes_manifest_after_local_ready(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -446,6 +501,13 @@ class NucHandoffHelpersTest(unittest.TestCase):
             artifact_status = manifest["artifact_statuses"][0]
             self.assertTrue(artifact_status["patch_matrix_complete"])
             self.assertTrue(artifact_status["failure_reports_complete"])
+            self.assertIn("evidence_ledger_path", manifest)
+            self.assertIn("evidence_table_path", manifest)
+            self.assertIn("handoff_paths", manifest)
+            self.assertTrue(Path(manifest["evidence_ledger_path"]).is_file())
+            self.assertTrue(Path(manifest["evidence_table_path"]).is_file())
+            for handoff_path in manifest["handoff_paths"].values():
+                self.assertTrue(Path(handoff_path).is_file())
             self.assertTrue(
                 any(
                     row["label"] == "local-ready:run_unified.py" and row["exit_code"] == 0

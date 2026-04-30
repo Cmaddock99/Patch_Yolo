@@ -62,10 +62,16 @@ Important files inside:
 - `nuc_spec_sheet.md`: operator-facing spec and artifact status table
 - `sequential_status.json`: machine-readable gate state, winners, and next-step recommendation
 - `handoff_manifest.json`: machine-readable summary
+- `evidence_ledger.json`: machine-readable queue and legacy-baseline evidence ledger
+- `evidence_table.md`: compact markdown view of direct suppression, transfer metrics, gate state, and promotion readiness
 - `handoff/colab_jobs/*.json`: one job spec per Colab run
 - `handoff/run_<job>.sh`: one Colab wrapper per job
 - `handoff/resume_<job>.sh`: resume wrapper per job
 - `handoff/run_all_jobs.sh`: full enabled queue wrapper
+- `handoff/HANDOFF_A_COLAB_OPERATOR.md`: current Colab-side work packet
+- `handoff/HANDOFF_B_NUC_INTAKE.md`: intake/copy-back work packet
+- `handoff/HANDOFF_C_YBT_EVALUATOR.md`: YBT patch-matrix verification work packet
+- `handoff/HANDOFF_D_EVIDENCE_AUDITOR.md`: evidence-audit work packet
 - `adversarial_patch_colab_bundle.tar.gz`: upload this to Colab
 - `run_local_ready.sh`: rerun local-ready digital tasks
 - `run_physical_queue.sh`: manual physical benchmark queue for promoted digital winners only
@@ -106,6 +112,16 @@ The intended operator loop is:
 3. Copy the returned run directory and `outputs/colab_job_summaries/<job>.json` back into this repo
 4. Rerun `./scripts/start_nuc_handoff.sh`
 5. Only run `run_physical_queue.sh` when the spec sheet names promoted digital winners
+
+If the Colab export lands as a folder on the NUC or another local machine, use:
+
+```bash
+python scripts/import_colab_return.py \
+  --job-id <job_id> \
+  --source /path/to/exported/<job_id> \
+  --overwrite \
+  --rerun-handoff
+```
 
 ## Return Contract
 

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
-from scripts import colab_queue, run_colab_patch_job
+from scripts import colab_queue, import_colab_return, run_colab_patch_job
 
 
 class ColabQueueHelpersTest(unittest.TestCase):
@@ -141,6 +142,69 @@ class ColabJobRunnerTest(unittest.TestCase):
         path = run_colab_patch_job.expected_patch_path(job_payload)
 
         self.assertEqual(path, REPO_ROOT / "outputs" / "demo_job" / "patches" / "patch.png")
+
+
+class ImportColabReturnTest(unittest.TestCase):
+    def test_resolve_source_job_dir_accepts_export_root_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            job_dir = root / "demo_job"
+            job_dir.mkdir()
+
+            resolved = import_colab_return.resolve_source_job_dir(root, job_id="demo_job")
+
+            self.assertEqual(resolved, job_dir.resolve())
+
+    def test_planned_imports_includes_train_eval_and_summary(self) -> None:
+        job_spec = {
+            "job_id": "demo_job",
+            "train": {
+                "output_dir": "outputs",
+                "run_name": "demo_job",
+            },
+            "eval_targets": [
+                {"model": "yolo11n"},
+                {"model": "yolo26n"},
+            ],
+        }
+        source_root = Path("/tmp/export/demo_job")
+
+        plan = import_colab_return.planned_imports(
+            job_spec=job_spec,
+            attack_repo_root=REPO_ROOT,
+            source_job_dir=source_root,
+        )
+
+        names = [item["name"] for item in plan["run_dirs"]]
+        self.assertEqual(
+            names,
+            [
+                "demo_job",
+                "demo_job__transfer__yolo11n",
+                "demo_job__transfer__yolo26n",
+            ],
+        )
+        self.assertEqual(plan["summary_destination"], REPO_ROOT / "outputs" / "colab_job_summaries" / "demo_job.json")
+
+    def test_validate_sources_rejects_missing_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_job_dir = root / "demo_job"
+            (source_job_dir / "demo_job").mkdir(parents=True)
+            plan = {
+                "run_dirs": [
+                    {
+                        "name": "demo_job",
+                        "source": source_job_dir / "demo_job",
+                        "destination": root / "outputs" / "demo_job",
+                    }
+                ],
+                "summary_source": source_job_dir / "demo_job.json",
+                "summary_destination": root / "outputs" / "colab_job_summaries" / "demo_job.json",
+            }
+
+            with self.assertRaises(FileNotFoundError):
+                import_colab_return.validate_sources(plan)
 
 
 if __name__ == "__main__":

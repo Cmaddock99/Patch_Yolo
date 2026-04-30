@@ -988,6 +988,353 @@ def render_handoff_spec(
     return "\n".join(lines)
 
 
+def job_lane(job_status: dict[str, Any]) -> str:
+    source_model = str(job_status.get("source_model") or "").lower()
+    return "yolo26" if "26" in source_model else "transfer"
+
+
+def gate_state_for_job(*, job_id: str, sequential_status: dict[str, Any]) -> str:
+    gate_statuses = dict(sequential_status.get("gate_statuses") or {})
+    gate_a = dict(gate_statuses.get("gate_a") or {})
+    if str(gate_a.get("job_id") or "") == job_id:
+        return f"gate_a:{gate_a.get('state', 'unknown')}"
+
+    gate_b = dict(gate_statuses.get("gate_b") or {})
+    gate_b_job_ids = [str(item) for item in gate_b.get("job_ids") or []]
+    if job_id in gate_b_job_ids:
+        suffix = ""
+        if str(gate_b.get("winner_job_id") or "") == job_id:
+            suffix = ":winner"
+        elif gate_b.get("state") in {"pass", "fail"}:
+            suffix = ":non_winner"
+        return f"gate_b:{gate_b.get('state', 'unknown')}{suffix}"
+
+    gate_c = dict(gate_statuses.get("gate_c") or {})
+    if str(gate_c.get("job_id") or "") == job_id:
+        return f"gate_c:{gate_c.get('state', 'unknown')}"
+    if str(gate_c.get("follow_on_job_id") or "") == job_id:
+        state = gate_c.get("state", "unknown")
+        if state == "pass":
+            return "gate_c_follow_on:eligible"
+        if state == "ready_to_enable_follow_on":
+            return "gate_c_follow_on:awaiting_enable"
+        return f"gate_c_follow_on:{state}"
+
+    return "not_gated"
+
+
+def winner_label_for_job(*, job_id: str, sequential_status: dict[str, Any]) -> str:
+    promoted = dict(sequential_status.get("promoted_artifacts") or {})
+    labels: list[str] = []
+    transfer_winner = dict(promoted.get("transfer_winner") or {})
+    if str(transfer_winner.get("job_id") or "") == job_id:
+        labels.append("transfer_winner")
+    yolo26_winner = dict(promoted.get("yolo26_winner") or {})
+    if str(yolo26_winner.get("job_id") or "") == job_id:
+        labels.append("yolo26_winner")
+    return ",".join(labels) if labels else "none"
+
+
+def build_evidence_ledger(
+    *,
+    artifact_statuses: list[dict[str, Any]],
+    sequential_status: dict[str, Any],
+) -> dict[str, Any]:
+    queue_rows: list[dict[str, Any]] = []
+    for job_status in sequential_status.get("job_statuses", []):
+        transfer_metrics = dict(job_status.get("transfer_metrics") or {})
+        queue_rows.append(
+            {
+                "job_id": str(job_status["job_id"]),
+                "artifact_name": str(job_status["artifact_name"]),
+                "lane": job_lane(job_status),
+                "direct_suppression_pct": job_status.get("train_suppression_pct"),
+                "yolo11n_transfer_pct": transfer_metrics.get("yolo11n"),
+                "yolo26n_transfer_pct": transfer_metrics.get("yolo26n"),
+                "colab_return_complete": bool(job_status.get("colab_return_complete")),
+                "failure_grid_complete": bool(job_status.get("failure_reports_complete")),
+                "patch_matrix_complete": bool(job_status.get("patch_matrix_complete")),
+                "physical_summary_exists": bool(job_status.get("physical_summary_exists")),
+                "digital_gate_ready": bool(job_status.get("digital_gate_ready")),
+                "promotion_gate_ready": bool(job_status.get("promotion_gate_ready")),
+                "gate_state": gate_state_for_job(job_id=str(job_status["job_id"]), sequential_status=sequential_status),
+                "winner_label": winner_label_for_job(job_id=str(job_status["job_id"]), sequential_status=sequential_status),
+            }
+        )
+
+    legacy_rows: list[dict[str, Any]] = []
+    for status in artifact_statuses:
+        if bool(status.get("from_job")):
+            continue
+        results_payload = dict(status.get("results_payload") or {})
+        legacy_rows.append(
+            {
+                "artifact_name": str(status["artifact_name"]),
+                "source_model": status.get("source_model"),
+                "direct_suppression_pct": read_suppression_pct(results_payload),
+                "sidecar_exists": bool(status.get("sidecar_exists")),
+                "failure_grid_complete": bool(status.get("failure_reports_complete")),
+                "patch_matrix_complete": bool(status.get("patch_matrix_complete")),
+                "physical_summary_exists": bool(status.get("physical_summary_exists")),
+                "promotion_gate_ready": bool(status.get("promotion_gate_ready")),
+            }
+        )
+
+    return {
+        "generated_at_utc": utc_iso(),
+        "next_step": sequential_status.get("next_step", {}),
+        "gate_statuses": sequential_status.get("gate_statuses", {}),
+        "queue_rows": queue_rows,
+        "legacy_rows": legacy_rows,
+    }
+
+
+def _render_pct(value: Any) -> str:
+    if value is None:
+        return "—"
+    try:
+        return f"{float(value):.1f}"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def render_evidence_table(evidence_ledger: dict[str, Any]) -> str:
+    lines = [
+        "# Queue Evidence Table",
+        "",
+        f"- Generated at: `{evidence_ledger.get('generated_at_utc', utc_iso())}`",
+        f"- Next step: {dict(evidence_ledger.get('next_step') or {}).get('summary', '—')}",
+        "",
+        "## Queue Jobs",
+        "",
+        "| job_id | lane | direct_pct | y11_transfer | y26_transfer | failure_grid | patch_matrix | physical | digital_gate | promotion_gate | gate | winner |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for row in evidence_ledger.get("queue_rows", []):
+        lines.append(
+            f"| `{row['job_id']}` | `{row['lane']}` | "
+            f"{_render_pct(row.get('direct_suppression_pct'))} | "
+            f"{_render_pct(row.get('yolo11n_transfer_pct'))} | "
+            f"{_render_pct(row.get('yolo26n_transfer_pct'))} | "
+            f"{'yes' if row.get('failure_grid_complete') else 'no'} | "
+            f"{'yes' if row.get('patch_matrix_complete') else 'no'} | "
+            f"{'yes' if row.get('physical_summary_exists') else 'no'} | "
+            f"{'yes' if row.get('digital_gate_ready') else 'no'} | "
+            f"{'yes' if row.get('promotion_gate_ready') else 'no'} | "
+            f"`{row.get('gate_state', '—')}` | "
+            f"`{row.get('winner_label', 'none')}` |"
+        )
+
+    lines.extend([
+        "",
+        "## Legacy Baselines",
+        "",
+        "| artifact | source_model | direct_pct | sidecar | failure_grid | patch_matrix | physical | promotion_gate |",
+        "|---|---|---|---|---|---|---|---|",
+    ])
+    for row in evidence_ledger.get("legacy_rows", []):
+        lines.append(
+            f"| `{row['artifact_name']}` | `{row.get('source_model') or '—'}` | "
+            f"{_render_pct(row.get('direct_suppression_pct'))} | "
+            f"{'yes' if row.get('sidecar_exists') else 'no'} | "
+            f"{'yes' if row.get('failure_grid_complete') else 'no'} | "
+            f"{'yes' if row.get('patch_matrix_complete') else 'no'} | "
+            f"{'yes' if row.get('physical_summary_exists') else 'no'} | "
+            f"{'yes' if row.get('promotion_gate_ready') else 'no'} |"
+        )
+
+    lines.extend([
+        "",
+        "## Gate Snapshot",
+        "",
+    ])
+    for gate_id in ("gate_a", "gate_b", "gate_c"):
+        gate = dict(evidence_ledger.get("gate_statuses", {}).get(gate_id) or {})
+        lines.append(f"- `{gate_id}`: `{gate.get('state', 'unknown')}` — {gate.get('summary', '—')}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def build_expected_return_contract(job_spec: dict[str, Any]) -> list[str]:
+    train = dict(job_spec.get("train") or {})
+    train_run_name = str(train.get("run_name") or job_spec["job_id"])
+    outputs = [f"`outputs/{train_run_name}/`"]
+    for index, target in enumerate(job_spec.get("eval_targets") or []):
+        if not isinstance(target, dict):
+            continue
+        model_name = str(target.get("model") or f"eval{index}").strip()
+        run_name = str(target.get("run_name") or f"{job_spec['job_id']}__transfer__{model_name}")
+        outputs.append(f"`outputs/{run_name}/`")
+    outputs.append(f"`outputs/colab_job_summaries/{job_spec['job_id']}.json`")
+    return outputs
+
+
+def render_colab_operator_handoff(
+    *,
+    bundle_dir: Path,
+    recommended_job_spec: dict[str, Any] | None,
+    next_step: dict[str, Any],
+) -> str:
+    lines = [
+        "# Handoff A — Colab Operator",
+        "",
+        f"- Bundle directory: `{bundle_dir}`",
+        f"- Current next step: {next_step.get('summary', '—')}",
+        "",
+    ]
+    if not recommended_job_spec:
+        lines.extend(["No Colab job is currently recommended.", ""])
+        return "\n".join(lines)
+    job_id = str(recommended_job_spec["job_id"])
+    lines.extend([
+        f"## Run Now: `{job_id}`",
+        "",
+        "In Colab, from the extracted bundle root:",
+        "",
+        "```bash",
+        f"bash handoff/run_{job_id}.sh",
+        "```",
+        "",
+        "If the runtime reconnects mid-job:",
+        "",
+        "```bash",
+        f"bash handoff/resume_{job_id}.sh",
+        "```",
+        "",
+        "## Return Contract",
+        "",
+    ])
+    for item in build_expected_return_contract(recommended_job_spec):
+        lines.append(f"- {item}")
+    lines.extend([
+        "",
+        "Confirm the summary JSON exists before handing back to the NUC intake operator.",
+        "",
+    ])
+    return "\n".join(lines)
+
+
+def render_nuc_intake_handoff(
+    *,
+    bundle_dir: Path,
+    recommended_job_spec: dict[str, Any] | None,
+) -> str:
+    lines = [
+        "# Handoff B — NUC Intake / Gating",
+        "",
+        f"- Bundle directory: `{bundle_dir}`",
+        "",
+        "After a Colab job finishes, import its returned export bundle or job folder with:",
+        "",
+    ]
+    if recommended_job_spec:
+        job_id = str(recommended_job_spec["job_id"])
+        lines.extend([
+            "```bash",
+            f"python scripts/import_colab_return.py --job-id {job_id} --source /path/to/exported/{job_id} --overwrite --rerun-handoff",
+            "```",
+            "",
+        ])
+    else:
+        lines.extend([
+            "```bash",
+            "python scripts/import_colab_return.py --job-id <job_id> --source /path/to/exported/<job_id> --overwrite --rerun-handoff",
+            "```",
+            "",
+        ])
+    lines.extend([
+        "Post-import acceptance:",
+        "- `outputs/colab_job_summaries/<job>.json` exists in the repo.",
+        "- The latest `outputs/nuc_handoff/<timestamp>/sequential_status.json` refreshes.",
+        "- The imported artifact flips to `colab_return = yes` once all expected eval results are present.",
+        "",
+    ])
+    return "\n".join(lines)
+
+
+def render_ybt_evaluator_handoff(
+    *,
+    ybt_repo_root: Path,
+    local_defaults: dict[str, Any],
+) -> str:
+    output_root = resolve_path(ybt_repo_root, str(local_defaults["ybt_output_root"]))
+    return "\n".join(
+        [
+            "# Handoff C — YBT Evaluator",
+            "",
+            f"- Patch-matrix output root: `{output_root}`",
+            "",
+            "For each imported artifact after the NUC rerun:",
+            "- verify both configured placement modes are covered",
+            "- verify all configured defenses have `run_summary.json` outputs",
+            "- report any missing defense or placement cells before the artifact is considered digitally complete",
+            "",
+        ]
+    )
+
+
+def render_evidence_auditor_handoff(*, evidence_table_path: Path) -> str:
+    return "\n".join(
+        [
+            "# Handoff D — Evidence Auditor",
+            "",
+            f"- Primary ledger: `{evidence_table_path}`",
+            "",
+            "After each NUC rerun:",
+            "- record the direct suppression value for the returned job",
+            "- record transfer suppression to `yolo11n` and `yolo26n` when present",
+            "- verify `failure_grid`, `patch_matrix`, and `physical` columns match the gate state",
+            "- call out the active gate result and whether the job is a promoted winner or a non-winner",
+            "",
+        ]
+    )
+
+
+def write_workstream_handoffs(
+    *,
+    handoff_dir: Path,
+    bundle_dir: Path,
+    recommended_job_spec: dict[str, Any] | None,
+    next_step: dict[str, Any],
+    ybt_repo_root: Path,
+    local_defaults: dict[str, Any],
+    evidence_table_path: Path,
+) -> dict[str, Path]:
+    paths = {
+        "colab_operator": handoff_dir / "HANDOFF_A_COLAB_OPERATOR.md",
+        "nuc_intake": handoff_dir / "HANDOFF_B_NUC_INTAKE.md",
+        "ybt_evaluator": handoff_dir / "HANDOFF_C_YBT_EVALUATOR.md",
+        "evidence_auditor": handoff_dir / "HANDOFF_D_EVIDENCE_AUDITOR.md",
+    }
+    paths["colab_operator"].write_text(
+        render_colab_operator_handoff(
+            bundle_dir=bundle_dir,
+            recommended_job_spec=recommended_job_spec,
+            next_step=next_step,
+        ),
+        encoding="utf-8",
+    )
+    paths["nuc_intake"].write_text(
+        render_nuc_intake_handoff(
+            bundle_dir=bundle_dir,
+            recommended_job_spec=recommended_job_spec,
+        ),
+        encoding="utf-8",
+    )
+    paths["ybt_evaluator"].write_text(
+        render_ybt_evaluator_handoff(
+            ybt_repo_root=ybt_repo_root,
+            local_defaults=local_defaults,
+        ),
+        encoding="utf-8",
+    )
+    paths["evidence_auditor"].write_text(
+        render_evidence_auditor_handoff(evidence_table_path=evidence_table_path),
+        encoding="utf-8",
+    )
+    return paths
+
+
 def write_shell_script(path: Path, commands: list[list[str]], *, cwd_comment: str) -> None:
     lines = [
         "#!/usr/bin/env bash",
@@ -1327,10 +1674,35 @@ def main(argv: list[str] | None = None) -> int:
         cwd_comment="Commands use absolute paths. These are manual-camera steps for promoted winners only.",
     )
 
+    evidence_ledger = build_evidence_ledger(
+        artifact_statuses=artifact_statuses,
+        sequential_status=sequential_status,
+    )
+    evidence_ledger_path = bundle_dir / "evidence_ledger.json"
+    evidence_ledger_path.write_text(json.dumps(evidence_ledger, indent=2), encoding="utf-8")
+    evidence_table_path = bundle_dir / "evidence_table.md"
+    evidence_table_path.write_text(render_evidence_table(evidence_ledger), encoding="utf-8")
+
     write_colab_handoff_assets(
         handoff_dir=handoff_dir,
         job_specs=job_specs,
         recommended_job_id=sequential_status.get("next_step", {}).get("job_id"),
+    )
+    recommended_job_spec = None
+    recommended_job_id = str(sequential_status.get("next_step", {}).get("job_id") or "").strip()
+    if recommended_job_id:
+        for spec in job_specs:
+            if str(spec["job_id"]) == recommended_job_id:
+                recommended_job_spec = spec
+                break
+    handoff_paths = write_workstream_handoffs(
+        handoff_dir=handoff_dir,
+        bundle_dir=bundle_dir,
+        recommended_job_spec=recommended_job_spec,
+        next_step=dict(sequential_status.get("next_step") or {}),
+        ybt_repo_root=ybt_repo_root,
+        local_defaults=local_defaults,
+        evidence_table_path=evidence_table_path,
     )
 
     spec_sheet_path = bundle_dir / "nuc_spec_sheet.md"
@@ -1359,6 +1731,8 @@ def main(argv: list[str] | None = None) -> int:
         extra_paths=[
             spec_sheet_path,
             sequential_status_path,
+            evidence_ledger_path,
+            evidence_table_path,
             resolve_path(attack_repo_root, "configs/nuc_handoff.json"),
         ],
     )
@@ -1367,6 +1741,9 @@ def main(argv: list[str] | None = None) -> int:
         "generated_at_utc": utc_iso(),
         "bundle_dir": str(bundle_dir),
         "colab_bundle": str(colab_bundle_path),
+        "evidence_ledger_path": str(evidence_ledger_path),
+        "evidence_table_path": str(evidence_table_path),
+        "handoff_paths": {key: str(path) for key, path in handoff_paths.items()},
         "job_specs": [str(path) for path in sorted(job_specs_dir.glob("*.json"))],
         "artifact_statuses": artifact_statuses,
         "job_statuses": job_statuses,

@@ -87,6 +87,22 @@ python scripts/run_colab_patch_job.py \
   --resume
 ```
 
+When the run finishes, return these to the coordinator machine:
+
+- `outputs/<run_name>/`
+- `outputs/<run_name>__transfer__<target>/` for each eval target
+- `outputs/colab_job_summaries/<job_id>.json`
+
+If the export is downloaded locally as a folder, the NUC-side import helper can place it correctly:
+
+```bash
+python scripts/import_colab_return.py \
+  --job-id v8m_source_transfer_v1 \
+  --source /path/to/exported/v8m_source_transfer_v1 \
+  --overwrite \
+  --rerun-handoff
+```
+
 ## What Colab Should Own
 
 Use Colab for:
