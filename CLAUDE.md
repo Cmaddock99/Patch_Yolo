@@ -58,6 +58,8 @@ The script is a single-file pipeline with no external project modules:
 
 ART's `DPatch` performs gradient ascent on the patch pixels to maximize the YOLO detection loss. For an untargeted attack `y=training_predictions` is passed; for a targeted attack `target_label=target_class_id` is used instead.
 
+**Note on canonical training pipeline:** `create_adv_patch.py` is the historical YOLOv5 baseline kept for reproducibility. The active training pipeline that produced the v8n 90% / v11n 72.7% / v26n 16.3% results in `outputs/` is `experiments/ultralytics_patch.py`, driven from `experiments/colab_run.ipynb`. When extending experiments, modify `ultralytics_patch.py`; treat `create_adv_patch.py` as frozen baseline.
+
 ## Config Reference (`data/configs/adv_patch_default_config.json`)
 
 | Key | Meaning |
