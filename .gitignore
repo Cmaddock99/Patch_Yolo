@@ -3,6 +3,8 @@
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+.pytest_cache/
+.claude/
 
 runs/
 
@@ -23,3 +25,4 @@ tmp/
 *.pt
 *.onnx
 *.engine
+*.pptx

@@ -1,5 +1,7 @@
 # NUC Handoff Workflow
 
+> **Note:** Generated handoff bundles under `outputs/nuc_handoff/` (e.g. `run_local_ready.sh`, `handoff_manifest.json`) embed absolute local paths from the machine that produced them and are gitignored. On a different machine, regenerate via `python scripts/run_nuc_handoff.py` rather than editing the .sh files by hand.
+
 This repo now owns the operator entrypoint for the two-repo hardening cycle.
 
 Run:
