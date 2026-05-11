@@ -1,12 +1,14 @@
 """
-html_to_pptx.py - Export the current 10-slide presentation deck to PowerPoint.
+html_to_pptx.py - Export the adversarial-patch-only presentation deck to PowerPoint.
 
 Usage:
     python scripts/html_to_pptx.py
 """
 
 from pathlib import Path
+from shutil import copy2
 
+from PIL import Image
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
@@ -18,6 +20,7 @@ BG = RGBColor(0x0A, 0x0A, 0x0F)
 WHITE = RGBColor(0xE8, 0xE8, 0xF0)
 DIM = RGBColor(0x88, 0x88, 0x88)
 DIMMER = RGBColor(0x44, 0x44, 0x44)
+BODY = RGBColor(0xCC, 0xCC, 0xCC)
 GREEN = RGBColor(0x3E, 0xFF, 0xA0)
 YELLOW = RGBColor(0xFF, 0xE0, 0x66)
 RED = RGBColor(0xFF, 0x60, 0x60)
@@ -27,10 +30,11 @@ CARD_HL = RGBColor(0x0D, 0x1A, 0x12)
 CARD_WN = RGBColor(0x1A, 0x0D, 0x0D)
 CARD_INF = RGBColor(0x0D, 0x12, 0x20)
 CARD_GOLD = RGBColor(0x1A, 0x18, 0x0D)
-ROW_ALT = RGBColor(0x12, 0x12, 0x1A)
 
 W = Inches(13.333)
 H = Inches(7.5)
+ROOT = Path(__file__).parent.parent
+ASSET_DIR = ROOT / "docs" / "assets" / "presentation"
 
 
 def new_prs() -> Presentation:
@@ -108,803 +112,741 @@ def rich_textbox(slide, lines, left, top, width, height):
     return txb
 
 
+def add_contained_picture(slide, image_path: Path, left, top, width, height):
+    if not image_path.exists():
+        return None
+    with Image.open(image_path) as img:
+        img_w, img_h = img.size
+    box_ratio = float(width) / float(height)
+    img_ratio = img_w / img_h
+    if img_ratio > box_ratio:
+        pic_w = width
+        pic_h = int(float(width) / img_ratio)
+        pic_left = left
+        pic_top = top + int((float(height) - pic_h) / 2)
+    else:
+        pic_h = height
+        pic_w = int(float(height) * img_ratio)
+        pic_left = left + int((float(width) - pic_w) / 2)
+        pic_top = top
+    return slide.shapes.add_picture(str(image_path), pic_left, pic_top, pic_w, pic_h)
+
+
+def picture_card(slide, image_path: Path, left, top, width, height, *, fill=CARD_BG, inner_fill=BG):
+    rect(slide, left, top, width, height, fill)
+    inner_pad = Inches(0.14)
+    rect(slide, left + inner_pad, top + inner_pad, width - inner_pad * 2, height - inner_pad * 2, inner_fill)
+    return add_contained_picture(
+        slide,
+        image_path,
+        left + inner_pad,
+        top + inner_pad,
+        width - inner_pad * 2,
+        height - inner_pad * 2,
+    )
+
+
 def rule(slide, left, top, width, color=RGBColor(0x1E, 0x1E, 0x28)):
     rect(slide, left, top, width, Inches(0.02), color)
 
 
 def tag(slide, text, left=Inches(0.9), top=Inches(0.45)):
-    textbox(slide, text, left, top, Inches(4.0), Inches(0.28), size=9, bold=True, color=BLUE)
+    textbox(slide, text, left, top, Inches(4.8), Inches(0.28), size=9, bold=True, color=BLUE)
 
 
 def title_block(slide, lines, top=Inches(0.85), left=Inches(0.9)):
-    rich_textbox(slide, lines, left, top, Inches(11.2), Inches(1.6))
+    rich_textbox(slide, lines, left, top, Inches(11.5), Inches(1.7))
 
 
 def card_title(slide, text, left, top, width):
     textbox(slide, text, left, top, width, Inches(0.22), size=9, bold=True, color=BLUE)
 
 
-def bullet_lines(items, color=WHITE, size=12):
+def bullet_lines(items, color=BODY, size=12):
     return [{"text": f"- {item}", "size": size, "color": color} for item in items]
 
 
 def slide1_title(prs: Presentation):
     slide = blank_slide(prs)
-    tag(slide, "CAPSTONE RESEARCH", top=Inches(0.7))
+    tag(slide, "AI FOR CYBERSECURITY FINAL PROJECT", top=Inches(0.68))
     title_block(
         slide,
         [
-            {"text": "Adversarial Robustness", "size": 42, "bold": True, "color": WHITE},
-            {"text": "Framework", "size": 42, "bold": True, "color": GREEN},
+            {"text": "Adversarial Patch Attacks on", "size": 34, "bold": True, "color": WHITE},
+            {"text": "YOLO Person Detection", "size": 34, "bold": True, "color": GREEN},
         ],
-        top=Inches(1.2),
+        top=Inches(1.1),
     )
     textbox(
         slide,
-        "Two complementary tracks for attack analysis and defense-cycle evaluation across YOLO generations",
+        "Stand-alone presentation for the Adversarial_Patch research pipeline",
         Inches(0.9),
-        Inches(3.05),
-        Inches(9.6),
-        Inches(0.8),
-        size=16,
+        Inches(2.72),
+        Inches(7.0),
+        Inches(0.42),
+        size=15,
         color=DIM,
     )
-    rule(slide, Inches(0.9), Inches(4.0), Inches(1.2), RGBColor(0x3E, 0xFF, 0xA0))
-    textbox(slide, "April 2026", Inches(0.9), Inches(4.25), Inches(3.0), Inches(0.4), size=13, color=DIMMER)
-
-
-def slide2_pipeline(prs: Presentation):
-    slide = blank_slide(prs)
-    tag(slide, "FRAMEWORK OVERVIEW")
-    title_block(
-        slide,
-        [
-            {"text": "Two Complementary", "size": 38, "bold": True, "color": WHITE},
-            {"text": "Tracks", "size": 38, "bold": True, "color": BLUE},
-        ],
-    )
-
-    left = Inches(0.9)
-    top = Inches(2.0)
-    width = Inches(5.7)
-    gap = Inches(0.45)
-    right = left + width + gap
-
-    rect(slide, left, top, width, Inches(3.1), CARD_INF)
-    card_title(slide, "ATTACK TRACK    Adversarial_Patch", left + Inches(0.2), top + Inches(0.16), width)
-    rule(slide, left + Inches(0.2), top + Inches(0.48), width - Inches(0.4))
-    rich_textbox(
-        slide,
-        bullet_lines(
-            [
-                "Gradient-based patch training against any Ultralytics YOLO model",
-                "Multi-model and joint ensemble attack modes",
-                "Cross-model transfer evaluation across YOLO generations",
-                "Defense robustness benchmarking (JPEG, blur, crop-resize)",
-                "Live demo plus 300 DPI physical print export",
-            ],
-            RGBColor(0xCC, 0xCC, 0xCC),
-        ),
-        left + Inches(0.2),
-        top + Inches(0.62),
-        width - Inches(0.35),
-        Inches(2.3),
-    )
-
-    rect(slide, right, top, width, Inches(3.1), CARD_HL)
-    card_title(slide, "DEFENSE TRACK    YOLO-Bad-Triangle", right + Inches(0.2), top + Inches(0.16), width)
-    rule(slide, right + Inches(0.2), top + Inches(0.48), width - Inches(0.4))
-    rich_textbox(
-        slide,
-        bullet_lines(
-            [
-                "Plugin-based attack and defense registry",
-                "22 recorded automated cycles in the defense repo",
-                "DPC-UNet checkpoint finetuning with clean A/B deployment gate",
-                "Schema-enforced artifact contracts and provenance tracking",
-                "Automated reporting pipeline",
-            ],
-            RGBColor(0xCC, 0xCC, 0xCC),
-        ),
-        right + Inches(0.2),
-        top + Inches(0.62),
-        width - Inches(0.35),
-        Inches(2.3),
-    )
-
     textbox(
         slide,
-        "These are complementary sibling repos, not one shared-image runtime loop: the attack track uses a 48-image common manifest, while the defense track runs automated cycles on a COCO subset and writes its own reports.",
+        "This deck focuses only on the adversarial patch project: how a small localized patch was trained, evaluated, and analyzed against YOLO person detection models.",
         Inches(0.9),
+        Inches(3.45),
         Inches(5.45),
-        Inches(11.4),
-        Inches(0.8),
-        size=12,
-        color=DIM,
+        Inches(1.05),
+        size=14,
+        color=BODY,
+    )
+    rule(slide, Inches(0.9), Inches(4.8), Inches(1.2), RGBColor(0x3E, 0xFF, 0xA0))
+    textbox(slide, "April 2026", Inches(0.9), Inches(5.02), Inches(2.2), Inches(0.35), size=12, color=DIMMER)
+
+    left = Inches(6.85)
+    top = Inches(2.2)
+    width = Inches(5.55)
+    height = Inches(3.9)
+    rect(slide, left, top, width, height, CARD_INF)
+    card_title(slide, "TITLE & META-DATA", left + Inches(0.2), top + Inches(0.16), width)
+    rich_textbox(
+        slide,
+        [
+            {"text": "Project Title: Adversarial Patch Attacks on YOLO Person Detection", "size": 12, "color": BODY},
+            {"text": "Name(s): [Your Name(s)]", "size": 12, "color": BODY},
+            {"text": "Category: Adversarial ML / Computer Vision Security", "size": 12, "color": BODY},
+            {
+                "text": "Capstone relation: Smaller AI-for-Cybersecurity project derived from the broader course capstone; this presentation covers only the adversarial patch subproject.",
+                "size": 12,
+                "color": BODY,
+            },
+        ],
+        left + Inches(0.2),
+        top + Inches(0.55),
+        width - Inches(0.35),
+        Inches(3.0),
     )
 
 
-def slide3_results(prs: Presentation):
+def slide2_quad_chart(prs: Presentation, patch_path: Path):
     slide = blank_slide(prs)
-    tag(slide, "ATTACK TRACK - FINDINGS")
+    tag(slide, "QUAD CHART")
     title_block(
         slide,
         [
-            {"text": "Detection", "size": 38, "bold": True, "color": WHITE},
-            {"text": "Suppression", "size": 38, "bold": True, "color": GREEN},
+            {"text": "Project at a", "size": 36, "bold": True, "color": WHITE},
+            {"text": "Glance", "size": 36, "bold": True, "color": BLUE},
         ],
     )
 
-    card_w = Inches(3.6)
-    card_h = Inches(3.2)
-    y = Inches(2.25)
-    gap = Inches(0.4)
     x1 = Inches(0.9)
-    x2 = x1 + card_w + gap
-    x3 = x2 + card_w + gap
+    x2 = Inches(6.72)
+    y1 = Inches(2.0)
+    y2 = Inches(4.1)
+    w = Inches(5.75)
+    h = Inches(1.72)
 
-    rect(slide, x1, y, card_w, card_h, CARD_HL)
-    textbox(slide, "90%", x1, y + Inches(0.28), card_w, Inches(0.9), size=54, bold=True, color=GREEN, align=PP_ALIGN.CENTER)
-    textbox(slide, "YOLOv8n", x1, y + Inches(1.22), card_w, Inches(0.35), size=16, bold=True, align=PP_ALIGN.CENTER)
-    textbox(slide, "20 -> 2 detections", x1, y + Inches(1.62), card_w, Inches(0.28), size=13, color=DIM, align=PP_ALIGN.CENTER)
-    textbox(slide, "1000 epochs - loss 0.543", x1, y + Inches(2.02), card_w, Inches(0.25), size=10, color=DIM, align=PP_ALIGN.CENTER)
-
-    rect(slide, x2, y, card_w, card_h, CARD_GOLD)
-    textbox(slide, "72.7%", x2, y + Inches(0.28), card_w, Inches(0.9), size=54, bold=True, color=YELLOW, align=PP_ALIGN.CENTER)
-    textbox(slide, "YOLO11n", x2, y + Inches(1.22), card_w, Inches(0.35), size=16, bold=True, align=PP_ALIGN.CENTER)
-    textbox(slide, "33 -> 9 detections", x2, y + Inches(1.62), card_w, Inches(0.28), size=13, color=DIM, align=PP_ALIGN.CENTER)
-    textbox(slide, "1000 epochs - loss 0.597", x2, y + Inches(2.02), card_w, Inches(0.25), size=10, color=DIM, align=PP_ALIGN.CENTER)
-
-    rect(slide, x3, y, card_w, card_h, CARD_WN)
-    textbox(slide, "16.3%", x3, y + Inches(0.28), card_w, Inches(0.9), size=54, bold=True, color=RED, align=PP_ALIGN.CENTER)
-    textbox(slide, "YOLO26n", x3, y + Inches(1.22), card_w, Inches(0.35), size=16, bold=True, align=PP_ALIGN.CENTER)
-    textbox(slide, "43 -> 36 detections", x3, y + Inches(1.62), card_w, Inches(0.28), size=13, color=DIM, align=PP_ALIGN.CENTER)
-    textbox(slide, "1000 epochs - loss 0.108", x3, y + Inches(2.02), card_w, Inches(0.25), size=10, color=DIM, align=PP_ALIGN.CENTER)
-
+    rect(slide, x1, y1, w, h, CARD_INF)
+    card_title(slide, "PROBLEM", x1 + Inches(0.2), y1 + Inches(0.16), w)
     textbox(
         slide,
-        "Patch size: 100 x 100 px  |  Image size: 640 x 640  |  2.4% of total pixels",
-        Inches(0.9),
-        Inches(5.72),
-        Inches(11.4),
-        Inches(0.3),
-        size=13,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
-    )
-    textbox(
-        slide,
-        "Within v26n runs, better objective convergence did not yield better suppression - see The v26n Paradox",
-        Inches(0.9),
-        Inches(6.02),
-        Inches(11.4),
-        Inches(0.3),
-        size=10,
-        color=DIMMER,
-    )
-
-
-def slide4_bad_triangle(prs: Presentation):
-    slide = blank_slide(prs)
-    tag(slide, "ATTACK TRACK - TRANSFER ANALYSIS")
-    title_block(
-        slide,
-        [
-            {"text": "The", "size": 36, "bold": True, "color": WHITE},
-            {"text": "Bad Triangle", "size": 36, "bold": True, "color": BLUE},
-        ],
-    )
-
-    lx = Inches(0.9)
-    rx = Inches(8.15)
-    top = Inches(2.0)
-
-    textbox(
-        slide,
-        "Cross-model suppression matrix  |  row = patch trained on  |  column = model tested against",
-        lx,
-        top,
-        Inches(6.9),
-        Inches(0.3),
-        size=9,
-        bold=True,
-        color=BLUE,
-    )
-
-    headers = ["Patch source", "-> v8n", "-> v11n", "-> v26n"]
-    rows = [
-        ["v8n", "90% *", "33.3%", "14.0%"],
-        ["v11n", "50.0%", "72.7% *", "9.3%"],
-        ["v26n", "45.0%", "24.2%", "16.3% *"],
-    ]
-    colors = [
-        [DIM, GREEN, YELLOW, RED],
-        [DIM, YELLOW, GREEN, RED],
-        [DIM, YELLOW, YELLOW, RED],
-    ]
-
-    col_w = [Inches(1.6), Inches(1.6), Inches(1.6), Inches(1.6)]
-    x = [lx, lx + col_w[0], lx + col_w[0] + col_w[1], lx + col_w[0] + col_w[1] + col_w[2]]
-    y = top + Inches(0.42)
-    row_h = Inches(0.52)
-    for i, header in enumerate(headers):
-        textbox(slide, header, x[i], y, col_w[i], Inches(0.24), size=9, color=DIM)
-    for r, row in enumerate(rows):
-        ry = y + Inches(0.34) + r * row_h
-        rect(slide, lx - Inches(0.08), ry - Inches(0.04), Inches(6.65), Inches(0.42), ROW_ALT if r % 2 == 0 else BG)
-        for c, value in enumerate(row):
-            textbox(
-                slide,
-                value,
-                x[c],
-                ry,
-                col_w[c],
-                Inches(0.24),
-                size=12,
-                bold=c > 0,
-                color=colors[r][c],
-            )
-
-    textbox(
-        slide,
-        "* = white-box  |  off-diagonal = black-box transfer",
-        lx,
-        Inches(4.05),
-        Inches(6.9),
-        Inches(0.3),
-        size=10,
-        color=DIM,
-    )
-
-    rect(slide, lx, Inches(4.45), Inches(6.9), Inches(1.15), CARD_INF)
-    card_title(slide, "JOINT PATCHES", lx + Inches(0.2), Inches(4.6), Inches(6.5))
-    textbox(
-        slide,
-        "v8n+v11n -> v8n  85%   |   v8n+v11n -> v11n  66.7%   |   v8n+v26n -> v26n  18.6% (best v26n result)",
-        lx + Inches(0.2),
-        Inches(4.95),
-        Inches(6.45),
-        Inches(0.45),
+        "YOLO-based person detection can be degraded by a small localized patch. That matters anywhere automated vision is trusted for awareness, safety, or monitoring.",
+        x1 + Inches(0.2),
+        y1 + Inches(0.5),
+        w - Inches(0.35),
+        Inches(0.95),
         size=12,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
+        color=BODY,
     )
 
-    rect(slide, rx, top + Inches(0.35), Inches(4.25), Inches(1.45), CARD_GOLD)
-    card_title(slide, "ASYMMETRY", rx + Inches(0.2), top + Inches(0.5), Inches(3.9))
+    rect(slide, x2, y1, w, h, CARD_BG)
+    card_title(slide, "APPROACH", x2 + Inches(0.2), y1 + Inches(0.16), w)
     textbox(
         slide,
-        "v11n -> v8n = 50.0%  >  v8n -> v11n = 33.3%\nThe asymmetry remains in the current v2 artifacts: newer-generation patches still reach backward better than older patches reach forward.",
-        rx + Inches(0.2),
-        top + Inches(0.82),
-        Inches(3.85),
-        Inches(1.0),
-        size=11,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
+        "Train and test a 100 x 100 adversarial patch across YOLOv8n, YOLO11n, and YOLO26n, then measure direct suppression, transfer, and follow-up variants.",
+        x2 + Inches(0.2),
+        y1 + Inches(0.5),
+        w - Inches(0.35),
+        Inches(0.95),
+        size=12,
+        color=BODY,
     )
 
-    rect(slide, rx, top + Inches(2.0), Inches(4.25), Inches(2.05), CARD_WN)
-    card_title(slide, "THE v26n FIREWALL", rx + Inches(0.2), top + Inches(2.15), Inches(3.9))
+    rect(slide, x1, y2, w, h, CARD_HL)
+    card_title(slide, "RESULTS", x1 + Inches(0.2), y2 + Inches(0.16), w)
     textbox(
         slide,
-        "v26n remains the hardest target in this study. Nothing in the direct matrix exceeds 16.3% against it, and even the best joint patch only reaches 18.6%.\nYet the v26n patch still transfers out at 45.0% and 24.2%.",
-        rx + Inches(0.2),
-        top + Inches(2.47),
-        Inches(3.85),
-        Inches(1.45),
-        size=11,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
+        "Direct suppression reached 90.0% on YOLOv8n and 72.7% on YOLO11n, while YOLO26n resisted with only 16.3%. Transfer existed, but it was asymmetric.",
+        x1 + Inches(0.2),
+        y2 + Inches(0.5),
+        w - Inches(0.35),
+        Inches(0.95),
+        size=12,
+        color=BODY,
+    )
+
+    rect(slide, x2, y2, w, h, CARD_WN)
+    card_title(slide, "IMPACT", x2 + Inches(0.2), y2 + Inches(0.16), w)
+    rect(slide, x2 + Inches(0.22), y2 + Inches(0.48), Inches(0.9), Inches(0.9), CARD_BG)
+    add_contained_picture(slide, patch_path, x2 + Inches(0.29), y2 + Inches(0.55), Inches(0.76), Inches(0.76))
+    textbox(
+        slide,
+        "The project produced a learned patch artifact, proof images, transfer analysis, and print-ready outputs that make the attack concrete rather than hypothetical.",
+        x2 + Inches(1.25),
+        y2 + Inches(0.48),
+        Inches(4.2),
+        Inches(0.95),
+        size=12,
+        color=BODY,
     )
 
 
-def slide5_preprocessing(prs: Presentation):
+def slide3_abstract(prs: Presentation):
     slide = blank_slide(prs)
-    tag(slide, "ATTACK TRACK - DEFENSE BENCHMARK")
+    tag(slide, "ABSTRACT")
     title_block(
         slide,
         [
-            {"text": "Preprocessing", "size": 36, "bold": True, "color": WHITE},
-            {"text": "Makes It Worse", "size": 36, "bold": True, "color": RED},
+            {"text": "Brief", "size": 36, "bold": True, "color": WHITE},
+            {"text": "Overview", "size": 36, "bold": True, "color": GREEN},
         ],
     )
 
-    left = Inches(0.9)
-    top = Inches(2.0)
-    width = Inches(5.8)
-    gap = Inches(0.45)
-    right = left + width + gap
-
-    rect(slide, left, top, width, Inches(3.25), CARD_BG)
-    card_title(slide, "JPEG COMPRESSION   YOLOv8n patch - 48 images", left + Inches(0.2), top + Inches(0.16), width)
-    rich_textbox(
-        slide,
-        [
-            {"text": "Quality        Suppression      vs. undefended", "size": 10, "color": DIM},
-            {"text": "none           85%              baseline", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
-            {"text": "95             95%              +10 pp", "size": 12, "color": RED},
-            {"text": "85             90%              +5 pp", "size": 12, "color": RED},
-            {"text": "75             90%              +5 pp", "size": 12, "color": RED},
-            {"text": "50             80%              -5 pp (clean -29 pp)", "size": 12, "color": DIM},
-        ],
-        left + Inches(0.2),
-        top + Inches(0.48),
-        width - Inches(0.35),
-        Inches(1.85),
-    )
-    rect(slide, left, Inches(5.45), width, Inches(0.9), CARD_BG)
-    card_title(slide, "CROP-RESIZE", left + Inches(0.2), Inches(5.58), width)
+    rect(slide, Inches(0.9), Inches(2.0), Inches(7.2), Inches(4.7), CARD_HL)
+    card_title(slide, "ABSTRACT", Inches(1.1), Inches(2.16), Inches(6.8))
     textbox(
         slide,
-        "High variance across seeds. At 95% and 90% retention there is no reliable benefit. Some 85% retention and isolated 90% retention seeds reduce suppression, but the effect is unstable and often trades off against clean detections.",
-        left + Inches(0.2),
-        Inches(5.82),
-        width - Inches(0.35),
-        Inches(0.6),
-        size=10,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
+        "This project tested whether a small localized adversarial patch could suppress person detection across modern Ultralytics YOLO models. A 100 x 100 patch was trained and evaluated against YOLOv8n, YOLO11n, and YOLO26n using direct, transfer, joint, and warm-start experiments. Results showed strong direct suppression on v8n and v11n, measurable but asymmetric transfer, and a major architectural limit on YOLO26n. The project also produced reusable artifacts including learned patches, proof images, transfer visualizations, and print-ready outputs. Together these results show both the offensive potential of adversarial patches and the model-specific barriers that matter for real attack development.",
+        Inches(1.1),
+        Inches(2.55),
+        Inches(6.8),
+        Inches(3.55),
+        size=14,
+        color=BODY,
     )
 
-    rect(slide, right, top, width, Inches(3.25), CARD_BG)
-    card_title(slide, "GAUSSIAN BLUR", right + Inches(0.2), top + Inches(0.16), width)
-    rich_textbox(
-        slide,
-        [
-            {"text": "Sigma          Suppression      vs. undefended", "size": 10, "color": DIM},
-            {"text": "none           85%              baseline", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
-            {"text": "1.0            90%              +5 pp", "size": 12, "color": RED},
-            {"text": "2.0            100%             +15 pp", "size": 12, "color": RED},
-            {"text": "3.0            95%              +10 pp", "size": 12, "color": RED},
-        ],
-        right + Inches(0.2),
-        top + Inches(0.48),
-        width - Inches(0.35),
-        Inches(1.5),
-    )
-    rect(slide, right, Inches(5.0), width, Inches(1.35), CARD_HL)
-    card_title(slide, "WHY", right + Inches(0.2), Inches(5.15), width)
+    right = Inches(8.45)
+    rect(slide, right, Inches(2.0), Inches(3.95), Inches(1.35), CARD_INF)
+    card_title(slide, "SCOPE", right + Inches(0.2), Inches(2.16), Inches(3.6))
     textbox(
         slide,
-        "Adversarial patches concentrate signal in a dense region. Blur and compression suppress helpful clean texture while leaving the patch's dominant structure intact.",
+        "Models studied: YOLOv8n, YOLO11n, and YOLO26n. Focus: person detection suppression through a small visible patch.",
         right + Inches(0.2),
-        Inches(5.4),
-        width - Inches(0.35),
+        Inches(2.48),
+        Inches(3.55),
         Inches(0.7),
         size=11,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
+        color=BODY,
+    )
+
+    rect(slide, right, Inches(3.58), Inches(3.95), Inches(1.25), CARD_BG)
+    card_title(slide, "CORE FINDING", right + Inches(0.2), Inches(3.74), Inches(3.6))
+    textbox(
+        slide,
+        "The patch is clearly effective on two model generations, but not all YOLO architectures fail in the same way.",
+        right + Inches(0.2),
+        Inches(4.05),
+        Inches(3.55),
+        Inches(0.6),
+        size=11,
+        color=BODY,
+    )
+
+    rect(slide, right, Inches(5.03), Inches(3.95), Inches(1.65), CARD_WN)
+    card_title(slide, "WHY IT MATTERS", right + Inches(0.2), Inches(5.19), Inches(3.6))
+    textbox(
+        slide,
+        "Attack research is more useful when it produces evidence, artifacts, and limitations that can be demonstrated and discussed directly.",
+        right + Inches(0.2),
+        Inches(5.5),
+        Inches(3.55),
+        Inches(0.9),
+        size=11,
+        color=BODY,
     )
 
 
-def slide6_paradox(prs: Presentation):
+def slide4_introduction(prs: Presentation):
     slide = blank_slide(prs)
-    tag(slide, "ATTACK TRACK - ARCHITECTURAL FINDING")
+    tag(slide, "INTRODUCTION")
     title_block(
         slide,
         [
-            {"text": "The", "size": 36, "bold": True, "color": WHITE},
-            {"text": "v26n Paradox", "size": 36, "bold": True, "color": RED},
+            {"text": "Objective and", "size": 36, "bold": True, "color": WHITE},
+            {"text": "Ultimate Impact", "size": 36, "bold": True, "color": GREEN},
         ],
     )
 
-    lx = Inches(0.9)
-    rx = Inches(7.0)
-    top = Inches(2.0)
-    width = Inches(5.7)
-
-    rect(slide, lx, top, width, Inches(1.55), CARD_WN)
-    card_title(slide, "WHAT HAPPENED", lx + Inches(0.2), top + Inches(0.15), width)
-    rich_textbox(
-        slide,
-        [
-            {"text": "The optimized objective converged on the scored head.", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
-            {"text": "final_det_loss = 0.108 on the one2many path.", "size": 12, "color": RED},
-            {"text": "Suppression: only 16.3%.", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
-        ],
-        lx + Inches(0.2),
-        top + Inches(0.48),
-        width - Inches(0.35),
-        Inches(0.9),
-    )
-
-    rect(slide, lx, Inches(3.65), width, Inches(2.35), CARD_INF)
-    card_title(slide, "ROOT CAUSE", lx + Inches(0.2), Inches(3.8), width)
+    rect(slide, Inches(0.9), Inches(2.0), Inches(5.75), Inches(2.25), CARD_INF)
+    card_title(slide, "OBJECTIVE", Inches(1.1), Inches(2.16), Inches(5.3))
     textbox(
         slide,
-        "YOLO26n uses end-to-end Hungarian matching (head_end2end: true).",
-        lx + Inches(0.2),
-        Inches(4.08),
-        width - Inches(0.35),
-        Inches(0.35),
-        size=12,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
+        "Determine whether a small portable patch can reliably suppress person detection across current YOLO generations instead of only a single detector.",
+        Inches(1.1),
+        Inches(2.52),
+        Inches(5.35),
+        Inches(0.82),
+        size=13,
+        color=BODY,
     )
+    textbox(
+        slide,
+        "Success meant demonstrating measurable suppression, cross-model behavior, and an evidence-based explanation when the attack failed.",
+        Inches(1.1),
+        Inches(3.42),
+        Inches(5.35),
+        Inches(0.48),
+        size=11,
+        color=BODY,
+    )
+
+    rect(slide, Inches(6.72), Inches(2.0), Inches(5.7), Inches(2.25), CARD_HL)
+    card_title(slide, "ULTIMATE IMPACT", Inches(6.92), Inches(2.16), Inches(5.3))
+    textbox(
+        slide,
+        "If a simple patch can degrade person detection, then surveillance, robotics, and automated vision systems may be vulnerable to localized physical or digital perturbations that are cheap to deploy.",
+        Inches(6.92),
+        Inches(2.52),
+        Inches(5.3),
+        Inches(1.15),
+        size=13,
+        color=BODY,
+    )
+
+    rect(slide, Inches(0.9), Inches(4.65), Inches(11.52), Inches(1.65), CARD_WN)
+    card_title(slide, "THREAT MODEL", Inches(1.1), Inches(4.82), Inches(11.0))
+    textbox(
+        slide,
+        "An attacker introduces a visible patch on clothing or another surface near the target person. The rest of the scene remains unchanged; the goal is to reduce or remove person detections rather than corrupt the full image.",
+        Inches(1.1),
+        Inches(5.15),
+        Inches(11.1),
+        Inches(0.8),
+        size=12,
+        color=BODY,
+    )
+
+
+def slide5_background(prs: Presentation):
+    slide = blank_slide(prs)
+    tag(slide, "BACKGROUND")
+    title_block(
+        slide,
+        [
+            {"text": "Problem Space and", "size": 34, "bold": True, "color": WHITE},
+            {"text": "Limits of Current Practice", "size": 34, "bold": True, "color": BLUE},
+        ],
+    )
+
+    rect(slide, Inches(0.9), Inches(2.0), Inches(5.75), Inches(2.55), CARD_BG)
+    card_title(slide, "PROBLEM SPACE", Inches(1.1), Inches(2.16), Inches(5.3))
+    textbox(
+        slide,
+        "Adversarial machine learning has shown that small perturbations can mislead vision models. For object detection, the challenge is harder than image classification because the attack must alter localization, confidence, and detection persistence in realistic scenes.",
+        Inches(1.1),
+        Inches(2.52),
+        Inches(5.35),
+        Inches(1.55),
+        size=12,
+        color=BODY,
+    )
+
+    rect(slide, Inches(6.72), Inches(2.0), Inches(5.7), Inches(2.55), CARD_INF)
+    card_title(slide, "LIMITS OF CURRENT PRACTICE", Inches(6.92), Inches(2.16), Inches(5.3))
     rich_textbox(
         slide,
         bullet_lines(
             [
-                "Training optimizes the one2many auxiliary head",
-                "Inference uses the one2one head for final detections",
-                "These heads are architecturally separate",
+                "Many studies stop at one detector or one model family.",
+                "Older-model results do not guarantee the same failure mode on newer architectures.",
+                "Simple preprocessing defenses are often assumed to help without strong cross-model validation.",
             ],
-            RGBColor(0xCC, 0xCC, 0xCC),
+            BODY,
+            11,
         ),
-        lx + Inches(0.2),
-        Inches(4.55),
-        width - Inches(0.35),
-        Inches(1.0),
+        Inches(6.92),
+        Inches(2.52),
+        Inches(5.25),
+        Inches(1.55),
     )
 
-    rect(slide, rx, top, width, Inches(2.05), CARD_BG)
-    card_title(slide, "THREE EXPERIMENTS - SAME ANSWER", rx + Inches(0.2), top + Inches(0.15), width)
-    rich_textbox(
-        slide,
-        [
-            {"text": "Experiment                            Loss      Suppression", "size": 10, "color": DIM},
-            {"text": "Cold start - one2many loss           0.108     16.3%", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
-            {"text": "Warm start from v8n 90% patch        0.103     14.0%", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
-            {"text": "Cold start - one2one loss            0.094     11.6%", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
-        ],
-        rx + Inches(0.2),
-        top + Inches(0.5),
-        width - Inches(0.35),
-        Inches(1.2),
-    )
+    rect(slide, Inches(0.9), Inches(4.92), Inches(11.52), Inches(1.4), CARD_HL)
+    card_title(slide, "GAP ADDRESSED BY THIS PROJECT", Inches(1.1), Inches(5.08), Inches(11.0))
     textbox(
         slide,
-        "Better objective convergence -> less suppression. The relationship is inverted.",
-        rx + Inches(0.2),
-        top + Inches(1.72),
-        width - Inches(0.35),
-        Inches(0.25),
+        "This work compares direct suppression, transfer, and follow-up attack variants across three YOLO generations so the conclusions are tied to evidence rather than to a single-model anecdote.",
+        Inches(1.1),
+        Inches(5.38),
+        Inches(11.1),
+        Inches(0.7),
+        size=12,
+        color=BODY,
+    )
+
+
+def slide6_methodology(prs: Presentation, method_path: Path):
+    slide = blank_slide(prs)
+    tag(slide, "METHODOLOGY")
+    title_block(
+        slide,
+        [
+            {"text": "Novel", "size": 36, "bold": True, "color": WHITE},
+            {"text": "Approach", "size": 36, "bold": True, "color": GREEN},
+        ],
+    )
+
+    picture_card(slide, method_path, Inches(0.9), Inches(2.0), Inches(6.1), Inches(3.55), fill=CARD_BG, inner_fill=BG)
+    textbox(
+        slide,
+        "Train the patch, overlay it on the target person, evaluate detections, then measure transfer and follow-up variants.",
+        Inches(1.05),
+        Inches(5.62),
+        Inches(5.8),
+        Inches(0.35),
         size=10,
         color=DIM,
     )
 
-    rect(slide, rx, Inches(4.2), width, Inches(1.8), CARD_HL)
-    card_title(slide, "CONCLUSION", rx + Inches(0.2), Inches(4.35), width)
-    textbox(
+    right = Inches(7.25)
+    rect(slide, right, Inches(2.0), Inches(5.15), Inches(1.7), CARD_INF)
+    card_title(slide, "EXPERIMENTAL SETUP", right + Inches(0.2), Inches(2.16), Inches(4.8))
+    rich_textbox(
         slide,
-        "YOLO26n shows strong resistance to this attack class in the current setup. The matching architecture decouples the optimized objective from the inference path, so targeting either head in isolation did not break through.",
-        rx + Inches(0.2),
-        Inches(4.68),
-        width - Inches(0.35),
-        Inches(1.0),
-        size=12,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
-    )
-
-
-def slide7_arms_race(prs: Presentation):
-    slide = blank_slide(prs)
-    tag(slide, "DEFENSE TRACK - FINDINGS")
-    title_block(
-        slide,
-        [
-            {"text": "Automated", "size": 38, "bold": True, "color": WHITE},
-            {"text": "Arms Race", "size": 38, "bold": True, "color": BLUE},
-        ],
-    )
-
-    left = Inches(0.9)
-    right = Inches(7.15)
-
-    textbox(
-        slide,
-        "This slide uses the latest canonical cycle from YOLO-Bad-Triangle. The repo records 22 cycles overall, but this snapshot is cycle 22 from the current attack_then_defense series. Latest validated attacks: DeepFool, dispersion reduction, and square. Active defenses: JPEG, median filter, bit-depth reduction, and c_dog.",
-        left,
-        Inches(2.0),
-        Inches(5.8),
+        bullet_lines(
+            [
+                "Patch size: 100 x 100 pixels",
+                "Image size: 640 x 640",
+                "Common 48-image manifest for cross-model consistency",
+                "Evaluation on each model's clean person-detection subset",
+            ],
+            BODY,
+            11,
+        ),
+        right + Inches(0.2),
+        Inches(2.48),
+        Inches(4.75),
         Inches(1.15),
-        size=12,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
     )
 
-    rect(slide, left, Inches(3.1), Inches(5.8), Inches(1.7), CARD_BG)
-    rich_textbox(
-        slide,
-        [
-            {"text": "Config                                   mAP50      vs clean", "size": 10, "color": DIM},
-            {"text": "Clean baseline                           0.600      -", "size": 12, "color": GREEN},
-            {"text": "Worst latest-cycle attack   dispersion_reduction    0.238   -60%", "size": 11, "color": RED},
-            {"text": "Best latest-cycle defended config  square + c_dog  0.394   -34%", "size": 11, "color": YELLOW},
-        ],
-        left + Inches(0.2),
-        Inches(3.38),
-        Inches(5.4),
-        Inches(1.0),
-    )
-
-    rect(slide, right, Inches(2.0), Inches(5.25), Inches(2.35), CARD_INF)
-    card_title(slide, "ADVERSARIAL FINETUNING", right + Inches(0.2), Inches(2.15), Inches(4.8))
-    textbox(
-        slide,
-        "DPC-UNet denoiser checkpoint finetuned on adversarial image pairs (square x5 oversample + DeepFool + blur + square pairs). Candidate deployed only after clean A/B comparison against the current c_dog checkpoint.",
-        right + Inches(0.2),
-        Inches(2.48),
-        Inches(4.9),
-        Inches(1.0),
-        size=11,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
-    )
+    rect(slide, right, Inches(3.95), Inches(5.15), Inches(1.6), CARD_BG)
+    card_title(slide, "NOVEL ELEMENTS", right + Inches(0.2), Inches(4.11), Inches(4.8))
     rich_textbox(
         slide,
         bullet_lines(
             [
-                "Clean performance: +0.0025 mAP50 versus previous checkpoint - no regression",
-                "Attack resistance: delta within noise - no measurable gain yet",
+                "Direct self-evaluation on each YOLO model",
+                "Cross-model transfer matrix across generations",
+                "Joint-patch and warm-start follow-up experiments",
+                "Exportable proof and print artifacts for demonstration",
             ],
-            RGBColor(0xCC, 0xCC, 0xCC),
-            11,
-        ),
-        right + Inches(0.2),
-        Inches(3.5),
-        Inches(4.9),
-        Inches(0.65),
-    )
-
-    rect(slide, right, Inches(4.55), Inches(5.25), Inches(1.45), CARD_HL)
-    card_title(slide, "STATE OF PLAY", right + Inches(0.2), Inches(4.6), Inches(4.8))
-    textbox(
-        slide,
-        "No universal defense has emerged. In the current canonical series, c_dog is strongest on square, while median preprocessing is stronger on deepfool. Finetuning is clean-safe but has not yet produced a measurable robustness gain.",
-        right + Inches(0.2),
-        Inches(4.9),
-        Inches(4.9),
-        Inches(0.9),
-        size=11,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
-    )
-
-
-def slide8_engineering(prs: Presentation):
-    slide = blank_slide(prs)
-    tag(slide, "DEFENSE TRACK - METHODOLOGY")
-    title_block(
-        slide,
-        [
-            {"text": "Arms Race", "size": 38, "bold": True, "color": WHITE},
-            {"text": "Engineering", "size": 38, "bold": True, "color": BLUE},
-        ],
-    )
-
-    left = Inches(0.9)
-    right = Inches(7.15)
-
-    rect(slide, left, Inches(2.0), Inches(5.8), Inches(4.2), CARD_INF)
-    card_title(slide, "4-PHASE AUTOMATION PIPELINE", left + Inches(0.2), Inches(2.15), Inches(5.4))
-    rich_textbox(
-        slide,
-        bullet_lines(
-            [
-                "Phase 1 - Characterize: smoke-rank candidate attacks",
-                "Phase 2 - Matrix: smoke-rank candidate defenses against top attacks",
-                "Phase 3 - Tune: coordinate-descent best attack and defense params",
-                "Phase 4 - Validate + report: full-dataset mAP50 validation and artifact/report generation",
-            ],
-            RGBColor(0xCC, 0xCC, 0xCC),
-            11,
-        ),
-        left + Inches(0.2),
-        Inches(2.55),
-        Inches(5.4),
-        Inches(2.05),
-    )
-    textbox(
-        slide,
-        "Checkpoint promotion is a separate clean A/B step for the c_dog denoiser: deploy only if the candidate does not regress versus the current checkpoint.",
-        left + Inches(0.2),
-        Inches(4.62),
-        Inches(5.4),
-        Inches(0.55),
-        size=11,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
-    )
-    textbox(slide, "22", left + Inches(0.4), Inches(5.35), Inches(1.0), Inches(0.4), size=24, bold=True, color=GREEN, align=PP_ALIGN.CENTER)
-    textbox(slide, "4", left + Inches(2.15), Inches(5.35), Inches(1.0), Inches(0.4), size=24, bold=True, color=BLUE, align=PP_ALIGN.CENTER)
-    textbox(slide, "5", left + Inches(3.85), Inches(5.35), Inches(1.0), Inches(0.4), size=24, bold=True, color=YELLOW, align=PP_ALIGN.CENTER)
-    textbox(slide, "recorded cycles", left + Inches(0.2), Inches(5.73), Inches(1.4), Inches(0.2), size=9, color=DIM, align=PP_ALIGN.CENTER)
-    textbox(slide, "active defenses", left + Inches(1.8), Inches(5.73), Inches(1.7), Inches(0.2), size=9, color=DIM, align=PP_ALIGN.CENTER)
-    textbox(slide, "canonical post-switch cycles", left + Inches(3.2), Inches(5.73), Inches(2.3), Inches(0.2), size=8, color=DIM, align=PP_ALIGN.CENTER)
-
-    rect(slide, right, Inches(2.0), Inches(5.25), Inches(1.95), CARD_HL)
-    card_title(slide, "c_dog - STRONGEST SQUARE DEFENSE IN CYCLE 22", right + Inches(0.2), Inches(2.15), Inches(4.8))
-    textbox(
-        slide,
-        "A DPC-UNet denoiser that preprocesses inputs before YOLO inference. In cycle 22, square + c_dog improves mAP50 from 0.363 to 0.394. It is not the strongest defense on every attack.",
-        right + Inches(0.2),
-        Inches(2.48),
-        Inches(4.9),
-        Inches(1.05),
-        size=11,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
-    )
-    textbox(
-        slide,
-        "Current snapshot: square attack 0.363 -> square + c_dog 0.394",
-        right + Inches(0.2),
-        Inches(3.62),
-        Inches(4.9),
-        Inches(0.3),
-        size=11,
-        color=YELLOW,
-    )
-
-    rect(slide, right, Inches(4.18), Inches(5.25), Inches(2.0), CARD_BG)
-    card_title(slide, "ADVERSARIAL FINETUNING", right + Inches(0.2), Inches(4.25), Inches(4.8))
-    rich_textbox(
-        slide,
-        bullet_lines(
-            [
-                "Architecture: DPC-UNet denoiser checkpoint",
-                "Mix: square x5 oversample + DeepFool + blur + square pairs",
-                "Gate: deploy only if clean A/B does not regress vs current checkpoint",
-                "Result: +0.0025 clean mAP50 vs previous checkpoint - gate passed",
-                "Attack resistance: delta within noise - open problem",
-            ],
-            RGBColor(0xCC, 0xCC, 0xCC),
+            BODY,
             10,
         ),
         right + Inches(0.2),
-        Inches(4.58),
-        Inches(4.9),
-        Inches(1.45),
+        Inches(4.42),
+        Inches(4.75),
+        Inches(1.05),
     )
 
-
-def slide9_demo(prs: Presentation, patch_path: Path):
-    slide = blank_slide(prs)
-    tag(slide, "LIVE DEMONSTRATION")
-
-    left = Inches(0.9)
-    right = Inches(8.55)
-
-    textbox(slide, "Live Demo", left, Inches(1.25), Inches(5.5), Inches(0.8), size=40, bold=True, color=GREEN)
+    rect(slide, Inches(0.9), Inches(6.0), Inches(11.52), Inches(0.92), CARD_WN)
+    card_title(slide, "HOW SUCCESS WAS PROVEN", Inches(1.1), Inches(6.15), Inches(11.0))
     textbox(
         slide,
-        "Split-screen: clean YOLO detections on the left, patch digitally overlaid on the right.",
-        left,
-        Inches(2.2),
-        Inches(6.2),
-        Inches(0.55),
-        size=14,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
-    )
-    rule(slide, left, Inches(2.9), Inches(4.2))
-    rich_textbox(
-        slide,
-        bullet_lines(
-            [
-                "Patch: 100 x 100 px, YOLOv8n",
-                "Placed on the torso of the largest detected person",
-                "Rolling 30-frame suppression average",
-            ],
-            RGBColor(0xCC, 0xCC, 0xCC),
-            13,
-        ),
-        left,
-        Inches(3.1),
-        Inches(6.2),
-        Inches(0.95),
-    )
-    rule(slide, left, Inches(4.18), Inches(4.2))
-
-    rect(slide, left, Inches(4.45), Inches(6.4), Inches(1.6), CARD_WN)
-    card_title(slide, "PHYSICAL PRINT", left + Inches(0.2), Inches(4.58), Inches(6.0))
-    rich_textbox(
-        slide,
-        [
-            {"text": "Patch exported at 300 DPI, 8 x 8 inches.", "size": 12, "color": YELLOW},
-            {"text": "Physical demos underperform digital because printer color shift, lighting, and view angle perturb the patch.", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
-            {"text": "NPS loss during training partially compensates.", "size": 12, "color": RGBColor(0xCC, 0xCC, 0xCC)},
-        ],
-        left + Inches(0.2),
-        Inches(4.88),
-        Inches(6.0),
-        Inches(0.9),
-    )
-
-    if patch_path.exists():
-        slide.shapes.add_picture(str(patch_path), right, Inches(1.6), Inches(3.0), Inches(3.0))
-    rect(slide, right + Inches(0.05), Inches(4.85), Inches(2.9), Inches(0.7), CARD_BG)
-    textbox(
-        slide,
-        "YOLOv8n patch - 90% suppression\n100 x 100 px - shown 2x",
-        right + Inches(0.15),
-        Inches(5.0),
-        Inches(2.7),
-        Inches(0.4),
+        "Success was proven with clean-versus-patched person detections, suppression percentage, transfer outcomes, and follow-up experiments that tested whether weak results came from initialization or architecture.",
+        Inches(1.1),
+        Inches(6.36),
+        Inches(11.1),
+        Inches(0.35),
         size=10,
-        color=DIM,
-        align=PP_ALIGN.CENTER,
+        color=BODY,
     )
 
 
-def slide10_conclusions(prs: Presentation):
+def slide7_direct_results(prs: Presentation, proof_path: Path):
     slide = blank_slide(prs)
-    tag(slide, "CONCLUSIONS")
+    tag(slide, "RESULTS & DISCUSSION")
     title_block(
         slide,
         [
-            {"text": "What We", "size": 38, "bold": True, "color": WHITE},
-            {"text": "Learned", "size": 38, "bold": True, "color": GREEN},
+            {"text": "Direct", "size": 36, "bold": True, "color": WHITE},
+            {"text": "Suppression", "size": 36, "bold": True, "color": GREEN},
+        ],
+    )
+
+    picture_card(slide, proof_path, Inches(0.9), Inches(2.0), Inches(7.15), Inches(4.95), fill=CARD_BG, inner_fill=CARD_INF)
+    textbox(
+        slide,
+        "Primary proof object: the same scene before and after the patch, with the clean person detection removed in the patched frame.",
+        Inches(1.05),
+        Inches(6.58),
+        Inches(6.85),
+        Inches(0.35),
+        size=10,
+        color=DIM,
+    )
+
+    card_x = Inches(8.35)
+    card_w = Inches(4.05)
+    card_h = Inches(1.05)
+    starts = [Inches(2.08), Inches(3.32), Inches(4.56)]
+    values = [
+        ("90.0%", "YOLOv8n", "20 -> 2 detections | strongest direct result", CARD_HL, GREEN),
+        ("72.7%", "YOLO11n", "33 -> 9 detections | strong newer-model suppression", CARD_GOLD, YELLOW),
+        ("16.3%", "YOLO26n", "43 -> 36 detections | weak suppression despite low loss", CARD_WN, RED),
+    ]
+    for top, (value, title, detail, fill, color) in zip(starts, values):
+        rect(slide, card_x, top, card_w, card_h, fill)
+        textbox(slide, value, card_x + Inches(0.2), top + Inches(0.16), Inches(1.55), Inches(0.45), size=29, bold=True, color=color)
+        textbox(slide, title, card_x + Inches(1.82), top + Inches(0.16), Inches(1.95), Inches(0.22), size=13, bold=True)
+        textbox(slide, detail, card_x + Inches(1.82), top + Inches(0.48), Inches(1.95), Inches(0.28), size=9, color=DIM)
+
+    rect(slide, card_x, Inches(5.84), card_w, Inches(1.1), CARD_INF)
+    card_title(slide, "DISCUSSION", card_x + Inches(0.2), Inches(5.98), card_w)
+    textbox(
+        slide,
+        "v8n and v11n are strongly suppressible. YOLO26n is the exception, which makes the study more useful than a single success case.",
+        card_x + Inches(0.2),
+        Inches(6.2),
+        Inches(3.6),
+        Inches(0.48),
+        size=10,
+        color=BODY,
+    )
+
+
+def slide8_transfer(prs: Presentation, heatmap_path: Path):
+    slide = blank_slide(prs)
+    tag(slide, "RESULTS & DISCUSSION")
+    title_block(
+        slide,
+        [
+            {"text": "Transfer Across", "size": 34, "bold": True, "color": WHITE},
+            {"text": "Models", "size": 34, "bold": True, "color": BLUE},
+        ],
+    )
+
+    picture_card(slide, heatmap_path, Inches(0.9), Inches(2.0), Inches(6.95), Inches(4.95), fill=CARD_BG, inner_fill=BG)
+    textbox(
+        slide,
+        "Transfer exists across model generations, but it is not symmetric and it is weakest when YOLO26n is the target.",
+        Inches(1.05),
+        Inches(6.58),
+        Inches(6.65),
+        Inches(0.35),
+        size=10,
+        color=DIM,
+    )
+
+    right = Inches(8.12)
+    rect(slide, right, Inches(2.0), Inches(4.3), Inches(1.2), CARD_HL)
+    card_title(slide, "ASYMMETRY", right + Inches(0.2), Inches(2.15), Inches(4.0))
+    textbox(
+        slide,
+        "v11n -> v8n reached 55.0%, while v8n -> v11n reached 33.3%. Adversarial features did not transfer equally in both directions.",
+        right + Inches(0.2),
+        Inches(2.48),
+        Inches(3.95),
+        Inches(0.62),
+        size=11,
+        color=BODY,
+    )
+
+    rect(slide, right, Inches(3.45), Inches(4.3), Inches(1.7), CARD_INF)
+    card_title(slide, "TRANSFER MATRIX", right + Inches(0.2), Inches(3.6), Inches(4.0))
+    rich_textbox(
+        slide,
+        [
+            {"text": "v8n -> v11n: 33.3%", "size": 10, "color": BODY},
+            {"text": "v11n -> v8n: 55.0%", "size": 10, "color": BODY},
+            {"text": "v26n -> v8n: 45.0%", "size": 10, "color": BODY},
+            {"text": "v26n -> v11n: 24.2%", "size": 10, "color": BODY},
+            {"text": "v8n -> v26n: 14.0%", "size": 10, "color": BODY},
+            {"text": "v11n -> v26n: 9.3%", "size": 10, "color": BODY},
+        ],
+        right + Inches(0.2),
+        Inches(3.92),
+        Inches(3.95),
+        Inches(1.2),
+    )
+
+    rect(slide, right, Inches(5.42), Inches(4.3), Inches(1.53), CARD_BG)
+    card_title(slide, "FOLLOW-UP JOINT RESULT", right + Inches(0.2), Inches(5.57), Inches(4.0))
+    textbox(
+        slide,
+        "Even the best v26n-targeting joint patch only reached 18.6%, so the barrier is not just single-model overfitting.",
+        right + Inches(0.2),
+        Inches(5.88),
+        Inches(3.95),
+        Inches(0.7),
+        size=10,
+        color=BODY,
+    )
+
+
+def slide9_yolo26n(prs: Presentation, paradox_path: Path, print_path: Path):
+    slide = blank_slide(prs)
+    tag(slide, "RESULTS & DISCUSSION")
+    title_block(
+        slide,
+        [
+            {"text": "YOLO26n Limitation and", "size": 32, "bold": True, "color": WHITE},
+            {"text": "Tool Outputs", "size": 32, "bold": True, "color": RED},
+        ],
+    )
+
+    picture_card(slide, paradox_path, Inches(0.9), Inches(2.0), Inches(6.0), Inches(4.95), fill=CARD_BG, inner_fill=BG)
+    textbox(
+        slide,
+        "Low loss did not translate into strong suppression, which made YOLO26n the project's most important architecture-specific finding.",
+        Inches(1.05),
+        Inches(6.58),
+        Inches(5.7),
+        Inches(0.35),
+        size=10,
+        color=DIM,
+    )
+
+    right = Inches(7.15)
+    rect(slide, right, Inches(2.0), Inches(5.25), Inches(1.35), CARD_WN)
+    card_title(slide, "ARCHITECTURAL FINDING", right + Inches(0.2), Inches(2.15), Inches(4.8))
+    textbox(
+        slide,
+        "Direct suppression stalled at 16.3% despite low final detection loss, likely because training and inference use different detection heads.",
+        right + Inches(0.2),
+        Inches(2.48),
+        Inches(4.9),
+        Inches(0.85),
+        size=10,
+        color=BODY,
+    )
+
+    rect(slide, right, Inches(3.55), Inches(5.25), Inches(1.2), CARD_INF)
+    card_title(slide, "FOLLOW-UP CHECKS", right + Inches(0.2), Inches(3.7), Inches(4.8))
+    textbox(
+        slide,
+        "Warm-start reached 14.0%. A one2one follow-up reached 11.6%. That points to a structural limit, not a bad initialization.",
+        right + Inches(0.2),
+        Inches(4.02),
+        Inches(4.9),
+        Inches(0.62),
+        size=10,
+        color=BODY,
+    )
+
+    rect(slide, right, Inches(4.95), Inches(3.2), Inches(1.98), CARD_BG)
+    card_title(slide, "TOOL OUTPUTS", right + Inches(0.2), Inches(5.1), Inches(2.8))
+    rich_textbox(
+        slide,
+        [
+            {"text": "- learned patch artifact", "size": 9, "color": BODY},
+            {"text": "- clean-versus-patched proof images", "size": 9, "color": BODY},
+            {"text": "- transfer heatmap", "size": 9, "color": BODY},
+            {"text": "- print-ready export", "size": 9, "color": BODY},
+            {"text": "- JPEG/blur usually failed; crop-resize had isolated wins", "size": 9, "color": BODY},
+        ],
+        right + Inches(0.2),
+        Inches(5.35),
+        Inches(2.75),
+        Inches(1.4),
+    )
+
+    picture_card(slide, print_path, Inches(10.62), Inches(5.0), Inches(1.78), Inches(1.35), fill=CARD_INF, inner_fill=BG)
+
+
+def slide10_conclusion(prs: Presentation):
+    slide = blank_slide(prs)
+    tag(slide, "CONCLUSION")
+    title_block(
+        slide,
+        [
+            {"text": "Takeaways, Limits, and", "size": 32, "bold": True, "color": WHITE},
+            {"text": "Future Work", "size": 32, "bold": True, "color": GREEN},
         ],
     )
 
     card_w = Inches(3.6)
-    card_h = Inches(2.7)
-    y = Inches(2.35)
-    gap = Inches(0.4)
+    card_h = Inches(2.05)
+    y = Inches(2.1)
+    gap = Inches(0.36)
     x1 = Inches(0.9)
     x2 = x1 + card_w + gap
     x3 = x2 + card_w + gap
 
     rect(slide, x1, y, card_w, card_h, CARD_HL)
-    card_title(slide, "FRAMEWORK CONTRIBUTION", x1 + Inches(0.2), y + Inches(0.18), card_w)
+    card_title(slide, "TAKEAWAY 1", x1 + Inches(0.2), y + Inches(0.16), card_w)
     textbox(
         slide,
-        "Two complementary repos, not one merged pipeline: Adversarial_Patch reports cross-generation patch training and transfer on YOLOv8n, YOLO11n, and YOLO26n; YOLO-Bad-Triangle reports 22 recorded defense-cycle artifacts, with current canonical trends taken from the post-switch series.",
+        "Localized adversarial patches can strongly suppress person detection on some YOLO generations, especially YOLOv8n and YOLO11n.",
         x1 + Inches(0.2),
-        y + Inches(0.55),
-        card_w - Inches(0.3),
-        Inches(1.9),
+        y + Inches(0.5),
+        card_w - Inches(0.35),
+        Inches(1.2),
         size=12,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
+        color=BODY,
     )
 
     rect(slide, x2, y, card_w, card_h, CARD_INF)
-    card_title(slide, "ARCHITECTURE MATTERS", x2 + Inches(0.2), y + Inches(0.18), card_w)
+    card_title(slide, "TAKEAWAY 2", x2 + Inches(0.2), y + Inches(0.16), card_w)
     textbox(
         slide,
-        "YOLO26n's end-to-end matching breaks the usual assumption that optimizing the attack objective will directly reduce detections.",
+        "Transfer across models is real but asymmetric, so attack behavior cannot be summarized by a single success rate.",
         x2 + Inches(0.2),
-        y + Inches(0.55),
-        card_w - Inches(0.3),
-        Inches(1.9),
+        y + Inches(0.5),
+        card_w - Inches(0.35),
+        Inches(1.2),
         size=12,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
+        color=BODY,
     )
 
-    rect(slide, x3, y, card_w, card_h, CARD_GOLD)
-    card_title(slide, "OPEN QUESTIONS", x3 + Inches(0.2), y + Inches(0.18), card_w)
+    rect(slide, x3, y, card_w, card_h, CARD_WN)
+    card_title(slide, "MAIN LIMITATION", x3 + Inches(0.2), y + Inches(0.16), card_w)
     textbox(
         slide,
-        "Does the NMS-free shift require a new attack class, or can DETR-style matching-aware attacks port into YOLO26n? Physical robustness at scale remains open.",
+        "YOLO26n resisted the current attack formulation, which means better optimization alone is unlikely to solve the problem.",
         x3 + Inches(0.2),
-        y + Inches(0.55),
-        card_w - Inches(0.3),
-        Inches(1.9),
+        y + Inches(0.5),
+        card_w - Inches(0.35),
+        Inches(1.2),
         size=12,
-        color=RGBColor(0xCC, 0xCC, 0xCC),
+        color=BODY,
     )
 
-    rule(slide, Inches(0.9), Inches(5.65), Inches(11.5))
+    rect(slide, Inches(0.9), Inches(4.55), Inches(11.52), Inches(1.55), CARD_BG)
+    card_title(slide, "FUTURE WORK", Inches(1.1), Inches(4.72), Inches(11.0))
     textbox(
         slide,
-        "Attack repo -> github.com/Cmaddock99/Patch_Yolo\nDefense repo -> github.com/Cmaddock99/YOLO-Bad-Triangle",
-        Inches(0.9),
-        Inches(5.95),
-        Inches(11.5),
-        Inches(0.6),
-        size=11,
-        color=BLUE,
+        "Next steps are to design a matching-aware objective for YOLO26n, expand physical benchmarking, study placement robustness, and evaluate whether stronger cross-model attacks can preserve suppression without sacrificing portability.",
+        Inches(1.1),
+        Inches(5.05),
+        Inches(11.1),
+        Inches(0.8),
+        size=12,
+        color=BODY,
     )
 
 
 def main():
-    root = Path(__file__).parent.parent
-    patch_path = root / "outputs" / "yolov8n_patch_v2" / "patches" / "patch.png"
-    out_path = root / "deck.pptx"
+    patch_path = ROOT / "outputs" / "yolov8n_patch_v2" / "patches" / "patch.png"
+    proof_path = ASSET_DIR / "yolov8n_proof_pair.png"
+    method_path = ASSET_DIR / "method_pipeline.png"
+    heatmap_path = ASSET_DIR / "transfer_heatmap.png"
+    paradox_path = ASSET_DIR / "yolo26n_paradox.png"
+    print_path = ASSET_DIR / "patch_print_inset.png"
+    final_path = ROOT / "adversarial_patch_presentation.pptx"
+    legacy_path = ROOT / "deck.pptx"
 
     prs = new_prs()
     slide1_title(prs)
-    slide2_pipeline(prs)
-    slide3_results(prs)
-    slide4_bad_triangle(prs)
-    slide5_preprocessing(prs)
-    slide6_paradox(prs)
-    slide7_arms_race(prs)
-    slide8_engineering(prs)
-    slide9_demo(prs, patch_path)
-    slide10_conclusions(prs)
-    prs.save(out_path)
-    print(f"Saved: {out_path}")
+    slide2_quad_chart(prs, patch_path)
+    slide3_abstract(prs)
+    slide4_introduction(prs)
+    slide5_background(prs)
+    slide6_methodology(prs, method_path)
+    slide7_direct_results(prs, proof_path)
+    slide8_transfer(prs, heatmap_path)
+    slide9_yolo26n(prs, paradox_path, print_path)
+    slide10_conclusion(prs)
+    prs.save(final_path)
+    copy2(final_path, legacy_path)
+    print(f"Saved: {final_path}")
+    print(f"Copied: {legacy_path}")
 
 
 if __name__ == "__main__":
