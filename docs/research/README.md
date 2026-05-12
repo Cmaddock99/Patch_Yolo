@@ -16,7 +16,6 @@ This directory holds the human-curated research layer for the project. For the m
 |---|---|
 | [research_working_packet_audit_2026_04_15.md](research_working_packet_audit_2026_04_15.md) | Current literature working state as of 2026-04-15: 56 notes, 55 effective local PDFs, 3 blocker notes. |
 | [full_note_repo_benefit_refresh_2026_04_23.md](full_note_repo_benefit_refresh_2026_04_23.md) | Later refresh of how each note maps to repo experiments. |
-| [presentation_repo_survey_2026_04_16.md](presentation_repo_survey_2026_04_16.md) | Snapshot of repo state used to draft the presentation deck. |
 
 ## Process notes and synthesis drafts
 

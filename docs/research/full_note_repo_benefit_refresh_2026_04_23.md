@@ -2,7 +2,7 @@
 
 ## 1. Supersession & Scope
 
-**This document supersedes** `docs/research/repo_benefit_spec.md` (2026-04-16) and `docs/research/presentation_repo_survey_2026_04_16.md` (2026-04-16) as the current source of truth for repo-benefit extraction from the full-note corpus. Both predecessors remain in-tree as historical context but should not be cited against current repo state.
+**This document supersedes** `docs/research/repo_benefit_spec.md` (2026-04-16) and the earlier presentation-oriented repo survey from 2026-04-16 as the current source of truth for repo-benefit extraction from the full-note corpus. Those predecessors should not be cited against current repo state.
 
 **Corpus freeze date**: 2026-04-23. **Input set**: 78 `page_cited` notes in `docs/notes/`. **Excluded from evidence**: 10 `blocked_access` notes and 1 template/unclassified note. This corrects the stale `8 blocked_access` count still present in the 2026-04-16 syntheses.
 

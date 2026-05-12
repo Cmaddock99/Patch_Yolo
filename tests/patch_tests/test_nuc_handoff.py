@@ -7,7 +7,7 @@ import unittest
 from unittest import mock
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
 from scripts import run_colab_patch_job, run_nuc_handoff

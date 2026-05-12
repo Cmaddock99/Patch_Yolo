@@ -1,6 +1,19 @@
 # Research Workspace
 
-This directory is the machine-generated research layer for the repo. It is intentionally separate from `docs/`, which remains the curated, citation-safe knowledge base.
+This directory is the machine-generated research layer for the repo. It is
+intentionally separate from both the adversarial patch execution pipeline and
+from `docs/`, which remains the curated, citation-safe knowledge base.
+
+## Boundary With The Patch Pipeline
+
+- `research/` exists to discover, rank, and summarize literature.
+- `experiments/`, top-level `configs/`, top-level `data/`, `outputs/`, and the
+  Colab orchestration scripts are the patch pipeline.
+- Research scripts must not become runtime dependencies of the patch training or
+  evaluation path.
+- If a document is human-reviewed and citation-safe, it belongs in `docs/`; if
+  it is machine-generated intermediate research state, it belongs in
+  `research/data/`.
 
 ## What Lives Here
 
